@@ -44,13 +44,14 @@ func TestUsersController(t *testing.T) {
 	})
 
 	t.Run("users [no auth] to GET it failure: login", func(t *testing.T) {
-		flashError := noAuth.GET("/users").
+		result := noAuth.GET("/users").
 			Expect().
 			// redirect @route: /login
 			// HTTP response status: 200 OK
-			Status(http.StatusOK).
-			Body().Raw()
+			Status(http.StatusOK)
 
+		// TODO: must compile $1, $2 or $n ?
+		flashError := result.Body().Raw()
 		regex := regexp.MustCompile(`<p class\="text-danger">\*(.*)</p>`)
 		match := regex.FindString(flashError)
 
