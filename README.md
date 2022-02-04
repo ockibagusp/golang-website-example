@@ -26,11 +26,11 @@ file: golang-website-example.sql -> new database: golang-website-example_test
 
 ## User Tables
 
-| Username | Password |
-| --- | --- |
-| ockibagusp | user123 |
-| sugriwa | user123 |
-| subali | user123 |
+| Username | Password | is Admin |
+| --- | --- | --- |
+| web-admin | admin123 | yes |
+| sugriwa | user123 | no |
+| subali | user123 | no |
 
 
 ## Router
@@ -108,7 +108,6 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
 
 ## TODO List
 - mock unit test
-- session: IsAdmin, IsUser and IsAuth
 - list pagination with next, previous, first and last
 - Mutex: BankAccount
 - too much
