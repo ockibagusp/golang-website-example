@@ -44,13 +44,14 @@ func TestUsersController(t *testing.T) {
 	})
 
 	t.Run("users [no auth] to GET it failure: login", func(t *testing.T) {
-		flashError := noAuth.GET("/users").
+		result := noAuth.GET("/users").
 			Expect().
 			// redirect @route: /login
 			// HTTP response status: 200 OK
-			Status(http.StatusOK).
-			Body().Raw()
+			Status(http.StatusOK)
 
+		// TODO: must compile $1, $2 or $n ?
+		flashError := result.Body().Raw()
 		regex := regexp.MustCompile(`<p class\="text-danger">\*(.*)</p>`)
 		match := regex.FindString(flashError)
 
@@ -164,10 +165,10 @@ func TestCreateUserController(t *testing.T) {
 					Status(test.status)
 
 				if test.isFlashSuccess {
-					successMessage := result.Body().Raw()
+					flashSuccess := result.Body().Raw()
 
 					regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-					match := regex.FindString(successMessage)
+					match := regex.FindString(flashSuccess)
 
 					actual := fmt.Sprintf("<strong>success:</strong> %s!", test.flashSuccessActual)
 
@@ -175,11 +176,11 @@ func TestCreateUserController(t *testing.T) {
 				}
 
 				if test.isFlashError {
-					errorMessage := result.Body().Raw()
+					flashError := result.Body().Raw()
 
 					actual := fmt.Sprintf("<strong>error:</strong> %s", test.flashErrorActual)
 					regex := regexp.MustCompile(actual)
-					match := regex.FindString(errorMessage)
+					match := regex.FindString(flashError)
 
 					assert.Equal(t, match, actual)
 				}
@@ -385,10 +386,10 @@ func TestUpdateUserController(t *testing.T) {
 					Status(test.status)
 
 				if test.isFlashSuccess {
-					successMessage := result.Body().Raw()
+					flashSuccess := result.Body().Raw()
 
 					regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-					match := regex.FindString(successMessage)
+					match := regex.FindString(flashSuccess)
 
 					actual := fmt.Sprintf("<strong>success:</strong> %s", test.flashSuccessActual)
 
@@ -574,10 +575,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 					Status(test.status)
 
 				if test.isFlashSuccess {
-					successMessage := result.Body().Raw()
+					flashSuccess := result.Body().Raw()
 
 					regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-					match := regex.FindString(successMessage)
+					match := regex.FindString(flashSuccess)
 
 					actual := fmt.Sprintf("<strong>success:</strong> %s", test.flashSuccessActual)
 
@@ -685,10 +686,10 @@ func TestDeleteUserController(t *testing.T) {
 				Status(test.status)
 
 			if test.isFlashSuccess {
-				successMessage := result.Body().Raw()
+				flashSuccess := result.Body().Raw()
 
 				regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-				match := regex.FindString(successMessage)
+				match := regex.FindString(flashSuccess)
 
 				actual := fmt.Sprintf("<strong>success:</strong> %s", test.flashSuccessActual)
 
