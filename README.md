@@ -1,25 +1,25 @@
-# Hello
+# golang-website-example
 Golang Echo and html template. 
 
 
 ### Visual Studio Code
 
-#### Run and Debug: [launch.json](https://github.com/ockibagusp/hello/blob/master/.vscode/launch.json).
+#### Run and Debug: [launch.json](https://github.com/ockibagusp/golang-website-example/blob/master/.vscode/launch.json).
 
 
 ## Getting Started
 First, clone the repo:
 ```bash
-$ git clone https://github.com/ockibagusp/hello.git
+$ git clone https://github.com/ockibagusp/golang-website-example.git
 ```
 
 ### Setting MySQL database
 
 #### Database 
-file: hello.sql -> new database: hello
+file: golang-website-example.sql -> new database: golang-website-example
 
 #### Testing
-file: hello.sql -> new database: hello_test
+file: golang-website-example.sql -> new database: golang-website-example_test
 
 ## User Tables
 
@@ -31,10 +31,10 @@ file: hello.sql -> new database: hello_test
 
 
 ## Router
-This using [router](https://github.com/ockibagusp/hello/blob/master/router/router.go).
+This using [router](https://github.com/ockibagusp/golang-website-example/blob/master/router/router.go).
 
 ## httpexpect: Test for Debug
-This using [debug](https://github.com/ockibagusp/hello/blob/master/test/main_test.go).
+This using [debug](https://github.com/ockibagusp/golang-website-example/blob/master/test/main_test.go).
 
 Optional. Default value @debug: {true} or {1}.
 
@@ -81,25 +81,25 @@ $ go build
 - On Linux or Mac:
 
     ```
-    $ ./hello
+    $ ./golang-website-example
     ```
 
 - On  Windows:
 
     ```
-    $ hello.exe
+    $ golang-website-example.exe
     ```
 
 #### Test the packages
 
 ```
-$ go test github.com/ockibagusp/hello/test 
+$ go test github.com/ockibagusp/golang-website-example/test 
 ```
 
 or, verbose output (-v) flag:
 
 ```
-$ go test github.com/ockibagusp/hello/test -v
+$ go test github.com/ockibagusp/golang-website-example/test -v
 ```
 
 

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/ockibagusp/hello/models"
-	"github.com/ockibagusp/hello/types"
+	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/types"
 	"github.com/stretchr/testify/assert"
 )
 

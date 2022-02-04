@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	dbManager "github.com/ockibagusp/hello/db"
+	dbManager "github.com/ockibagusp/golang-website-example/db"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )

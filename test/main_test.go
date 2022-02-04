@@ -174,7 +174,7 @@ func TestMain(m *testing.M) {
 	// TODO: go test main_test.go ?
 	// ----
 	// cannot find package "." in:
-	// /home/ockibagusp/go/src/github.com/ockibagusp/hello/vendor/main_test.go
+	// /home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/main_test.go
 	exit := m.Run()
 	os.Exit(exit)
 }

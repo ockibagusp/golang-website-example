@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/ockibagusp/hello/controllers"
-	"github.com/ockibagusp/hello/router"
+	"github.com/ockibagusp/golang-website-example/controllers"
+	"github.com/ockibagusp/golang-website-example/router"
 )
 
 func main() {

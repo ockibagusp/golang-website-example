@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/ockibagusp/hello/db"
+	"github.com/ockibagusp/golang-website-example/db"
 	"gorm.io/gorm"
 )
 

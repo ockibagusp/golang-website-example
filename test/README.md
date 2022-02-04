@@ -1,4 +1,4 @@
-### hello/test
+### golang-website-example/test
 
 #### Test the packages
 

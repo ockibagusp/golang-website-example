@@ -5,8 +5,8 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/ockibagusp/hello/controllers"
-	"github.com/ockibagusp/hello/template"
+	"github.com/ockibagusp/golang-website-example/controllers"
+	"github.com/ockibagusp/golang-website-example/template"
 )
 
 // Router init

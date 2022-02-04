@@ -1,4 +1,4 @@
-module github.com/ockibagusp/hello
+module github.com/ockibagusp/golang-website-example
 
 go 1.14
 

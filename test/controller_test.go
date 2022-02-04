@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	c "github.com/ockibagusp/hello/controllers"
-	"github.com/ockibagusp/hello/router"
+	c "github.com/ockibagusp/golang-website-example/controllers"
+	"github.com/ockibagusp/golang-website-example/router"
 	"github.com/stretchr/testify/assert"
 )
 

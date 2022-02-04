@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ockibagusp/hello/config"
+	"github.com/ockibagusp/golang-website-example/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/hello/middleware"
+	"github.com/ockibagusp/golang-website-example/middleware"
 	log "github.com/sirupsen/logrus"
 )
 

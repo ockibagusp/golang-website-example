@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/hello/middleware"
-	"github.com/ockibagusp/hello/models"
-	"github.com/ockibagusp/hello/types"
+	"github.com/ockibagusp/golang-website-example/middleware"
+	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/types"
 	log "github.com/sirupsen/logrus"
 )
 

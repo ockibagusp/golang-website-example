@@ -4,8 +4,8 @@ __debug_bin
 gin-bin
 
 # build
-hello
-hello.exe
+golang-website-example
+golang-website-example.exe
 
 # air
 .air.toml
