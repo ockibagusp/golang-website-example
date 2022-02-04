@@ -1,6 +1,9 @@
 # golang-website-example
 Golang Echo and html template. 
 
+> move GitHub repository for [hello](https://github.com/ockibagusp/hello) to [golang-website-example](#)
+
+
 
 ### Visual Studio Code
 
