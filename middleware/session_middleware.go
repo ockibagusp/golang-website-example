@@ -77,11 +77,10 @@ func SetSession(user models.User, c echo.Context) (session_gorilla *sessions.Ses
 
 	session_gorilla.Values["username"] = user.Username
 	if user.IsAdmin == 1 {
-		session_gorilla.Values["is_auth_type"] = 1 // admin: 1 and user: 2
-	} // or,
-	// else if user.IsAdmin == 0 {
-	//	session_gorilla.Values["is_auth_type"] = 2 // admin: 1 and user: 2
-	// }
+		session_gorilla.Values["is_auth_type"] = 1 // admin: 1
+	} else if user.IsAdmin == 0 {
+		session_gorilla.Values["is_auth_type"] = 2 // user: 2
+	}
 	session_gorilla.Save(c.Request(), c.Response())
 
 	return
