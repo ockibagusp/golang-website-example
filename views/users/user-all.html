@@ -46,6 +46,7 @@
                 <th style="width: 30px">ID</th>
                 <th>Username</th>
                 <th>Name</th>
+                <th>Is Admin</th>
                 <th>Action</th>
               </tr>
               {{range $user := .users}}
@@ -58,6 +59,13 @@
                 </td>
                 <td>
                   {{$user.Name}}
+                </td>
+                <td>
+                  {{if eq $user.IsAdmin 1}}
+                    yes
+                  {{else}}
+                    no
+                  {{end}}
                 </td>
                 <td style="width: 195px">
                   <a
