@@ -34,7 +34,7 @@ func truncateUsers(db *gorm.DB) {
 
 func TestUsersController(t *testing.T) {
 	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth)
+	auth := setupTestServerAuth(noAuth, 0)
 
 	t.Run("users [auth] to GET it success", func(t *testing.T) {
 		auth.GET("/users").
@@ -64,7 +64,7 @@ func TestUsersController(t *testing.T) {
 
 func TestCreateUserController(t *testing.T) {
 	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth)
+	auth := setupTestServerAuth(noAuth, 0)
 
 	// test for db users
 	truncateUsers(db)
@@ -201,7 +201,7 @@ func TestCreateUserController(t *testing.T) {
 
 func TestReadUserController(t *testing.T) {
 	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth)
+	auth := setupTestServerAuth(noAuth, 0)
 
 	// test for db users
 	truncateUsers(db)
@@ -286,7 +286,7 @@ func TestReadUserController(t *testing.T) {
 
 func TestUpdateUserController(t *testing.T) {
 	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth)
+	auth := setupTestServerAuth(noAuth, 0)
 
 	// test for db users
 	truncateUsers(db)
@@ -412,7 +412,7 @@ func TestUpdateUserController(t *testing.T) {
 
 func TestUpdateUserByPasswordUserController(t *testing.T) {
 	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth)
+	auth := setupTestServerAuth(noAuth, 0)
 
 	// test for db users
 	truncateUsers(db)
@@ -601,7 +601,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 
 func TestDeleteUserController(t *testing.T) {
 	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth)
+	auth := setupTestServerAuth(noAuth, 0)
 
 	// test for db users
 	truncateUsers(db)

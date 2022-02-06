@@ -9,7 +9,7 @@ func TestAboutSuccess(t *testing.T) {
 	noAuth := setupTestServer(t)
 
 	t.Run("about success", func(t *testing.T) {
-		auth := setupTestServerAuth(noAuth)
+		auth := setupTestServerAuth(noAuth, 0)
 		auth.GET("/about").
 			Expect().
 			Status(http.StatusOK)

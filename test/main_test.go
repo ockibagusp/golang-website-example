@@ -102,9 +102,19 @@ func setupTestServerNoAuthCSRF(e *httpexpect.Expect) (noAuthCSRF *httpexpect.Exp
 
 // Setup test server authentication
 // request with cookie session and csrf
-func setupTestServerAuth(e *httpexpect.Expect) (auth *httpexpect.Expect) {
+//
+// @type is_admin: 1 admin and 0 user.
+func setupTestServerAuth(e *httpexpect.Expect, is_admin int) (auth *httpexpect.Expect) {
 	auth = e.Builder(func(request *httpexpect.Request) {
-		// TODO: if (isAdmin or isUser: bool) {...}
+		var session string
+		if is_admin == 1 {
+			session = session_admin
+		} else if is_admin == 0 {
+			session = session_user
+		} else {
+			panic("type is_admin: 1=admin or 0=user")
+		}
+
 		request.WithCookies(map[string]string{
 			"_csrf":   csrfToken,
 			"session": session,
@@ -143,11 +153,17 @@ func setupTestServerAuth(e *httpexpect.Expect) (auth *httpexpect.Expect) {
 	"username" = "ockibagusp"
 	"is_auth_type" = 2
 */
-// session: 23 Jan 2022
-const session = "MTY0MjkzNDIwNnxEdi1CQkFFQ180SUFBUkFCRUFBQVNfLUNBQUlHYzNSeWFXNW5EQ" +
-	"W9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dNQUFwdlkydHBZbUZuZFhOd0JuTjBjbWx1Wnd3T0FBeH" +
-	"BjMTloZFhSb1gzUjVjR1VEYVc1MEJBSUFCQT09fDoaOeOnXeVm_zXJUWYidClXXXB3KevfkiI4v2O" +
-	"33QQ-"
+// session_user: 23 Jan 2022
+// username: ockibagusp
+const session_user = "MTY0MjkzNDIwNnxEdi1CQkFFQ180SUFBUkFCRUFBQVNfLUNBQUlHYzNSeWFXNW5EQ" +
+	"W9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dNQUFwdlkydHBZbUZuZFhOd0JuTjBjbWx1Wnd3T0FBeHBjMTl" +
+	"oZFhSb1gzUjVjR1VEYVc1MEJBSUFCQT09fDoaOeOnXeVm_zXJUWYidClXXXB3KevfkiI4v2O33QQ-"
+
+// session_admin: 6 Feb 2022
+// username: admin
+const session_admin = "MTY0NDE0ODU3MHxEdi1CQkFFQ180SUFBUkFCRUFBQVJ2LUNBQUlHYzNSeWFXNW5E" +
+	"QW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dIQUFWaFpHMXBiZ1p6ZEhKcGJtY01EZ0FNYVhOZllYVjBhRj" +
+	"kwZVhCbEEybHVkQVFDQUFJPXxtxAIODyK4IVnBC8QT410I7adyvV1ziyqjm5jqsIoN0A=="
 
 /*
 	Cross Site Request Forgery (CSRF)
