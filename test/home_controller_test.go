@@ -49,7 +49,10 @@ func TestHomeController(t *testing.T) {
 		{
 			name:   "home [user] success",
 			expect: auth_user,
-			navbar: regex{},
+			navbar: regex{
+				must_compile: `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">(.*)</a>`,
+				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
+			},
 			jumbotron: regex{
 				must_compile: `<p class="lead">(.*)</p>`,
 				actual:       `<p class="lead">User.</p>`,
