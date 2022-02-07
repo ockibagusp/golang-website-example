@@ -112,7 +112,7 @@ func setupTestServerAuth(e *httpexpect.Expect, is_admin int) (auth *httpexpect.E
 		} else if is_admin == 0 {
 			session = session_user
 		} else {
-			panic("type is_admin: 1=admin or 0=user")
+			panic("func setupTestServerAuth is type is_admin: 1=admin or 0=user")
 		}
 
 		request.WithCookies(map[string]string{
