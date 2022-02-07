@@ -16,11 +16,6 @@ func TestHomeController(t *testing.T) {
 	auth_admin := setupTestServerAuth(no_auth, 1)
 	auth_user := setupTestServerAuth(no_auth, 0)
 
-	type regex struct {
-		must_compile string
-		actual       string
-	}
-
 	testCases := []struct {
 		name      string
 		expect    *httpexpect.Expect // auth_admin, auth_user or no-auth
