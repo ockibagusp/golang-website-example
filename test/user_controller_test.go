@@ -52,7 +52,7 @@ func TestUsersController(t *testing.T) {
 
 		// TODO: must compile $1, $2 or $n ?
 		flashError := result.Body().Raw()
-		regex := regexp.MustCompile(`<p class\="text-danger">\*(.*)</p>`)
+		regex := regexp.MustCompile(`<p class="text-danger">*(.*)</p>`)
 		match := regex.FindString(flashError)
 
 		actual := `<p class="text-danger">*login!</p>`
