@@ -29,14 +29,17 @@ func TestLogin(t *testing.T) {
 		Name:     "Ocki Bagus Pratama",
 	}.Save(db)
 
+	type flash struct {
+		success_message string
+		error_message   string
+	}
+
 	testCases := []struct {
-		method       int
-		name         string
-		user         types.LoginForm
-		flashMessage bool
-		// TODO: flash error for string
-		flashErrorForString string
-		status              int
+		method int
+		name   string
+		user   types.LoginForm
+		flash  flash
+		status int
 	}{
 		{
 			method: GET,
@@ -61,36 +64,38 @@ func TestLogin(t *testing.T) {
 				Username: "ockibagusp",
 				Password: "<bad password>",
 			},
-			flashMessage:        true,
-			flashErrorForString: "username or password not match",
+			flash: flash{
+				error_message: "username or password not match",
+			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			if tc.method == GET {
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			if test.method == GET {
 				noAuth.GET("/login").
 					Expect().
-					Status(tc.status)
+					Status(test.status)
 				return
 			}
 			// tc.method == POST
-			flashError := noAuthCSRF.POST("/login").
-				WithForm(tc.user).
+			result := noAuthCSRF.POST("/login").
+				WithForm(test.user).
 				WithFormField("X-CSRF-Token", csrfToken).
 				Expect().
-				Status(tc.status).
-				Body().Raw()
-
-			actual := fmt.Sprintf(`<p class="text-danger">*%s</p>`, tc.flashErrorForString)
-
-			regex := regexp.MustCompile(`<p class\="text-danger">\*(.*)</p>`)
-			match := regex.FindString(flashError)
+				Status(test.status)
 
 			// flash message: "username or password not match"
-			if tc.flashMessage {
+			if test.flash.error_message != "" {
+				result_body := result.Body().Raw()
+
+				actual := fmt.Sprintf(`<p class="text-danger">*%s</p>`, test.flash.error_message)
+
+				regex := regexp.MustCompile(`<p class="text-danger">*(.*)</p>`)
+				match := regex.FindString(result_body)
+
 				assert.Equal(t, match, actual)
 			}
 		})
