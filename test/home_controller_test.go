@@ -62,7 +62,7 @@ func TestHomeController(t *testing.T) {
 
 	for _, test := range testCases {
 		var result *httpexpect.Response
-		expect := test.expect // auth or no-auth
+		expect := test.expect // auth_admin, auth_user or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
 			result = expect.GET("/").
