@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
@@ -33,7 +32,7 @@ func TestLogin(t *testing.T) {
 		method int
 		name   string
 		user   types.LoginForm
-		flash  flash
+		flash  regex
 		status int
 	}{
 		{
@@ -59,8 +58,9 @@ func TestLogin(t *testing.T) {
 				Username: "ockibagusp",
 				Password: "<bad password>",
 			},
-			flash: flash{
-				error_message: "username or password not match",
+			flash: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*username or password not match</p>`,
 			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
@@ -83,15 +83,13 @@ func TestLogin(t *testing.T) {
 				Status(test.status)
 
 			// flash message: "username or password not match"
-			if test.flash.error_message != "" {
+			if (test.flash.must_compile == "") && (test.flash.actual == "") {
 				result_body := result.Body().Raw()
 
-				actual := fmt.Sprintf(`<p class="text-danger">*%s</p>`, test.flash.error_message)
-
-				regex := regexp.MustCompile(`<p class="text-danger">*(.*)</p>`)
+				regex := regexp.MustCompile(test.flash.must_compile)
 				match := regex.FindString(result_body)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(t, match, test.flash.actual)
 			}
 		})
 	}
