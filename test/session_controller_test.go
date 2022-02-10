@@ -29,11 +29,6 @@ func TestLogin(t *testing.T) {
 		Name:     "Ocki Bagus Pratama",
 	}.Save(db)
 
-	type flash struct {
-		success_message string
-		error_message   string
-	}
-
 	testCases := []struct {
 		method int
 		name   string

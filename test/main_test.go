@@ -182,11 +182,6 @@ var csrfToken string
 // 		   					-----------------------------
 // var csrfTokenExpires time.Time
 
-type regex struct {
-	must_compile string
-	actual       string
-}
-
 func TestServer(t *testing.T) {
 	//
 }
