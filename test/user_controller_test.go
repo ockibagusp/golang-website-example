@@ -55,9 +55,9 @@ func TestUsersController(t *testing.T) {
 		regex := regexp.MustCompile(`<p class="text-danger">*(.*)</p>`)
 		match := regex.FindString(flashError)
 
-		actual := `<p class="text-danger">*login!</p>`
+		actual := `<p class="text-danger">*login process failed!</p>`
 
-		// flash message: "login!"
+		// flash message: "login process failed!"
 		assert.Equal(t, match, actual)
 	})
 }

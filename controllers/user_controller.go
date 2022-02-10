@@ -31,7 +31,7 @@ func (controller *Controller) Users(c echo.Context) error {
 
 	if session.Values["is_auth_type"] == -1 {
 		log.Warn("for GET to users without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login!")
+		middleware.SetFlashError(c, "login process failed!")
 		log.Warn("END request method GET for users: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
@@ -225,7 +225,7 @@ func (controller *Controller) ReadUser(c echo.Context) error {
 	})
 	if session.Values["is_auth_type"] == -1 {
 		log.Warn("for GET to read user without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login!")
+		middleware.SetFlashError(c, "login process failed!")
 		log.Warn("END request method GET for read user: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
@@ -282,7 +282,7 @@ func (controller *Controller) UpdateUser(c echo.Context) error {
 	})
 	if session.Values["is_auth_type"] == -1 {
 		log.Warn("for GET to update user without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login!")
+		middleware.SetFlashError(c, "login process failed!")
 		log.Warn("END request method GET for update user: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
@@ -389,7 +389,7 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 	})
 	if session.Values["is_auth_type"] == -1 {
 		log.Warn("for GET to update user by password without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login!")
+		middleware.SetFlashError(c, "login process failed!")
 		log.Warn("END request method GET for read user: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
