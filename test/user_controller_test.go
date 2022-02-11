@@ -33,32 +33,60 @@ func truncateUsers(db *gorm.DB) {
 // }
 
 func TestUsersController(t *testing.T) {
-	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth, 0)
+	assert := assert.New(t)
 
-	t.Run("users [auth] to GET it success", func(t *testing.T) {
-		auth.GET("/users").
+	noAuth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(noAuth, 1)
+	auth_user := setupTestServerAuth(noAuth, 0)
+
+	t.Run("users [admin] to GET it success", func(t *testing.T) {
+		result := auth_admin.GET("/users").
 			Expect().
 			// HTTP response status: 200 OK
 			Status(http.StatusOK)
+
+		// TODO: must compile $1, $2 or $n ?
+		result_body := result.Body().Raw()
+		regex := regexp.MustCompile(`<a class="btn">(.*)</a>`)
+		match := regex.FindString(result_body)
+
+		actual := `<a class="btn">ADMIN</a>`
+
+		// flash message: "ADMIN"
+		assert.Equal(match, actual)
 	})
 
-	t.Run("users [no auth] to GET it failure: login", func(t *testing.T) {
+	t.Run("users [user] to GET it success", func(t *testing.T) {
+		result := auth_user.GET("/users").
+			Expect().
+			// HTTP response status: 200 OK
+			Status(http.StatusOK)
+
+		result_body := result.Body().Raw()
+		regex := regexp.MustCompile(`<a href="/users" (.*)</a>`)
+		match := regex.FindString(result_body)
+
+		actual := `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`
+
+		// flash message: "Users"
+		assert.Equal(match, actual)
+	})
+
+	t.Run("users [no-auth] to GET it failure: login", func(t *testing.T) {
 		result := noAuth.GET("/users").
 			Expect().
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			Status(http.StatusOK)
 
-		// TODO: must compile $1, $2 or $n ?
-		flashError := result.Body().Raw()
-		regex := regexp.MustCompile(`<p class="text-danger">*(.*)</p>`)
-		match := regex.FindString(flashError)
+		result_body := result.Body().Raw()
+		regex := regexp.MustCompile(`<p class="text-danger">*(.*)!</p>`)
+		match := regex.FindString(result_body)
 
 		actual := `<p class="text-danger">*login process failed!</p>`
 
 		// flash message: "login process failed!"
-		assert.Equal(t, match, actual)
+		assert.Equal(match, actual)
 	})
 }
 
