@@ -35,59 +35,59 @@ func truncateUsers(db *gorm.DB) {
 func TestUsersController(t *testing.T) {
 	assert := assert.New(t)
 
-	noAuth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(noAuth, 1)
-	auth_user := setupTestServerAuth(noAuth, 0)
+	no_auth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(no_auth, 1)
+	auth_user := setupTestServerAuth(no_auth, 0)
 
-	t.Run("users [admin] to GET it success", func(t *testing.T) {
-		result := auth_admin.GET("/users").
-			Expect().
-			// HTTP response status: 200 OK
-			Status(http.StatusOK)
+	testCases := []struct {
+		name   string
+		expect *httpexpect.Expect // auth_admin, auth_user or no-auth
+		navbar regex
+	}{
+		{
+			name:   "users [admin] to GET it success",
+			expect: auth_admin,
+			navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+		},
+		{
+			name:   "users [user] to GET it success",
+			expect: auth_user,
+			navbar: regex{
+				must_compile: `<a href="/users" (.*)</a>`,
+				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
+			},
+		},
+		{
+			name:   "users [no-auth] to GET it failure: login",
+			expect: no_auth,
+			navbar: regex{
+				must_compile: `<p class="text-danger">*(.*)!</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+	}
 
-		// TODO: must compile $1, $2 or $n ?
-		result_body := result.Body().Raw()
-		regex := regexp.MustCompile(`<a class="btn">(.*)</a>`)
-		match := regex.FindString(result_body)
+	for _, test := range testCases {
+		var result *httpexpect.Response
+		expect := test.expect // auth_admin, auth_user or no-auth
 
-		actual := `<a class="btn">ADMIN</a>`
+		t.Run(test.name, func(t *testing.T) {
+			result = expect.GET("/users").
+				Expect().
+				Status(http.StatusOK)
 
-		// flash message: "ADMIN"
-		assert.Equal(match, actual)
-	})
+			result_body := result.Body().Raw()
 
-	t.Run("users [user] to GET it success", func(t *testing.T) {
-		result := auth_user.GET("/users").
-			Expect().
-			// HTTP response status: 200 OK
-			Status(http.StatusOK)
+			// navbar nav
+			regex := regexp.MustCompile(test.navbar.must_compile)
+			match := regex.FindString(result_body)
 
-		result_body := result.Body().Raw()
-		regex := regexp.MustCompile(`<a href="/users" (.*)</a>`)
-		match := regex.FindString(result_body)
-
-		actual := `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`
-
-		// flash message: "Users"
-		assert.Equal(match, actual)
-	})
-
-	t.Run("users [no-auth] to GET it failure: login", func(t *testing.T) {
-		result := noAuth.GET("/users").
-			Expect().
-			// redirect @route: /login
-			// HTTP response status: 200 OK
-			Status(http.StatusOK)
-
-		result_body := result.Body().Raw()
-		regex := regexp.MustCompile(`<p class="text-danger">*(.*)!</p>`)
-		match := regex.FindString(result_body)
-
-		actual := `<p class="text-danger">*login process failed!</p>`
-
-		// flash message: "login process failed!"
-		assert.Equal(match, actual)
-	})
+			assert.Equal(match, test.navbar.actual)
+		})
+	}
 }
 
 func TestCreateUserController(t *testing.T) {
