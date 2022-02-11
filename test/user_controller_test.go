@@ -91,20 +91,26 @@ func TestUsersController(t *testing.T) {
 }
 
 func TestCreateUserController(t *testing.T) {
-	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth, 0)
+	no_auth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(no_auth, 1)
+	auth_user := setupTestServerAuth(no_auth, 0)
 
 	// test for db users
 	truncateUsers(db)
 
 	// database: just `users.username` varchar 15
-	userForm := types.UserForm{
+	user_form_sugriwa := types.UserForm{
 		Username:        "sugriwa",
 		Email:           "sugriwa@wanara.com",
 		Name:            "Sugriwa",
 		Password:        "user123",
 		ConfirmPassword: "user123",
 	}
+
+	user_form_subali := user_form_sugriwa
+	user_form_subali.Username = "subali"
+	user_form_subali.Email = "subali@wanara.com"
+	user_form_subali.Name = "subali"
 
 	testCases := []struct {
 		name   string
@@ -114,64 +120,76 @@ func TestCreateUserController(t *testing.T) {
 		status int
 
 		// flash message
-		isFlashSuccess     bool
-		flashSuccessActual string
-
-		isFlashError     bool
-		flashErrorActual string
-
-		// or,
-		//
-		// flash struct {
-		// 	success string
-		// 	error   string
-		// }
+		flash_success regex
+		flash_error   regex
 	}{
+		/*
+			GET create it success
+		*/
 		{
-			name:   "users [auth] to GET create it success",
-			expect: auth,
+			name:   "users [admin] to GET create it success",
+			expect: auth_admin,
 			method: GET,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [no auth] to GET create it success",
-			expect: noAuth,
+			name:   "users [user] to GET create it success",
+			expect: auth_user,
 			method: GET,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "user [auth] to POST create it success",
-			expect: auth,
+			name:   "users [no-auth] to GET create it success",
+			expect: no_auth,
+			method: GET,
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			POST create it success
+		*/
+		{
+			name:   "user [admin] to POST create it success",
+			expect: auth_admin,
 			method: POST,
-			form:   userForm,
+			form:   user_form_sugriwa,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			isFlashSuccess:     true,
-			flashSuccessActual: "success new user: sugriwa",
+			flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success new user: sugriwa!`,
+			},
 		},
+		{
+			name:   "user [user] to POST create it success",
+			expect: auth_user,
+			method: POST,
+			form:   user_form_subali,
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success new user: subali!`,
+			},
+		},
+
 		// Database: " Error 1062: Duplicate entry 'sugriwa@wanara.com' for key 'users.email_UNIQUE' "
 		{
-			name:   "users [no auth] to POST create it failure: Duplicate entry",
-			expect: noAuth,
+			name:   "users [no-auth] to POST create it failure: Duplicate entry",
+			expect: no_auth,
 			method: POST,
-			form:   userForm,
+			form:   user_form_sugriwa,
 			// HTTP response status: 400 Bad Request
 			status: http.StatusBadRequest,
 			// flash message error
-			isFlashError:     true,
-			flashErrorActual: "Error 1062: Duplicate entry",
-
-			// or,
-			//
-			// flash: struct {
-			// 	success string
-			// 	error   string
-			// }{
-			// 	error: "Error 1062: Duplicate entry",
-			// },
+			flash_error: regex{
+				must_compile: `<strong>error:</strong> (.*)`,
+				actual:       `<strong>error:</strong> Error 1062: Duplicate entry &#39;sugriwa@wanara.com&#39; for key &#39;users.email_UNIQUE&#39;!.`,
+			},
 		},
 	}
 
@@ -192,23 +210,25 @@ func TestCreateUserController(t *testing.T) {
 					Expect().
 					Status(test.status)
 
-				if test.isFlashSuccess {
-					flashSuccess := result.Body().Raw()
+				result_body := result.Body().Raw()
 
-					regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-					match := regex.FindString(flashSuccess)
-
-					actual := fmt.Sprintf("<strong>success:</strong> %s!", test.flashSuccessActual)
-
-					assert.Equal(t, match, actual)
+				var must_compile, actual string
+				var match_actual bool
+				if test.flash_success.must_compile != "" {
+					match_actual = true
+					must_compile = test.flash_success.must_compile
+					actual = test.flash_success.actual
 				}
 
-				if test.isFlashError {
-					flashError := result.Body().Raw()
+				if test.flash_error.must_compile != "" {
+					match_actual = true
+					must_compile = test.flash_error.must_compile
+					actual = test.flash_error.actual
+				}
 
-					actual := fmt.Sprintf("<strong>error:</strong> %s", test.flashErrorActual)
-					regex := regexp.MustCompile(actual)
-					match := regex.FindString(flashError)
+				if match_actual {
+					regex := regexp.MustCompile(must_compile)
+					match := regex.FindString(result_body)
 
 					assert.Equal(t, match, actual)
 				}
