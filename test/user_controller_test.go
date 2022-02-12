@@ -248,8 +248,9 @@ func TestCreateUserController(t *testing.T) {
 }
 
 func TestReadUserController(t *testing.T) {
-	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth, 0)
+	no_auth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(no_auth, 1)
+	auth_user := setupTestServerAuth(no_auth, 0)
 
 	// test for db users
 	truncateUsers(db)
@@ -261,45 +262,106 @@ func TestReadUserController(t *testing.T) {
 	}.Save(db)
 
 	testCases := []struct {
-		name   string
-		expect *httpexpect.Expect // auth or no-auth
-		method int                // method: 1=GET or 2=POST
-		path   string
-		status int
+		name        string
+		expect      *httpexpect.Expect // auth or no-auth
+		method      int                // method: 1=GET or 2=POST
+		path        string
+		status      int
+		flash_error regex
 	}{
+		/*
+			GET read it success
+		*/
 		{
-			name:   "users [auth] to GET read it success",
-			expect: auth,
+			name:   "users [auth_admin] to GET read it success",
+			expect: auth_admin,
 			method: GET,
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [auth] to GET read it failure: 1 session and no-id",
-			expect: auth,
+			name:   "users [auth_user] to GET read it success",
+			expect: auth_user,
+			method: GET,
+			path:   "1",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			GET read it failure
+		*/
+		{
+			name:   "users [auth_admin] to GET read it failure: 1 session and no-id",
+			expect: auth_admin,
 			method: GET,
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
 		},
 		{
-			name:   "users [no auth] to GET read it failure: 2 no-session and id",
-			expect: noAuth,
+			name:   "users [auth_user] to GET read it failure: 2 session and no-id",
+			expect: auth_user,
+			method: GET,
+			path:   "-1",
+			// HTTP response status: 406 Not Acceptable
+			status: http.StatusNotAcceptable,
+		},
+		{
+			name:   "users [no_auth] to GET read it failure: 3 session and id",
+			expect: no_auth,
 			method: GET,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 		{
-			name:   "users [no auth] to GET read it failure: 3 no-session and no-id",
-			expect: noAuth,
+			name:   "users [no_auth] to GET read it failure: 4 session and no-id",
+			expect: no_auth,
 			method: GET,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+		{
+			name:   "users [no_auth] to GET read it failure: 5 no-session and id",
+			expect: no_auth,
+			method: GET,
+			path:   "1",
+			// redirect @route: /login
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message
+			flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+		{
+			name:   "users [no_auth] to GET read it failure: 6 no-session and no-id",
+			expect: no_auth,
+			method: GET,
+			path:   "-1",
+			// redirect @route: /login
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message
+			flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 	}
 
@@ -317,6 +379,24 @@ func TestReadUserController(t *testing.T) {
 				result = expect.GET("/users/read/{id}", test.path).
 					Expect().
 					Status(test.status)
+
+				result_body := result.Body().Raw()
+
+				var must_compile, actual string
+				var match_actual bool
+
+				if test.flash_error.must_compile != "" {
+					match_actual = true
+					must_compile = test.flash_error.must_compile
+					actual = test.flash_error.actual
+				}
+
+				if match_actual {
+					regex := regexp.MustCompile(must_compile)
+					match := regex.FindString(result_body)
+
+					assert.Equal(t, match, actual)
+				}
 			} else {
 				panic("method: 1=GET")
 			}
