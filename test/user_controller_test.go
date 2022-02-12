@@ -380,22 +380,11 @@ func TestReadUserController(t *testing.T) {
 					Expect().
 					Status(test.status)
 
-				result_body := result.Body().Raw()
-
-				var must_compile, actual string
-				var match_actual bool
-
 				if test.flash_error.must_compile != "" {
-					match_actual = true
-					must_compile = test.flash_error.must_compile
-					actual = test.flash_error.actual
-				}
+					regex := regexp.MustCompile(test.flash_error.must_compile)
+					match := regex.FindString(result.Body().Raw())
 
-				if match_actual {
-					regex := regexp.MustCompile(must_compile)
-					match := regex.FindString(result_body)
-
-					assert.Equal(t, match, actual)
+					assert.Equal(t, match, test.flash_error.actual)
 				}
 			} else {
 				panic("method: 1=GET")
