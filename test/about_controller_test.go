@@ -14,11 +14,11 @@ func TestAboutSuccess(t *testing.T) {
 
 	no_auth := setupTestServer(t)
 	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_user := setupTestServerAuth(no_auth, 0)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
-	testCases := []struct {
+	test_cases := []struct {
 		name   string
-		expect *httpexpect.Expect // auth_admin, auth_user or no-auth
+		expect *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
 		navbar regex
 		text   regex
 	}{
@@ -41,7 +41,7 @@ func TestAboutSuccess(t *testing.T) {
 		},
 		{
 			name:   "home [user] success",
-			expect: auth_user,
+			expect: auth_sugriwa,
 			navbar: regex{
 				must_compile: `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">(.*)</a>`,
 				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
@@ -49,9 +49,9 @@ func TestAboutSuccess(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		var result *httpexpect.Response
-		expect := test.expect // auth_admin, auth_user or no-auth
+		expect := test.expect // auth_admin, auth_sugriwa or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
 			result = expect.GET("/about").

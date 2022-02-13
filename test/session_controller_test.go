@@ -16,8 +16,8 @@ const GET int = 1
 const POST = 2
 
 func TestLogin(t *testing.T) {
-	noAuth := setupTestServer(t)
-	noAuthCSRF := setupTestServerNoAuthCSRF(noAuth)
+	no_auth := setupTestServer(t)
+	no_auth_CSRF := setupTestServerNoAuthCSRF(no_auth)
 
 	// test for db users
 	truncateUsers(db)
@@ -28,7 +28,7 @@ func TestLogin(t *testing.T) {
 		Name:     "Ocki Bagus Pratama",
 	}.Save(db)
 
-	testCases := []struct {
+	test_cases := []struct {
 		method int
 		name   string
 		user   types.LoginForm
@@ -67,18 +67,18 @@ func TestLogin(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		t.Run(test.name, func(t *testing.T) {
 			if test.method == GET {
-				noAuth.GET("/login").
+				no_auth.GET("/login").
 					Expect().
 					Status(test.status)
 				return
 			}
 			// tc.method == POST
-			result := noAuthCSRF.POST("/login").
+			result := no_auth_CSRF.POST("/login").
 				WithForm(test.user).
-				WithFormField("X-CSRF-Token", csrfToken).
+				WithFormField("X-CSRF-Token", csrf_token).
 				Expect().
 				Status(test.status)
 

@@ -16,7 +16,7 @@ func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
 	}
 
 	is_auth_type := session_gorilla.Values["is_auth_type"]
-	if isAdmin(is_auth_type) || isUser(is_auth_type) {
+	if IsAdmin(is_auth_type) || IsUser(is_auth_type) {
 		return session_gorilla, nil
 	}
 
@@ -30,13 +30,13 @@ func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
 	return
 }
 
-// isAdmin: allows access only to authenticated administrators
-func isAdmin(is_auth_type interface{}) bool {
+// IsAdmin: allows access only to authenticated administrators
+func IsAdmin(is_auth_type interface{}) bool {
 	return is_auth_type == 1
 }
 
-// isUser: allows access only to authenticated users
-func isUser(is_auth_type interface{}) bool {
+// IsUser: allows access only to authenticated users
+func IsUser(is_auth_type interface{}) bool {
 	return is_auth_type == 2
 }
 
@@ -47,7 +47,7 @@ func GetAdmin(c echo.Context) (session_gorilla *sessions.Session, err error) {
 	}
 
 	is_auth_type := session_gorilla.Values["is_auth_type"]
-	if isAdmin(is_auth_type) {
+	if IsAdmin(is_auth_type) {
 		return
 	}
 
@@ -115,7 +115,7 @@ func RefreshSession(user models.User, c echo.Context) (session_gorilla *sessions
 //	session for flash message.
 ////
 
-const sessionFlash = "flash"
+const session_flash = "flash"
 
 // cookieStoreFlash: new cookie store session for flash
 func cookieStoreFlash() *sessions.CookieStore {
@@ -126,14 +126,14 @@ func cookieStoreFlash() *sessions.CookieStore {
 
 // SetFlash: set session for flash message
 func SetFlash(c echo.Context, name, value string) {
-	txSessionFlash := sessionFlash
+	tx_session_flash := session_flash
 	if name == "message" {
-		txSessionFlash += "-message"
+		tx_session_flash += "-message"
 	} else if name == "error" {
-		txSessionFlash += "-error"
+		tx_session_flash += "-error"
 	}
 
-	session, _ := cookieStoreFlash().Get(c.Request(), txSessionFlash)
+	session, _ := cookieStoreFlash().Get(c.Request(), tx_session_flash)
 
 	session.AddFlash(value, name)
 	session.Save(c.Request(), c.Response())
@@ -141,14 +141,14 @@ func SetFlash(c echo.Context, name, value string) {
 
 // GetFlash: get session for flash messages
 func GetFlash(c echo.Context, name string) (flashes []string) {
-	txSessionFlash := sessionFlash
+	tx_session_flash := session_flash
 	if name == "message" {
-		txSessionFlash += "-message"
+		tx_session_flash += "-message"
 	} else if name == "error" {
-		txSessionFlash += "-error"
+		tx_session_flash += "-error"
 	}
 
-	session, _ := cookieStoreFlash().Get(c.Request(), txSessionFlash)
+	session, _ := cookieStoreFlash().Get(c.Request(), tx_session_flash)
 
 	fls := session.Flashes(name)
 	if len(fls) > 0 {

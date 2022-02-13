@@ -14,11 +14,11 @@ func TestHomeController(t *testing.T) {
 
 	no_auth := setupTestServer(t)
 	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_user := setupTestServerAuth(no_auth, 0)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
-	testCases := []struct {
+	test_cases := []struct {
 		name      string
-		expect    *httpexpect.Expect // auth_admin, auth_user or no-auth
+		expect    *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
 		navbar    regex
 		jumbotron regex
 	}{
@@ -48,7 +48,7 @@ func TestHomeController(t *testing.T) {
 		},
 		{
 			name:   "home [user] success",
-			expect: auth_user,
+			expect: auth_sugriwa,
 			navbar: regex{
 				must_compile: `<a href="/users" (.*)</a>`,
 				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
@@ -60,9 +60,9 @@ func TestHomeController(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		var result *httpexpect.Response
-		expect := test.expect // auth_admin, auth_user or no-auth
+		expect := test.expect // auth_admin, auth_sugriwa or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
 			result = expect.GET("/").
@@ -72,18 +72,23 @@ func TestHomeController(t *testing.T) {
 			result_body := result.Body().Raw()
 
 			// TODO: why?
+			var regex *regexp.Regexp
+			var match string
+			if test.navbar.must_compile != "" {
+				// navbar nav
+				regex = regexp.MustCompile(test.navbar.must_compile)
+				match = regex.FindString(result_body)
 
-			// navbar nav
-			regex := regexp.MustCompile(test.navbar.must_compile)
-			match := regex.FindString(result_body)
+				assert.Equal(match, test.navbar.actual)
+			}
 
-			assert.Equal(match, test.navbar.actual)
+			if test.jumbotron.must_compile != "" {
+				// main: jumbotron
+				regex = regexp.MustCompile(test.jumbotron.must_compile)
+				match = regex.FindString(result_body)
 
-			// main: jumbotron
-			regex = regexp.MustCompile(test.jumbotron.must_compile)
-			match = regex.FindString(result_body)
-
-			assert.Equal(match, test.jumbotron.actual)
+				assert.Equal(match, test.jumbotron.actual)
+			}
 		})
 	}
 }
