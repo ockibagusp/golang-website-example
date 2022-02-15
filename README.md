@@ -28,7 +28,7 @@ file: golang-website-example.sql -> new database: golang-website-example_test
 
 | Username | Password | is Admin |
 | --- | --- | --- |
-| web-admin | admin123 | yes |
+| admin | admin123 | yes |
 | sugriwa | user123 | no |
 | subali | user123 | no |
 
