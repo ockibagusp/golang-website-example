@@ -139,7 +139,7 @@ func (user User) Delete(db *gorm.DB, id int) error {
 	// if tx.Select("id").First(&user).Error != nil {}
 	if tx.Select("id").First(&user).Count(&count); count != 1 {
 		tx.Rollback()
-		return errors.New("record not found")
+		return errors.New("User Not Found")
 	}
 
 	// if tx.Delete(&user, id).Error != nil {}
