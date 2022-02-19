@@ -17,19 +17,19 @@ func TestHomeController(t *testing.T) {
 	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	test_cases := []struct {
-		name      string
-		expect    *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
-		navbar    regex
-		jumbotron regex
+		name           string
+		expect         *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
+		html_navbar    regex
+		html_jumbotron regex
 	}{
 		{
 			name:   "home [no-auth] success",
 			expect: no_auth,
-			navbar: regex{
+			html_navbar: regex{
 				must_compile: `<a href="/login" (.*)</a>`,
 				actual:       `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
 			},
-			jumbotron: regex{
+			html_jumbotron: regex{
 				must_compile: `<p class="lead">(.*)</p>`,
 				actual:       `<p class="lead">Test.</p>`,
 			},
@@ -37,11 +37,11 @@ func TestHomeController(t *testing.T) {
 		{
 			name:   "home [admin] success",
 			expect: auth_admin,
-			navbar: regex{
+			html_navbar: regex{
 				must_compile: `<a class="btn">(.*)</a>`,
 				actual:       `<a class="btn">ADMIN</a>`,
 			},
-			jumbotron: regex{
+			html_jumbotron: regex{
 				must_compile: `<p class="lead">(.*)</p>`,
 				actual:       `<p class="lead">Admin.</p>`,
 			},
@@ -49,11 +49,11 @@ func TestHomeController(t *testing.T) {
 		{
 			name:   "home [user] success",
 			expect: auth_sugriwa,
-			navbar: regex{
+			html_navbar: regex{
 				must_compile: `<a href="/users" (.*)</a>`,
 				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
 			},
-			jumbotron: regex{
+			html_jumbotron: regex{
 				must_compile: `<p class="lead">(.*)</p>`,
 				actual:       `<p class="lead">User.</p>`,
 			},
@@ -74,20 +74,20 @@ func TestHomeController(t *testing.T) {
 			// TODO: why?
 			var regex *regexp.Regexp
 			var match string
-			if test.navbar.must_compile != "" {
+			if test.html_navbar.must_compile != "" {
 				// navbar nav
-				regex = regexp.MustCompile(test.navbar.must_compile)
+				regex = regexp.MustCompile(test.html_navbar.must_compile)
 				match = regex.FindString(result_body)
 
-				assert.Equal(match, test.navbar.actual)
+				assert.Equal(match, test.html_navbar.actual)
 			}
 
-			if test.jumbotron.must_compile != "" {
+			if test.html_jumbotron.must_compile != "" {
 				// main: jumbotron
-				regex = regexp.MustCompile(test.jumbotron.must_compile)
+				regex = regexp.MustCompile(test.html_jumbotron.must_compile)
 				match = regex.FindString(result_body)
 
-				assert.Equal(match, test.jumbotron.actual)
+				assert.Equal(match, test.html_jumbotron.actual)
 			}
 		})
 	}

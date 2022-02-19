@@ -43,9 +43,10 @@ func (controller Controller) Home(c echo.Context) error {
 
 	log.Info("END request method GET for home: [+]success")
 	return c.Render(http.StatusOK, "home.html", echo.Map{
-		"name":    "Home",
-		"nav":     "home", // (?)
-		"session": session,
-		"msg":     message,
+		"name":          "Home",
+		"nav":           "home", // (?)
+		"session":       session,
+		"flash_success": middleware.GetFlashSuccess(c),
+		"msg":           message,
 	})
 }

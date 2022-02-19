@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
@@ -37,55 +36,99 @@ func TestUsersController(t *testing.T) {
 
 	no_auth := setupTestServer(t)
 	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_user := setupTestServerAuth(no_auth, 0)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
-	testCases := []struct {
-		name   string
-		expect *httpexpect.Expect // auth_admin, auth_user or no-auth
-		navbar regex
+	// test for db users
+	truncateUsers(db)
+	// database: just `users.username` varchar 15
+	models.User{
+		Username: "sugriwa",
+		Email:    "sugriwa@wanara.com",
+		Name:     "Sugriwa",
+	}.Save(db)
+
+	test_cases := []struct {
+		name         string
+		expect       *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
+		status       int
+		html_navbar  regex
+		html_heading regex
 	}{
 		{
 			name:   "users [admin] to GET it success",
 			expect: auth_admin,
-			navbar: regex{
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
 				must_compile: `<a class="btn">(.*)</a>`,
 				actual:       `<a class="btn">ADMIN</a>`,
 			},
 		},
 		{
 			name:   "users [user] to GET it success",
-			expect: auth_user,
-			navbar: regex{
-				must_compile: `<a href="/users" (.*)</a>`,
-				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
+			expect: auth_sugriwa,
+			// redirect @route: /user/read/2 [sugriwa: 2]
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
 		{
 			name:   "users [no-auth] to GET it failure: login",
 			expect: no_auth,
-			navbar: regex{
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
 				must_compile: `<p class="text-danger">*(.*)!</p>`,
 				actual:       `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		var result *httpexpect.Response
-		expect := test.expect // auth_admin, auth_user or no-auth
+		expect := test.expect // auth_admin, session_sugriwa or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
 			result = expect.GET("/users").
 				Expect().
-				Status(http.StatusOK)
+				Status(test.status)
 
 			result_body := result.Body().Raw()
 
-			// navbar nav
-			regex := regexp.MustCompile(test.navbar.must_compile)
-			match := regex.FindString(result_body)
+			var must_compile, actual string
+			var match_actual bool
 
-			assert.Equal(match, test.navbar.actual)
+			if test.html_navbar.must_compile != "" {
+				match_actual = true
+				must_compile = test.html_navbar.must_compile
+				actual = test.html_navbar.actual
+			}
+
+			if test.html_heading.must_compile != "" {
+				match_actual = true
+				must_compile = test.html_heading.must_compile
+				actual = test.html_heading.actual
+			}
+
+			if match_actual {
+				regex := regexp.MustCompile(must_compile)
+				match := regex.FindString(result_body)
+
+				// assert.Equal(t, match, actual)
+				//
+				// or,
+				//
+				// assert := assert.New(t)
+				// ...
+				// assert.Equal(match, actual)
+				assert.Equal(match, actual)
+			}
 		})
 	}
 }
@@ -93,26 +136,20 @@ func TestUsersController(t *testing.T) {
 func TestCreateUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
 	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_user := setupTestServerAuth(no_auth, 0)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	// test for db users
 	truncateUsers(db)
 
-	// database: just `users.username` varchar 15
-	user_form_sugriwa := types.UserForm{
-		Username:        "sugriwa",
-		Email:           "sugriwa@wanara.com",
-		Name:            "Sugriwa",
-		Password:        "user123",
-		ConfirmPassword: "user123",
-	}
+	// TODO: flash with redirect on failure
 
-	user_form_subali := user_form_sugriwa
-	user_form_subali.Username = "subali"
-	user_form_subali.Email = "subali@wanara.com"
-	user_form_subali.Name = "subali"
+	models.User{
+		Username: "sugriwa",
+		Email:    "sugriwa@wanara.com",
+		Name:     "Sugriwa",
+	}.Save(db)
 
-	testCases := []struct {
+	test_cases := []struct {
 		name   string
 		expect *httpexpect.Expect // auth or no-auth
 		method int                // method: 1=GET or 2=POST
@@ -120,12 +157,13 @@ func TestCreateUserController(t *testing.T) {
 		status int
 
 		// flash message
-		flash_success regex
-		flash_error   regex
+		html_flash_success regex
+		html_flash_error   regex
 	}{
 		/*
-			GET create it success
+			create it [admin]
 		*/
+		// GET
 		{
 			name:   "users [admin] to GET create it success",
 			expect: auth_admin,
@@ -133,13 +171,78 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
+		// POST
 		{
-			name:   "users [user] to GET create it success",
-			expect: auth_user,
+			name:   "user [admin] to POST create it success",
+			expect: auth_admin,
+			method: POST,
+			form: types.UserForm{
+				Username:        "unit-test",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success new user: unit-test!`,
+			},
+		},
+		// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' "
+		{
+			name:   "users [admin] to POST create it failure: Duplicate entry",
+			expect: auth_admin,
+			method: POST,
+			form: types.UserForm{
+				Username:        "unit-test",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			// HTTP response status: 400 Bad Request
+			status: http.StatusBadRequest,
+			// flash message error
+			html_flash_error: regex{
+				must_compile: `<strong>error:</strong> (.*)`,
+				actual:       `<strong>error:</strong> Error 1062: Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;users.email_UNIQUE&#39;!`,
+			},
+		},
+
+		/*
+			create it [sugriwa]
+		*/
+		// GET
+		{
+			name:   "users [sugriwa] to GET create it failure",
+			expect: auth_sugriwa,
 			method: GET,
+			// redirect @route: /users/read/:id
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
+		// POST
+		{
+			name:   "user [sugriwa] to POST create it failure",
+			expect: auth_sugriwa,
+			method: POST,
+			// redirect @route: /users/read/:id
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message error
+			html_flash_error: regex{
+				must_compile: `<strong>error:</strong> (.*)`,
+				actual:       `<strong>error:</strong> 403 Forbidden!`,
+			},
+		},
+
+		/*
+			create it [no-auth]
+		*/
+		// GET
 		{
 			name:   "users [no-auth] to GET create it success",
 			expect: no_auth,
@@ -147,53 +250,29 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
-		/*
-			POST create it success
-		*/
+		// POST
 		{
-			name:   "user [admin] to POST create it success",
-			expect: auth_admin,
+			name:   "user [no-auth] to POST create it success",
+			expect: no_auth,
 			method: POST,
-			form:   user_form_sugriwa,
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// flash message success
-			flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success new user: sugriwa!`,
+			form: types.UserForm{
+				Username:        "subali",
+				Email:           "subali@wanara.com",
+				Name:            "Subali",
+				Password:        "user123",
+				ConfirmPassword: "user123",
 			},
-		},
-		{
-			name:   "user [user] to POST create it success",
-			expect: auth_user,
-			method: POST,
-			form:   user_form_subali,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			flash_success: regex{
+			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
 				actual:       `<strong>success:</strong> success new user: subali!`,
 			},
 		},
-
-		// Database: " Error 1062: Duplicate entry 'sugriwa@wanara.com' for key 'users.email_UNIQUE' "
-		{
-			name:   "users [no-auth] to POST create it failure: Duplicate entry",
-			expect: no_auth,
-			method: POST,
-			form:   user_form_sugriwa,
-			// HTTP response status: 400 Bad Request
-			status: http.StatusBadRequest,
-			// flash message error
-			flash_error: regex{
-				must_compile: `<strong>error:</strong> (.*)`,
-				actual:       `<strong>error:</strong> Error 1062: Duplicate entry &#39;sugriwa@wanara.com&#39; for key &#39;users.email_UNIQUE&#39;!.`,
-			},
-		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		expect := test.expect // auth or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
@@ -206,7 +285,7 @@ func TestCreateUserController(t *testing.T) {
 			} else if test.method == POST {
 				result = expect.POST("/users/add").
 					WithForm(test.form).
-					WithFormField("X-CSRF-Token", csrfToken).
+					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
 
@@ -214,16 +293,16 @@ func TestCreateUserController(t *testing.T) {
 
 				var must_compile, actual string
 				var match_actual bool
-				if test.flash_success.must_compile != "" {
+				if test.html_flash_success.must_compile != "" {
 					match_actual = true
-					must_compile = test.flash_success.must_compile
-					actual = test.flash_success.actual
+					must_compile = test.html_flash_success.must_compile
+					actual = test.html_flash_success.actual
 				}
 
-				if test.flash_error.must_compile != "" {
+				if test.html_flash_error.must_compile != "" {
 					match_actual = true
-					must_compile = test.flash_error.must_compile
-					actual = test.flash_error.actual
+					must_compile = test.html_flash_error.must_compile
+					actual = test.html_flash_error.actual
 				}
 
 				if match_actual {
@@ -250,7 +329,7 @@ func TestCreateUserController(t *testing.T) {
 func TestReadUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
 	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_user := setupTestServerAuth(no_auth, 0)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	// test for db users
 	truncateUsers(db)
@@ -261,7 +340,7 @@ func TestReadUserController(t *testing.T) {
 		Name:     "Sugriwa",
 	}.Save(db)
 
-	testCases := []struct {
+	test_cases := []struct {
 		name        string
 		expect      *httpexpect.Expect // auth or no-auth
 		method      int                // method: 1=GET or 2=POST
@@ -270,10 +349,10 @@ func TestReadUserController(t *testing.T) {
 		flash_error regex
 	}{
 		/*
-			GET read it success
+			read it [admin]
 		*/
 		{
-			name:   "users [auth_admin] to GET read it success",
+			name:   "users [admin] to GET read it success",
 			expect: auth_admin,
 			method: GET,
 			path:   "1",
@@ -281,34 +360,39 @@ func TestReadUserController(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [auth_user] to GET read it success",
-			expect: auth_user,
+			name:   "users [admin] to GET read it failure",
+			expect: auth_admin,
 			method: GET,
-			path:   "1",
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
+			path:   "-1",
+			// HTTP response status: 406 Not Acceptable
+			status: http.StatusNotAcceptable,
 		},
+
 		/*
-			GET read it failure
+			read it [sugriwa]
 		*/
 		{
-			name:   "users [auth_admin] to GET read it failure: 1 session and no-id",
-			expect: auth_admin,
+			name:   "users [sugriwa] to GET read it success",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "1",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		{
+			name:   "users [sugriwa] to GET read it failure",
+			expect: auth_sugriwa,
 			method: GET,
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
 		},
+
+		/*
+			read it [no-auth]
+		*/
 		{
-			name:   "users [auth_user] to GET read it failure: 2 session and no-id",
-			expect: auth_user,
-			method: GET,
-			path:   "-1",
-			// HTTP response status: 406 Not Acceptable
-			status: http.StatusNotAcceptable,
-		},
-		{
-			name:   "users [no_auth] to GET read it failure: 3 session and id",
+			name:   "users [no-auth] to GET read it failure",
 			expect: no_auth,
 			method: GET,
 			path:   "1",
@@ -322,40 +406,12 @@ func TestReadUserController(t *testing.T) {
 			},
 		},
 		{
-			name:   "users [no_auth] to GET read it failure: 4 session and no-id",
+			name:   "users [no-auth] to GET read it failure: 4 session and no-id",
 			expect: no_auth,
 			method: GET,
 			path:   "-1",
 			// redirect @route: /login
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// flash message
-			flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
-			},
-		},
-		{
-			name:   "users [no_auth] to GET read it failure: 5 no-session and id",
-			expect: no_auth,
-			method: GET,
-			path:   "1",
-			// redirect @route: /login
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// flash message
-			flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
-			},
-		},
-		{
-			name:   "users [no_auth] to GET read it failure: 6 no-session and no-id",
-			expect: no_auth,
-			method: GET,
-			path:   "-1",
-			// redirect @route: /login
-			// HTTP response status: 200 OK
+			// HTTP response status: 200 OK: 3 session and id
 			status: http.StatusOK,
 			// flash message
 			flash_error: regex{
@@ -365,7 +421,7 @@ func TestReadUserController(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		var result *httpexpect.Response
 		expect := test.expect // auth or no-auth
 
@@ -402,19 +458,47 @@ func TestReadUserController(t *testing.T) {
 }
 
 func TestUpdateUserController(t *testing.T) {
-	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth, 0)
+	no_auth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(no_auth, 1)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	// test for db users
 	truncateUsers(db)
-	// database: just `users.username` varchar 15
-	models.User{
-		Username: "subali",
-		Email:    "subali@wanara.com",
-		Name:     "Subali",
-	}.Save(db)
 
-	testCases := []struct {
+	// database: just `users.username` varchar 15
+	users := []models.User{
+		{
+			Username: "admin",
+			Email:    "admin@website.com",
+			Name:     "Admin",
+		},
+		{
+			Username: "sugriwa",
+			Email:    "sugriwa@wanara.com",
+			Name:     "Sugriwa",
+		},
+		{
+			Username: "subali",
+			Email:    "subali@wanara.com",
+			Name:     "Subali",
+		},
+	}
+
+	tx := db.Begin()
+	for _, user := range users {
+		_, err := models.User{
+			Username: user.Username,
+			Email:    user.Email,
+			Name:     user.Name,
+		}.Save(tx)
+		if err != nil {
+			tx.Rollback()
+			panic(err.Error())
+		}
+	}
+	tx.Commit()
+
+	test_cases := []struct {
 		name   string
 		expect *httpexpect.Expect // auth or no-auth
 		method int                // method: 1=GET or 2=POST
@@ -423,63 +507,199 @@ func TestUpdateUserController(t *testing.T) {
 		status int
 
 		// flash message
-		isFlashSuccess     bool
-		flashSuccessActual string
+		html_flash_success regex
+		html_flash_error   regex
 	}{
+		/*
+			update it [admin]
+		*/
+		// GET
 		{
-			name:   "users [auth] to GET update it success",
-			expect: auth,
+			name:   "users [admin] to admin GET update it success: id=1",
+			expect: auth_admin,
 			method: GET,
-			path:   "1",
+			path:   "1", // admin: 1 admin
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [auth] to POST update it success",
-			expect: auth,
+			name:   "users [admin] to user GET update it success: id=2",
+			expect: auth_admin,
+			method: GET,
+			path:   "2", // user: 2 sugriwa
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		{
+			name:   "users [admin] to -1 GET update it failure: id=-1",
+			expect: auth_admin,
+			method: GET,
+			path:   "-1",
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+		// POST
+		{
+			name:   "users [admin] to admin POST update it success: id=1",
+			expect: auth_admin,
 			method: POST,
-			path:   "1",
+			path:   "1", // admin: 1 admin
 			form: types.UserForm{
-				Username: "rahwana",
-				Email:    "rahwana@rakshasa.com",
-				Name:     "Rahwana",
+				Username: "admin-success",
 			},
 			// redirect @route: /users
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			isFlashSuccess:     true,
-			flashSuccessActual: "success update user: rahwana!",
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success update user: admin-success!`,
+			},
 		},
 		{
-			name:   "users [auth] to GET update it failure: 1 session and no-id",
-			expect: auth,
-			method: GET,
+			name:   "users [admin] to user POST update it success: id=2",
+			expect: auth_admin,
+			method: POST,
+			path:   "2", // user: 2 sugriwa
+			form: types.UserForm{
+				// id=2 username: sugriwa
+				Username: "sugriwa",
+				Name:     "Sugriwa Success",
+			},
+			// redirect @route: /users
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				// [admin] id=2 username: sugriwa
+				actual: `<strong>success:</strong> success update user: sugriwa!`,
+			},
+		},
+		{
+			name:   "users [admin] to POST update it failure: id=-1",
+			expect: auth_admin,
+			method: POST,
 			path:   "-1",
-			// HTTP response status: 406 Not Acceptable
-			status: http.StatusNotAcceptable,
+			form:   types.UserForm{},
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+
+		/*
+			update it [sugriwa]
+		*/
+		// GET
+		{
+			name:   "users [sugriwa] to GET update it success: id=2",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "2", // user: 2 sugriwa ok
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
 		},
 		{
-			name:   "users [no auth] to GET update it failure: 2 no-session and id",
-			expect: noAuth,
+			name:   "users [sugriwa] to GET update it failure: id=-2",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "-2",
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+		{
+			name:   "users [sugriwa] to GET update it failure: id=3",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "3", // user: 2 sugriwa no
+			// HTTP response status: 403 Forbidden,
+			status: http.StatusForbidden,
+		},
+		// POST
+		{
+			name:   "users [sugriwa] to sugriwa POST update it success",
+			expect: auth_sugriwa,
+			method: POST,
+			path:   "2", // user: 2 sugriwa
+			form: types.UserForm{
+				Username: "sugriwa", // admin: "sugriwa-success" to sugriwa: "sugriwa"
+				Name:     "Sugriwa",
+			},
+			// redirect @route: /
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success update user: sugriwa!`,
+			},
+		},
+		{
+			name:   "users [sugriwa] to POST update it failure",
+			expect: auth_sugriwa,
+			method: POST,
+			path:   "3", // user: 2 sugriwa no
+			form: types.UserForm{
+				Username: "subali-failure",
+			},
+			// HTTP response status: 403 Forbidden
+			status: http.StatusForbidden,
+		},
+
+		/*
+			update it [no-auth]
+		*/
+		// GET
+		{
+			name:   "users [no-auth] to GET update it failure: id=1",
+			expect: no_auth,
 			method: GET,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 		{
-			name:   "users [no auth] to GET update it failure: 3 no-session and no-id",
-			expect: noAuth,
+			name:   "users [no-auth] to GET update it failure: id=-1",
+			expect: no_auth,
 			method: GET,
 			path:   "-1",
 			// redirect @route: /login
-			// HTTP response status: 200 OK
+			// HTTP response status: 200 OK: 3 session and id
+			status: http.StatusOK,
+		},
+		// POST
+		{
+			name:   "users [no-auth] to POST update it failure: id=2",
+			expect: no_auth,
+			method: POST,
+			path:   "2",
+			form: types.UserForm{
+				Username: "sugriwa-failure",
+			},
+			// redirect @route: /login
+			// HTTP response status: 200 OK: 3 session and id
+			status: http.StatusOK,
+		},
+		{
+			name:   "users [no-auth] to POST update it failure: id=-2",
+			expect: no_auth,
+			method: POST,
+			path:   "-2",
+			form: types.UserForm{
+				Username: "sugriwa-failure",
+			},
+			// redirect @route: /login
+			// HTTP response status: 200 OK: 3 session and id
 			status: http.StatusOK,
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		expect := test.expect // auth or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
@@ -498,17 +718,29 @@ func TestUpdateUserController(t *testing.T) {
 				result = expect.POST("/users/view/{id}").
 					WithPath("id", test.path).
 					WithForm(test.form).
-					WithFormField("X-CSRF-Token", csrfToken).
+					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
 
-				if test.isFlashSuccess {
-					flashSuccess := result.Body().Raw()
+				result_body := result.Body().Raw()
 
-					regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-					match := regex.FindString(flashSuccess)
+				var must_compile, actual string
+				var match_actual bool
+				if test.html_flash_success.must_compile != "" {
+					match_actual = true
+					must_compile = test.html_flash_success.must_compile
+					actual = test.html_flash_success.actual
+				}
 
-					actual := fmt.Sprintf("<strong>success:</strong> %s", test.flashSuccessActual)
+				if test.html_flash_error.must_compile != "" {
+					match_actual = true
+					must_compile = test.html_flash_error.must_compile
+					actual = test.html_flash_error.actual
+				}
+
+				if match_actual {
+					regex := regexp.MustCompile(must_compile)
+					match := regex.FindString(result_body)
 
 					assert.Equal(t, match, actual)
 				}
@@ -528,29 +760,43 @@ func TestUpdateUserController(t *testing.T) {
 }
 
 func TestUpdateUserByPasswordUserController(t *testing.T) {
-	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth, 0)
+	no_auth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(no_auth, 1)
+	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	// test for db users
 	truncateUsers(db)
 	// database: just `users.username` varchar 15
 	users := []models.User{
 		{
-			Username: "ockibagusp",
-			Email:    "ocki.bagus.p@gmail.com",
-			Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",
-			Name:     "Ocki Bagus Pratama",
+			Username: "admin",
+			Email:    "admin@website.com",
+			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
+			Name:     "Admin",
 		},
 		{
-			Username: "success",
-			Email:    "success@exemple.com",
-			Name:     "Success",
+			Username: "sugriwa",
+			Email:    "sugriwa@wanara.com",
+			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
+			Name:     "Sugriwa",
+		},
+		{
+			Username: "subali",
+			Email:    "subali@wanara.com",
+			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
+			Name:     "Subali",
 		},
 	}
-	// *gorm.DB
-	db.Create(&users)
 
-	testCases := []struct {
+	tx := db.Begin()
+	// *gorm.DB
+	if err := tx.Create(&users).Error; err != nil {
+		tx.Rollback()
+		panic(err.Error())
+	}
+	tx.Commit()
+
+	test_cases := []struct {
 		name   string
 		expect *httpexpect.Expect // auth or no-auth
 		method int                // method: 1=GET or 2=POST
@@ -559,89 +805,258 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		status int
 
 		// flash message
-		isFlashSuccess     bool
-		flashSuccessActual string
+		html_flash_success regex
+		html_flash_error   regex
 	}{
+		/*
+			update by password it [admin]
+		*/
+		// GET
 		{
-			name:   "users [auth] to GET update user by password it success",
-			expect: auth,
+			name:   "users [admin] to GET update user by password it success: id=1",
+			expect: auth_admin,
 			method: GET,
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [auth] to POST update user by password it success",
-			expect: auth,
+			name:   "users [admin] to [sugriwa] GET update user by password it success: id=2",
+			expect: auth_admin,
+			method: GET,
+			path:   "2",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		{
+			name: "users [admin] to GET update user by password it failure: id=-1" +
+				" GET passwords don't match",
+			expect: auth_admin,
+			method: GET,
+			path:   "-1",
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+		// POST
+		{
+			name:   "users [admin] to POST update user by password it success: id=1",
+			expect: auth_admin,
 			method: POST,
 			path:   "1",
 			form: types.NewPasswordForm{
-				OldPassword:        "user123",
-				NewPassword:        "password_success",
-				ConfirmNewPassword: "password_success",
+				OldPassword:        "admin123",
+				NewPassword:        "admin_success",
+				ConfirmNewPassword: "admin_success",
 			},
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			isFlashSuccess:     true,
-			flashSuccessActual: "success update user by password: ockibagusp!",
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success update user by password: admin!`,
+			},
 		},
 		{
-			name: "users [auth] to GET update user by password it failure: 1" +
-				" GET passwords don't match",
-			expect: auth,
-			method: GET,
+			name:   "users [admin] to [sugriwa] POST update user by password it success: id=1",
+			expect: auth_admin,
+			method: POST,
 			path:   "2",
-			// HTTP response status: 406 Not Acceptabl
-			status: http.StatusNotAcceptable,
+			form: types.NewPasswordForm{
+				OldPassword:        "user123",
+				NewPassword:        "user_success",
+				ConfirmNewPassword: "user_success",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success update user by password: sugriwa!`,
+			},
 		},
 		{
-			name: "users [auth] to POST update user by password it failure: 2" +
+			name: "users [auth] to POST update user by password it failure: id=1" +
 				" POST passwords don't match",
-			expect: auth,
+			expect: auth_admin,
 			method: POST,
 			path:   "1",
 			form: types.NewPasswordForm{
-				OldPassword:        "user123",
-				NewPassword:        "password_success",
-				ConfirmNewPassword: "password_failure",
+				OldPassword:        "admin_success",
+				NewPassword:        "admin_success_",
+				ConfirmNewPassword: "admin_failure",
 			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
 		},
 		{
-			name: "users [auth] to POST update user by password it failure: 3" +
-				" username don't match",
-			expect: auth,
+			name: "users [auth] to [sugriwa] POST update user by password it failure: id=2" +
+				" POST passwords don't match",
+			expect: auth_admin,
 			method: POST,
 			path:   "2",
 			form: types.NewPasswordForm{
-				OldPassword:        "user123",
-				NewPassword:        "password_failure",
-				ConfirmNewPassword: "password_failure",
+				OldPassword:        "admin_password_success",
+				NewPassword:        "admin_password_failure",
+				ConfirmNewPassword: "admin_password_success_",
 			},
-			// HTTP response status: 406 Not Acceptable
-			status: http.StatusNotAcceptable,
+			// HTTP response status: 403 Forbidden
+			status: http.StatusForbidden,
 		},
 		{
-			name: "users [no-auth] to GET update user by password it failure: 4" +
-				" no session",
-			expect: noAuth,
+			name:   "users [auth] to POST update user by password it failure: id=-1",
+			expect: auth_admin,
+			method: POST,
+			path:   "-1",
+			form:   types.NewPasswordForm{},
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+
+		/*
+			update by password it [sugriwa]
+		*/
+		// GET
+		{
+			name:   "users [sugriwa] to GET update user by password it success: id=2",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "2",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		{
+			name:   "users [sugriwa] to [admin] GET update user by password it failure: id=1",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "1",
+			// HTTP response status: 403 Forbidden
+			status: http.StatusForbidden,
+		},
+		{
+			name:   "users [sugriwa] to [subali] GET update user by password it failure: id=2",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "3",
+			// HTTP response status: 403 Forbidden
+			status: http.StatusForbidden,
+		},
+		{
+			name:   "users [sugriwa] to GET update user by password it failure: id=-1",
+			expect: auth_sugriwa,
+			method: GET,
+			path:   "-1",
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+		// POST
+		{
+			name:   "users [sugriwa] to POST update user by password it success: id=2",
+			expect: auth_sugriwa,
+			method: POST,
+			path:   "2",
+			form: types.NewPasswordForm{
+				OldPassword:        "user_success",
+				NewPassword:        "user123",
+				ConfirmNewPassword: "user123",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success update user by password: sugriwa!`,
+			},
+		},
+		{
+			name:   "users [sugriwa] to [admin] POST update user by password it failure: id=1",
+			expect: auth_sugriwa,
+			method: POST,
+			path:   "1",
+			form:   types.NewPasswordForm{},
+			// HTTP response status: 403 Forbidden,
+			status: http.StatusForbidden,
+		},
+		{
+			name:   "users [sugriwa] to [subali] POST update user by password it failure: id=3",
+			expect: auth_sugriwa,
+			method: POST,
+			path:   "3",
+			form:   types.NewPasswordForm{},
+			// HTTP response status: 403 Forbidden,
+			status: http.StatusForbidden,
+		},
+		{
+			name:   "users [sugriwa] to POST update user by password it failure: id=-1",
+			expect: auth_sugriwa,
+			method: POST,
+			path:   "-1",
+			form:   types.NewPasswordForm{},
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+
+		/*
+			update by password it [no-auth]
+		*/
+		// GET
+		{
+			name:   "users [no-auth] to GET update user by password it failure: id=1",
+			expect: no_auth,
 			method: GET,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 		{
-			name: "users [no-auth] to POST update user by password it failure: 5" +
-				" no session",
-			expect: noAuth,
+			name:   "users [no-auth] to POST update user by password it failure: id=-1",
+			expect: no_auth,
+			method: GET,
+			path:   "-1",
+			// redirect @route: /login
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+		// POST
+		{
+			name:   "users [no-auth] to POST update user by password it failure: id=1",
+			expect: no_auth,
 			method: POST,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			form:   types.NewPasswordForm{},
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+		{
+			name:   "users [no-auth] to POST update user by password it success: id=-1",
+			expect: no_auth,
+			method: POST,
+			path:   "-1",
+			// redirect @route: /login
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			form:   types.NewPasswordForm{},
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 	}
 
@@ -668,7 +1083,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 	// 		// HTTP response status: 200 OK
 	// 		Status(http.StatusOK)
 	// })
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		var result *httpexpect.Response
 		expect := test.expect // auth or no-auth
 
@@ -687,17 +1102,29 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				result = expect.POST("/users/view/{id}/password").
 					WithPath("id", test.path).
 					WithForm(test.form).
-					WithFormField("X-CSRF-Token", csrfToken).
+					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
 
-				if test.isFlashSuccess {
-					flashSuccess := result.Body().Raw()
+				result_body := result.Body().Raw()
 
-					regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-					match := regex.FindString(flashSuccess)
+				var must_compile, actual string
+				var match_actual bool
+				if test.html_flash_success.must_compile != "" {
+					match_actual = true
+					must_compile = test.html_flash_success.must_compile
+					actual = test.html_flash_success.actual
+				}
 
-					actual := fmt.Sprintf("<strong>success:</strong> %s", test.flashSuccessActual)
+				if test.html_flash_error.must_compile != "" {
+					match_actual = true
+					must_compile = test.html_flash_error.must_compile
+					actual = test.html_flash_error.actual
+				}
+
+				if match_actual {
+					regex := regexp.MustCompile(must_compile)
+					match := regex.FindString(result_body)
 
 					assert.Equal(t, match, actual)
 				}
@@ -717,75 +1144,132 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 }
 
 func TestDeleteUserController(t *testing.T) {
-	noAuth := setupTestServer(t)
-	auth := setupTestServerAuth(noAuth, 0)
+	no_auth := setupTestServer(t)
+	auth_admin := setupTestServerAuth(no_auth, 1)
+	auth_subali := setupTestServerAuth(no_auth, 3)
 
 	// test for db users
 	truncateUsers(db)
 	// database: just `users.username` varchar 15
 	users := []models.User{
 		{
-			Username: "rahwana",
-			Email:    "rahwana@rakshasa.com",
+			Username: "admin",
+			Email:    "admin@website.com",
+		},
+		{
+			Username: "sugriwa",
+			Email:    "sugriwa@wanara.com",
+		},
+		{
+			Username: "subali",
+			Email:    "subali@wanara.com",
 		},
 	}
-	// *gorm.DB
-	db.Create(&users)
 
-	testCases := []struct {
+	tx := db.Begin()
+	// *gorm.DB
+	if err := tx.Create(&users).Error; err != nil {
+		tx.Rollback()
+		panic(err.Error())
+	}
+	tx.Commit()
+
+	test_cases := []struct {
 		name   string
 		expect *httpexpect.Expect // auth or no-auth
 		path   string             // id=string. Exemple, id="1"
 		status int
 
 		// flash message
-		isFlashSuccess     bool
-		flashSuccessActual string
+		html_flash_success regex
 	}{
+		// TODO: users [admin] to [admin]
+
+		// GET all
+		/*
+			delete it [admin]
+		*/
 		{
-			name:   "users [auth] to DELETE it success",
-			expect: auth,
-			path:   "1",
+			name:   "users [admin] to [sugriwa] DELETE it success: id=2",
+			expect: auth_admin,
+			path:   "2",
 			// redirect @route: /users
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			isFlashSuccess:     true,
-			flashSuccessActual: "success delete user: rahwana!",
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success delete user: sugriwa!`,
+			},
 		},
 		{
-			name:   "users [auth] to DELETE it failure: 1 (id=1) delete exists",
-			expect: auth,
-			path:   "1",
-			// HTTP response status: 406 Not Acceptable
-			status: http.StatusNotAcceptable,
+			name:   "users [admin] to [sugriwa] DELETE it failure: id=2 delete exists",
+			expect: auth_admin,
+			path:   "2",
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
 		},
 		{
-			name:   "users [auth] to DELETE it failure: 2 (id=-1)",
-			expect: auth,
+			name:   "users [admin] to DELETE it failure: 2 (id=-1)",
+			expect: auth_admin,
 			path:   "-1",
-			// HTTP response status: 406 Not Acceptable
-			status: http.StatusNotAcceptable,
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+
+		/*
+			delete it [subali]
+		*/
+		{
+			name:   "users [subali] to [admin] DELETE it failure: id=1",
+			expect: auth_subali,
+			path:   "1",
+			// HTTP response status: 403 Forbidden,
+			status: http.StatusForbidden,
 		},
 		{
-			name:   "users [no-auth] to DELETE it failure: 3 (id=1)",
-			expect: noAuth,
+			name:   "users [subali] to DELETE it failure: id=-1",
+			expect: auth_subali,
+			path:   "-1",
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
+		{
+			name:   "users [subali] to [subali] DELETE it success: id=3",
+			expect: auth_subali,
+			path:   "3",
+			// redirect @route: /
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message success
+			html_flash_success: regex{
+				must_compile: `<strong>success:</strong> (.*)`,
+				actual:       `<strong>success:</strong> success delete user: subali!`,
+			},
+		},
+
+		/*
+			delete it [na-auth]
+		*/
+		{
+			name:   "users [no-auth] to DELETE it failure: id=1",
+			expect: no_auth,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [no-auth] to DELETE it failure: 4 (id=-1)",
-			expect: noAuth,
+			name:   "users [no-auth] to DELETE it failure: id=-1",
+			expect: no_auth,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:   "users [no-auth] to DELETE it failure: 5 (id=error)",
-			expect: noAuth,
+			name:   "users [no-auth] to DELETE it failure: id=error",
+			expect: no_auth,
 			path:   "error",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -793,7 +1277,7 @@ func TestDeleteUserController(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
+	for _, test := range test_cases {
 		var result *httpexpect.Response
 		expect := test.expect // auth or no-auth
 
@@ -802,15 +1286,11 @@ func TestDeleteUserController(t *testing.T) {
 				Expect().
 				Status(test.status)
 
-			if test.isFlashSuccess {
-				flashSuccess := result.Body().Raw()
+			if test.html_flash_success.must_compile != "" {
+				regex := regexp.MustCompile(test.html_flash_success.must_compile)
+				match := regex.FindString(result.Body().Raw())
 
-				regex := regexp.MustCompile(`<strong>success:</strong> (.*)`)
-				match := regex.FindString(flashSuccess)
-
-				actual := fmt.Sprintf("<strong>success:</strong> %s", test.flashSuccessActual)
-
-				assert.Equal(t, match, actual)
+				assert.Equal(t, match, test.html_flash_success.actual)
 			}
 
 			statusCode := result.Raw().StatusCode
