@@ -1183,12 +1183,17 @@ func TestDeleteUserController(t *testing.T) {
 		// flash message
 		html_flash_success regex
 	}{
-		// TODO: users [admin] to [admin]
-
 		// GET all
 		/*
 			delete it [admin]
 		*/
+		{
+			name:   "users [admin] to [admin] DELETE it failure: id=1",
+			expect: auth_admin,
+			path:   "1",
+			// HTTP response status: 403 Forbidden,
+			status: http.StatusForbidden,
+		},
 		{
 			name:   "users [admin] to [sugriwa] DELETE it success: id=2",
 			expect: auth_admin,

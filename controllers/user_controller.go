@@ -623,6 +623,14 @@ func (controller *Controller) DeleteUser(c echo.Context) error {
 	log.Info("START request method GET for delete user")
 	id, _ := strconv.Atoi(c.Param("id"))
 
+	// why?
+	// delete not for admin
+	if id == 1 {
+		log.Warn("END request method GET for delete user [admin]: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, "403 Forbidden")
+	}
+
 	user, err := (models.User{}).FirstByID(controller.DB, id)
 	if err != nil {
 		log.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
