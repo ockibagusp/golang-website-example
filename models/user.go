@@ -29,21 +29,22 @@ type UserCity struct {
  * the tx *DB: exists apparetly
  */
 
-// User: Save
-func (user User) Save(db *gorm.DB) (*User, error) {
-	if err := db.Create(&user).Error; err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-// User: FindAll
-func (User) FindAll(db *gorm.DB) ([]User, error) {
+// User: FindAll(db, admin_or_user={admin, user})
+func (User) FindAll(db *gorm.DB, admin_or_user ...string) ([]User, error) {
 	users := []User{}
 
-	// Limit: 25 ?
-	err := db.Limit(25).Find(&users).Error
+	var err error
+	if len(admin_or_user) == 0 || (len(admin_or_user) == 1 && admin_or_user[0] == "all") {
+		// Limit: 25 ?
+		err = db.Limit(25).Find(&users).Error
+	} else if len(admin_or_user) == 1 && admin_or_user[0] == "admin" {
+		err = db.Limit(25).Where("is_admin = 1").Find(&users).Error
+	} else if len(admin_or_user) == 1 && admin_or_user[0] == "user" {
+		err = db.Limit(25).Where("is_admin = 0").Find(&users).Error
+	} else { // admin_or_user agrs [2,..]=string
+		return nil, errors.New(`models.User{}.FirstAll: admin_or_user agrs [2]{"admin", "user"}=string`)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +55,28 @@ func (User) FindAll(db *gorm.DB) ([]User, error) {
 // User: FirstByID
 func (user User) FirstByID(db *gorm.DB, id int) (*User, error) {
 	err := db.First(&user, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("User Not Found")
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// User: Save
+func (user User) Save(db *gorm.DB) (*User, error) {
+	if err := db.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// User: FirstUserByID
+func (user User) FirstUserByID(db *gorm.DB, id int) (*User, error) {
+	err := db.Where("is_admin = 0").First(&user, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("User Not Found")
@@ -150,4 +173,9 @@ func (user User) Delete(db *gorm.DB, id int) error {
 	tx.Commit()
 
 	return nil
+}
+
+// is?
+func (User) isAdmin(admin_or_user ...string) bool {
+	return len(admin_or_user) == 0 || (len(admin_or_user) == 1 && admin_or_user[0] == "all")
 }

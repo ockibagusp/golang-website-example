@@ -1,7 +1,9 @@
 package test
 
 import (
+	"log"
 	"net/http"
+	"net/url"
 	"regexp"
 	"testing"
 
@@ -47,16 +49,23 @@ func TestUsersController(t *testing.T) {
 		Name:     "Sugriwa",
 	}.Save(db)
 
+	// TODO: typing: all, admin and user
+
 	test_cases := []struct {
 		name         string
 		expect       *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
+		url          string
 		status       int
 		html_navbar  regex
 		html_heading regex
 	}{
+		/*
+			users: All
+		*/
 		{
-			name:   "users [admin] to GET it success",
+			name:   "users [admin] to GET it success: all",
 			expect: auth_admin,
+			url:    "/users",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -66,8 +75,9 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:   "users [user] to GET it success",
+			name:   "users [user] to GET it success: all",
 			expect: auth_sugriwa,
+			url:    "/users",
 			// redirect @route: /user/read/2 [sugriwa: 2]
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -77,9 +87,69 @@ func TestUsersController(t *testing.T) {
 				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
+		/*
+			users: Admin
+		*/
+		{
+			name:   "users [admin] to GET it success: admin",
+			expect: auth_admin,
+			url:    "/users?admin=all",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+		},
+		{
+			name:   "users [user] to GET it success: admin",
+			expect: auth_sugriwa,
+			url:    "/users?admin=all",
+			// redirect @route: /user/read/2 [sugriwa: 2]
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			},
+		},
+		/*
+			users: User
+		*/
+		{
+			name:   "users [admin] to GET it success: user",
+			expect: auth_admin,
+			url:    "/users?user=all",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+		},
+		{
+			name:   "users [user] to GET it success: user",
+			expect: auth_sugriwa,
+			url:    "/users?user=all",
+			// redirect @route: /user/read/2 [sugriwa: 2]
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			},
+		},
+		/*
+			No Auth
+		*/
 		{
 			name:   "users [no-auth] to GET it failure: login",
 			expect: no_auth,
+			url:    "/users",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -94,8 +164,12 @@ func TestUsersController(t *testing.T) {
 		var result *httpexpect.Response
 		expect := test.expect // auth_admin, session_sugriwa or no-auth
 
+		url, err := url.Parse(test.url)
+		if err != nil {
+			log.Fatal(err)
+		}
 		t.Run(test.name, func(t *testing.T) {
-			result = expect.GET("/users").
+			result = expect.GET(url.Path).
 				Expect().
 				Status(test.status)
 

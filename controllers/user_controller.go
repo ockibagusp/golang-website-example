@@ -51,8 +51,25 @@ func (controller *Controller) Users(c echo.Context) error {
 		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
 	}
 
-	// models.User{} or (models.User{}) or var user models.User or user := models.User{}
-	users, err := models.User{}.FindAll(controller.DB)
+	var users []models.User
+	var err error
+
+	// typing: all, admin and user
+	var typing string
+	if c.QueryParam("admin") == "all" {
+		log.Infof(`for GET to users admin models.User{}.FindAll(db, "admin")`)
+		typing = "Admin"
+		users, err = models.User{}.FindAll(controller.DB, "admin")
+	} else if c.QueryParam("user") == "all" {
+		log.Infof(`for GET to users user models.User{}.FindAll(db, "user")`)
+		users, err = models.User{}.FindAll(controller.DB, "user")
+	} else {
+		log.Infof(`for GET to users models.User{}.FindAll(db) or models.User{}.FindAll(db, "all")`)
+		typing = "All"
+		// models.User{} or (models.User{}) or var user models.User or user := models.User{}
+		users, err = models.User{}.FindAll(controller.DB)
+	}
+
 	if err != nil {
 		log.Warnf("for GET to users without models.User{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for users: [-]failure")
@@ -62,7 +79,7 @@ func (controller *Controller) Users(c echo.Context) error {
 
 	log.Info("END request method GET for users: [+]success")
 	return c.Render(http.StatusOK, "users/user-all.html", echo.Map{
-		"name":    "Users",
+		"name":    fmt.Sprintf("Users: %v", typing),
 		"nav":     "users", // (?)
 		"session": session,
 		/*
@@ -281,7 +298,7 @@ func (controller *Controller) ReadUser(c echo.Context) error {
 	// var user models.User
 	// ...
 	// _user, err := user.FirstByID(...): be able
-	user, err := models.User{}.FirstByID(controller.DB, id)
+	user, err := models.User{}.FirstUserByID(controller.DB, id)
 	if err != nil {
 		log.Warnf(
 			"for GET to read user without models.User{}.FirstByID() errors: `%v`", err,
@@ -339,7 +356,7 @@ func (controller *Controller) UpdateUser(c echo.Context) error {
 	// var user models.User
 	// ...
 	// _user, err := user.FirstByID(...): be able
-	user, err := models.User{}.FirstByID(controller.DB, id)
+	user, err := models.User{}.FirstUserByID(controller.DB, id)
 	if err != nil {
 		log.Warnf(
 			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
@@ -470,7 +487,7 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 	// var user models.User
 	// ...
 	// _user, err := user.FirstByID(...): be able
-	user, err := models.User{}.FirstByID(controller.DB, id)
+	user, err := models.User{}.FirstUserByID(controller.DB, id)
 	if err != nil {
 		log.Warnf(
 			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
@@ -579,7 +596,7 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 
 	// admin
 	if user == nil {
-		user, _ = models.User{}.FirstByID(controller.DB, id)
+		user, _ = models.User{}.FirstUserByID(controller.DB, id)
 	}
 
 	log.Info("END request method GET for update user by password: [+]success")
@@ -631,7 +648,7 @@ func (controller *Controller) DeleteUser(c echo.Context) error {
 		return c.HTML(http.StatusForbidden, "403 Forbidden")
 	}
 
-	user, err := (models.User{}).FirstByID(controller.DB, id)
+	user, err := (models.User{}).FirstUserByID(controller.DB, id)
 	if err != nil {
 		log.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for delete user: [-]failure")
