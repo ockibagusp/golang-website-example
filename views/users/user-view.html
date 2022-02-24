@@ -7,17 +7,6 @@
   <div class="container">
     <div class="content body">
       <div class="col-md-12">
-
-        {{ if .flash_error }}
-          {{ range $index, $value := .flash_error }}
-          <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>error:</strong> {{ $value }}!.
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          {{ end }}
-        {{ end }}
         
         <!-- &lcud;{ is_new ? 'New Node' : 'Edit Node' }&rcud; -->
         <h2 class="mt-4">{{.name}}</h2>

@@ -40,7 +40,7 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 	router.GET("/", controllers.Home).Name = "home"
 	router.GET("/login", controllers.Login).Name = "login get"
 	router.POST("/login", controllers.Login).Name = "login post"
-	router.GET("/logout", controllers.Logout).Name = "home"
+	router.GET("/logout", controllers.Logout).Name = "logout get"
 	router.GET("/about", controllers.About).Name = "about"
 	router.GET("/users", controllers.Users).Name = "users"
 	router.GET("/users/add", controllers.CreateUser).Name = "user/add get"

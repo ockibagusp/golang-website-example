@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
@@ -17,8 +16,8 @@ const GET int = 1
 const POST = 2
 
 func TestLogin(t *testing.T) {
-	noAuth := setupTestServer(t)
-	noAuthCSRF := setupTestServerNoAuthCSRF(noAuth)
+	no_auth := setupTestServer(t)
+	no_auth_CSRF := setupTestServerNoAuthCSRF(no_auth)
 
 	// test for db users
 	truncateUsers(db)
@@ -29,14 +28,12 @@ func TestLogin(t *testing.T) {
 		Name:     "Ocki Bagus Pratama",
 	}.Save(db)
 
-	testCases := []struct {
-		method       int
-		name         string
-		user         types.LoginForm
-		flashMessage bool
-		// TODO: flash error for string
-		flashErrorForString string
-		status              int
+	test_cases := []struct {
+		method int
+		name   string
+		user   types.LoginForm
+		flash  regex
+		status int
 	}{
 		{
 			method: GET,
@@ -61,37 +58,38 @@ func TestLogin(t *testing.T) {
 				Username: "ockibagusp",
 				Password: "<bad password>",
 			},
-			flashMessage:        true,
-			flashErrorForString: "username or password not match",
+			flash: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*username or password not match</p>`,
+			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			if tc.method == GET {
-				noAuth.GET("/login").
+	for _, test := range test_cases {
+		t.Run(test.name, func(t *testing.T) {
+			if test.method == GET {
+				no_auth.GET("/login").
 					Expect().
-					Status(tc.status)
+					Status(test.status)
 				return
 			}
 			// tc.method == POST
-			flashError := noAuthCSRF.POST("/login").
-				WithForm(tc.user).
-				WithFormField("X-CSRF-Token", csrfToken).
+			result := no_auth_CSRF.POST("/login").
+				WithForm(test.user).
+				WithFormField("X-CSRF-Token", csrf_token).
 				Expect().
-				Status(tc.status).
-				Body().Raw()
-
-			actual := fmt.Sprintf(`<p class="text-danger">*%s</p>`, tc.flashErrorForString)
-
-			regex := regexp.MustCompile(`<p class\="text-danger">\*(.*)</p>`)
-			match := regex.FindString(flashError)
+				Status(test.status)
 
 			// flash message: "username or password not match"
-			if tc.flashMessage {
-				assert.Equal(t, match, actual)
+			if (test.flash.must_compile == "") && (test.flash.actual == "") {
+				result_body := result.Body().Raw()
+
+				regex := regexp.MustCompile(test.flash.must_compile)
+				match := regex.FindString(result_body)
+
+				assert.Equal(t, match, test.flash.actual)
 			}
 		})
 	}

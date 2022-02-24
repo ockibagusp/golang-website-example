@@ -4,10 +4,28 @@
 
 {{define "body"}}
 <main role="main">
+
+  {{ if .flash_success }}
+    {{ range $index, $value := .flash_success }}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>success:</strong> {{ $value }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {{ end }}
+  {{ end }}
+
   <div class="jumbotron jumbotron-fluid">
     <div class="container">
       <h1 class="display-4">Hello {{index . "msg"}}</h1>
+      {{if eq (index .session.Values "is_auth_type") 1}}
+      <p class="lead">Admin.</p>
+      {{else if eq (index .session.Values "is_auth_type") 2}}
+      <p class="lead">User.</p>
+      {{else}}
       <p class="lead">Test.</p>
+      {{end}}
     </div>
   </div>
   <div class="container" id="containers">

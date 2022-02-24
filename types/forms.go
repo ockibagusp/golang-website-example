@@ -22,6 +22,7 @@ type UserForm struct {
 	Name            string `form:"name"`
 	City            uint   `form:"city"`
 	Photo           string `form:"photo"`
+	IsAdmin         uint16 `form:"is_admin"`
 }
 
 /*

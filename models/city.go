@@ -56,7 +56,7 @@ func (city City) Delete(db *gorm.DB, id int) error {
 	// if tx.Select("id").First(&city).Error != nil {}
 	if tx.Select("id").First(&city).Count(&count); count != 1 {
 		tx.Rollback()
-		return errors.New("record not found")
+		return errors.New("City Not Found")
 	}
 	// if tx.Delete(&city, id).Error != nil {}
 	if err := tx.Delete(&city, id).Error; err != nil {
