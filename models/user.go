@@ -175,7 +175,7 @@ func (user User) Delete(db *gorm.DB, id int) error {
 	return nil
 }
 
-// is?
+// TODO: is?
 func (User) isAdmin(admin_or_user ...string) bool {
 	return len(admin_or_user) == 0 || (len(admin_or_user) == 1 && admin_or_user[0] == "all")
 }

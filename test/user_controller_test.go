@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -166,7 +165,7 @@ func TestUsersController(t *testing.T) {
 
 		url, err := url.Parse(test.url)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 		t.Run(test.name, func(t *testing.T) {
 			result = expect.GET(url.Path).
