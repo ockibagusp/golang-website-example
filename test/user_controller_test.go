@@ -48,7 +48,7 @@ func TestUsersController(t *testing.T) {
 		Name:     "Sugriwa",
 	}.Save(db)
 
-	// TODO: typing: all, admin and user
+	// TODO: rows all, admin dan user
 
 	test_cases := []struct {
 		name         string
@@ -59,7 +59,7 @@ func TestUsersController(t *testing.T) {
 		html_heading regex
 	}{
 		/*
-			users: All
+			users [admin]
 		*/
 		{
 			name:   "users [admin] to GET it success: all",
@@ -74,22 +74,6 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:   "users [user] to GET it success: all",
-			expect: auth_sugriwa,
-			url:    "/users",
-			// redirect @route: /user/read/2 [sugriwa: 2]
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
-			},
-		},
-		/*
-			users: Admin
-		*/
-		{
 			name:   "users [admin] to GET it success: admin",
 			expect: auth_admin,
 			url:    "/users?admin=all",
@@ -101,22 +85,6 @@ func TestUsersController(t *testing.T) {
 				actual:       `<a class="btn">ADMIN</a>`,
 			},
 		},
-		{
-			name:   "users [user] to GET it success: admin",
-			expect: auth_sugriwa,
-			url:    "/users?admin=all",
-			// redirect @route: /user/read/2 [sugriwa: 2]
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
-			},
-		},
-		/*
-			users: User
-		*/
 		{
 			name:   "users [admin] to GET it success: user",
 			expect: auth_admin,
@@ -130,9 +98,24 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:   "users [user] to GET it success: user",
+			name:   "users [admin] to GET it failed: all",
+			expect: auth_admin,
+			url:    "/users?false=all",
+			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			},
+		},
+
+		/*
+			users [user]
+		*/
+		{
+			name:   "users [user] to GET it redirect success: sugriwa",
 			expect: auth_sugriwa,
-			url:    "/users?user=all",
+			url:    "/users",
 			// redirect @route: /user/read/2 [sugriwa: 2]
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -142,6 +125,20 @@ func TestUsersController(t *testing.T) {
 				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
+		{
+			name:   "users [user] to GET it redirect success: admin failed",
+			expect: auth_sugriwa,
+			url:    "/users?admin=all",
+			// redirect @route: /user/read/2 [sugriwa: 2]
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			},
+		},
+
 		/*
 			No Auth
 		*/
