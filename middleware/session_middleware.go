@@ -9,9 +9,45 @@ import (
 
 // base.html -> {{if eq ((index .session.Values "is_auth_type") | tostring) -1 }}ok{{end}}
 
-// GetAuth: get session from authentication
+// GetAuth: get session to authenticated
 func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
 	if session_gorilla, err = session.Get("session", c); err != nil {
+		return
+	}
+
+	is_auth_type := session_gorilla.Values["is_auth_type"]
+	if IsAdmin(is_auth_type) || IsUser(is_auth_type) {
+		return session_gorilla, nil
+	}
+
+	if _, ok := session_gorilla.Values["username"]; !ok {
+		session_gorilla.Values["username"] = ""
+	}
+	if _, ok := session_gorilla.Values["is_auth_type"]; !ok {
+		session_gorilla.Values["is_auth_type"] = -1
+	}
+
+	return
+}
+
+// IsAdmin: allows access only to authenticated administrators
+func IsAdmin(is_auth_type interface{}) bool {
+	return is_auth_type == 1
+}
+
+// IsUser: allows access only to authenticated users
+func IsUser(is_auth_type interface{}) bool {
+	return is_auth_type == 2
+}
+
+// GetAdmin: allows access only to authenticated administrators
+func GetAdmin(c echo.Context) (session_gorilla *sessions.Session, err error) {
+	if session_gorilla, err = session.Get("session", c); err != nil {
+		return
+	}
+
+	is_auth_type := session_gorilla.Values["is_auth_type"]
+	if IsAdmin(is_auth_type) {
 		return
 	}
 
@@ -40,8 +76,11 @@ func SetSession(user models.User, c echo.Context) (session_gorilla *sessions.Ses
 	}
 
 	session_gorilla.Values["username"] = user.Username
-	// TODO: user.IsAuthType
-	session_gorilla.Values["is_auth_type"] = 2 // TODO: admin: 1 and user: 2
+	if user.IsAdmin == 1 {
+		session_gorilla.Values["is_auth_type"] = 1 // admin: 1
+	} else if user.IsAdmin == 0 {
+		session_gorilla.Values["is_auth_type"] = 2 // user: 2
+	}
 	session_gorilla.Save(c.Request(), c.Response())
 
 	return
@@ -76,7 +115,7 @@ func RefreshSession(user models.User, c echo.Context) (session_gorilla *sessions
 //	session for flash message.
 ////
 
-const sessionFlash = "flash"
+const session_flash = "flash"
 
 // cookieStoreFlash: new cookie store session for flash
 func cookieStoreFlash() *sessions.CookieStore {
@@ -87,14 +126,14 @@ func cookieStoreFlash() *sessions.CookieStore {
 
 // SetFlash: set session for flash message
 func SetFlash(c echo.Context, name, value string) {
-	txSessionFlash := sessionFlash
+	tx_session_flash := session_flash
 	if name == "message" {
-		txSessionFlash += "-message"
+		tx_session_flash += "-message"
 	} else if name == "error" {
-		txSessionFlash += "-error"
+		tx_session_flash += "-error"
 	}
 
-	session, _ := cookieStoreFlash().Get(c.Request(), txSessionFlash)
+	session, _ := cookieStoreFlash().Get(c.Request(), tx_session_flash)
 
 	session.AddFlash(value, name)
 	session.Save(c.Request(), c.Response())
@@ -102,14 +141,14 @@ func SetFlash(c echo.Context, name, value string) {
 
 // GetFlash: get session for flash messages
 func GetFlash(c echo.Context, name string) (flashes []string) {
-	txSessionFlash := sessionFlash
+	tx_session_flash := session_flash
 	if name == "message" {
-		txSessionFlash += "-message"
+		tx_session_flash += "-message"
 	} else if name == "error" {
-		txSessionFlash += "-error"
+		tx_session_flash += "-error"
 	}
 
-	session, _ := cookieStoreFlash().Get(c.Request(), txSessionFlash)
+	session, _ := cookieStoreFlash().Get(c.Request(), tx_session_flash)
 
 	fls := session.Flashes(name)
 	if len(fls) > 0 {

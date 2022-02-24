@@ -57,6 +57,7 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `city` int unsigned DEFAULT NULL,
   `photo` varchar(255) DEFAULT NULL,
+  `is_admin` tinyint(1) unsigned zerofill NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`),
   UNIQUE KEY `username_UNIQUE` (`username`),
@@ -70,7 +71,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'2020-02-22 15:28:40','2021-11-25 09:30:58',NULL,'ockibagusp','ocki.bagus.p@gmail.com','Ocki Bagus Pratama','$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa',2,''),(2,'2020-03-17 06:56:10','2021-11-25 09:30:58',NULL,'sugriwa','sugriwa@wanara.com','Sugriwa','$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu',0,''),(3,'2020-03-17 06:57:47','2021-11-25 09:30:58',NULL,'subali','subali@wanara.com','Subali','$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y',0,'');
+INSERT INTO `users` VALUES (1,'2020-02-22 15:28:40','2022-02-05 10:14:04',NULL,'admin','admin@website.com','Admin','$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW',2,'',1),(2,'2020-03-17 06:56:10','2021-11-25 09:30:58',NULL,'sugriwa','sugriwa@wanara.com','Sugriwa','$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu',0,'',0),(3,'2020-03-17 06:57:47','2021-11-25 09:30:58',NULL,'subali','subali@wanara.com','Subali','$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y',0,'',0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -83,4 +84,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-25 10:22:17
+-- Dump completed on 2022-02-05 10:18:48

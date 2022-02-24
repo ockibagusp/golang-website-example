@@ -7,7 +7,7 @@
   <div class="container">
     <div class="content body">
       <div class="col-md-12">
-        <h2 class="mt-4">Users</h2>
+        <h2 class="mt-4">{{ .name }}</h2>
 
         <!-- TODO: flash.html -->
         {{ if gt (len .flash.success) 0 }}
@@ -33,10 +33,20 @@
         {{ end }}
 
         <div class="row justify-content-end">
-          <div class="col-2">
-            <a href="/users/add" class="btn btn-info btn-sm btn-flat"
-              >Add New</a
-            >
+          <a href="/users/add" class="btn btn-info btn-sm btn-flat">
+            Add New
+          </a>
+        </div>
+        <div class="row justify-content-end">
+            <a href="/users" class="btn btn-link btn-flat">
+              All
+            </a>
+            <a href="/users?admin=all" class="btn btn-link btn-flat">
+              Admin
+            </a>
+            <a href="/users?user=all" class="btn btn-link btn-flat">
+              User
+            </a>
           </div>
         </div>
         <div class="table-responsive">
@@ -46,6 +56,7 @@
                 <th style="width: 30px">ID</th>
                 <th>Username</th>
                 <th>Name</th>
+                <th>Is Admin</th>
                 <th>Action</th>
               </tr>
               {{range $user := .users}}
@@ -58,6 +69,13 @@
                 </td>
                 <td>
                   {{$user.Name}}
+                </td>
+                <td>
+                  {{if eq $user.IsAdmin 1}}
+                    yes
+                  {{else}}
+                    no
+                  {{end}}
                 </td>
                 <td style="width: 195px">
                   <a

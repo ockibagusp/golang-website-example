@@ -52,7 +52,7 @@ func (controller *Controller) Login(c echo.Context) error {
 
 		var user models.User
 		// err := controller.DB.Select(...).Where(...).First(...).Error
-		if err := controller.DB.Select("username", "password").Where(
+		if err := controller.DB.Select("username", "password", "is_admin").Where(
 			"username = ?", passwordForm.Username,
 		).First(&user).Error; err != nil {
 			middleware.SetFlashError(c, err.Error())
