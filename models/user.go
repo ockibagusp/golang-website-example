@@ -34,12 +34,15 @@ func (User) FindAll(db *gorm.DB, admin_or_user ...string) ([]User, error) {
 	users := []User{}
 
 	var err error
-	if len(admin_or_user) == 0 || (len(admin_or_user) == 1 && admin_or_user[0] == "all") {
+
+	// same,
+	// if len(*admin_or_user) == 0 || len(*admin_or_user) == 1 && (*admin_or_user)[0] == "all" {...}
+	if isAll(&admin_or_user) {
 		// Limit: 25 ?
 		err = db.Limit(25).Find(&users).Error
-	} else if len(admin_or_user) == 1 && admin_or_user[0] == "admin" {
+	} else if isAdmin(&admin_or_user) {
 		err = db.Limit(25).Where("is_admin = 1").Find(&users).Error
-	} else if len(admin_or_user) == 1 && admin_or_user[0] == "user" {
+	} else if isUser(&admin_or_user) {
 		err = db.Limit(25).Where("is_admin = 0").Find(&users).Error
 	} else { // admin_or_user agrs [2,..]=string
 		return nil, errors.New(`models.User{}.FirstAll: admin_or_user agrs [2]{"admin", "user"}=string`)
@@ -175,7 +178,15 @@ func (user User) Delete(db *gorm.DB, id int) error {
 	return nil
 }
 
-// TODO: is?
-func (User) isAdmin(admin_or_user ...string) bool {
-	return len(admin_or_user) == 0 || (len(admin_or_user) == 1 && admin_or_user[0] == "all")
+// is? all, admin or user?
+func isAll(admin_or_user *[]string) bool {
+	return len(*admin_or_user) == 0 || len(*admin_or_user) == 1 && (*admin_or_user)[0] == "all"
+}
+
+func isAdmin(admin_or_user *[]string) bool {
+	return len(*admin_or_user) == 1 && (*admin_or_user)[0] == "admin"
+}
+
+func isUser(admin_or_user *[]string) bool {
+	return len(*admin_or_user) == 1 && (*admin_or_user)[0] == "user"
 }

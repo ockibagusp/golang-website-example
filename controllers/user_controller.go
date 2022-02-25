@@ -62,6 +62,7 @@ func (controller *Controller) Users(c echo.Context) error {
 		users, err = models.User{}.FindAll(controller.DB, "admin")
 	} else if c.QueryParam("user") == "all" {
 		log.Infof(`for GET to users user models.User{}.FindAll(db, "user")`)
+		typing = "User"
 		users, err = models.User{}.FindAll(controller.DB, "user")
 	} else {
 		log.Infof(`for GET to users models.User{}.FindAll(db) or models.User{}.FindAll(db, "all")`)
