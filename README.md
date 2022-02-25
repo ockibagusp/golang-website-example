@@ -107,6 +107,7 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
 
 
 ## TODO List
+- Table database Users to testing: admin, user and no-auth
 - Admin Users: delete table User `deleted_at` @route: /users/admin/delete
 
     button:
