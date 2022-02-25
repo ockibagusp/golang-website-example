@@ -36,7 +36,7 @@ func (user User) FindAll(db *gorm.DB, admin_or_user ...string) ([]User, error) {
 	var err error
 
 	// same,
-	// if len(*admin_or_user) == 0 || len(*admin_or_user) == 1 && (*admin_or_user)[0] == "all" {...}
+	// if len(admin_or_user) == 0 || len(admin_or_user) == 1 && admin_or_user[0] == "all" {...}
 	if user.isAll(&admin_or_user) {
 		// Limit: 25 ?
 		err = db.Limit(25).Find(&users).Error
