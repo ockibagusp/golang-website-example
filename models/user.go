@@ -76,7 +76,7 @@ func (user User) Save(db *gorm.DB) (*User, error) {
 
 // User: FirstUserByID
 func (user User) FirstUserByID(db *gorm.DB, id int) (*User, error) {
-	err := db.Where("is_admin = 0").First(&user, id).Error
+	err := db.First(&user, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("User Not Found")
