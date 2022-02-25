@@ -116,6 +116,7 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
 - mock unit test
 - list pagination with next, previous, first and last
 - Mutex: BankAccount
+- docker
 - too much
 
 ## Operating System (with me)
