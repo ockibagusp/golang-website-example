@@ -107,6 +107,12 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
 
 
 ## TODO List
+- Admin Users: delete table User `deleted_at` @route: /users/admin/delete
+
+    button:
+    Restore | Delete Permanently
+
+- Admin user button: delete not for admin
 - mock unit test
 - list pagination with next, previous, first and last
 - Mutex: BankAccount
