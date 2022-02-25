@@ -19,6 +19,36 @@ import (
 // func truncateUsers() {...}, just the same
 func truncateUsers(db *gorm.DB) {
 	db.Exec("TRUNCATE users")
+
+	// database: just `users.username` varchar 15
+	users := []models.User{
+		{
+			Username: "admin",
+			Email:    "admin@website.com",
+			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
+			Name:     "Admin",
+		},
+		{
+			Username: "sugriwa",
+			Email:    "sugriwa@wanara.com",
+			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
+			Name:     "Sugriwa",
+		},
+		{
+			Username: "subali",
+			Email:    "subali@wanara.com",
+			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
+			Name:     "Subali",
+		},
+	}
+
+	tx := db.Begin()
+	// *gorm.DB
+	if err := tx.Create(&users).Error; err != nil {
+		tx.Rollback()
+		panic(err.Error())
+	}
+	tx.Commit()
 }
 
 // TODO: types users error
@@ -41,12 +71,6 @@ func TestUsersController(t *testing.T) {
 
 	// test for db users
 	truncateUsers(db)
-	// database: just `users.username` varchar 15
-	models.User{
-		Username: "sugriwa",
-		Email:    "sugriwa@wanara.com",
-		Name:     "Sugriwa",
-	}.Save(db)
 
 	// TODO: rows all, admin dan user
 
@@ -213,12 +237,6 @@ func TestCreateUserController(t *testing.T) {
 
 	// TODO: flash with redirect on failure
 
-	models.User{
-		Username: "sugriwa",
-		Email:    "sugriwa@wanara.com",
-		Name:     "Sugriwa",
-	}.Save(db)
-
 	test_cases := []struct {
 		name   string
 		expect *httpexpect.Expect // auth or no-auth
@@ -326,9 +344,9 @@ func TestCreateUserController(t *testing.T) {
 			expect: no_auth,
 			method: POST,
 			form: types.UserForm{
-				Username:        "subali",
-				Email:           "subali@wanara.com",
-				Name:            "Subali",
+				Username:        "ockibagusp",
+				Email:           "ocki.bagus.p@gmail.com",
+				Name:            "Ocki Bagus Pratama",
 				Password:        "user123",
 				ConfirmPassword: "user123",
 			},
@@ -337,7 +355,7 @@ func TestCreateUserController(t *testing.T) {
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success new user: subali!`,
+				actual:       `<strong>success:</strong> success new user: ockibagusp!`,
 			},
 		},
 	}
@@ -403,12 +421,6 @@ func TestReadUserController(t *testing.T) {
 
 	// test for db users
 	truncateUsers(db)
-	// database: just `users.username` varchar 15
-	models.User{
-		Username: "sugriwa",
-		Email:    "sugriwa@wanara.com",
-		Name:     "Sugriwa",
-	}.Save(db)
 
 	test_cases := []struct {
 		name        string
@@ -534,39 +546,6 @@ func TestUpdateUserController(t *testing.T) {
 
 	// test for db users
 	truncateUsers(db)
-
-	// database: just `users.username` varchar 15
-	users := []models.User{
-		{
-			Username: "admin",
-			Email:    "admin@website.com",
-			Name:     "Admin",
-		},
-		{
-			Username: "sugriwa",
-			Email:    "sugriwa@wanara.com",
-			Name:     "Sugriwa",
-		},
-		{
-			Username: "subali",
-			Email:    "subali@wanara.com",
-			Name:     "Subali",
-		},
-	}
-
-	tx := db.Begin()
-	for _, user := range users {
-		_, err := models.User{
-			Username: user.Username,
-			Email:    user.Email,
-			Name:     user.Name,
-		}.Save(tx)
-		if err != nil {
-			tx.Rollback()
-			panic(err.Error())
-		}
-	}
-	tx.Commit()
 
 	test_cases := []struct {
 		name   string
@@ -836,35 +815,6 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 
 	// test for db users
 	truncateUsers(db)
-	// database: just `users.username` varchar 15
-	users := []models.User{
-		{
-			Username: "admin",
-			Email:    "admin@website.com",
-			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
-			Name:     "Admin",
-		},
-		{
-			Username: "sugriwa",
-			Email:    "sugriwa@wanara.com",
-			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
-			Name:     "Sugriwa",
-		},
-		{
-			Username: "subali",
-			Email:    "subali@wanara.com",
-			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
-			Name:     "Subali",
-		},
-	}
-
-	tx := db.Begin()
-	// *gorm.DB
-	if err := tx.Create(&users).Error; err != nil {
-		tx.Rollback()
-		panic(err.Error())
-	}
-	tx.Commit()
 
 	test_cases := []struct {
 		name   string
@@ -1220,29 +1170,6 @@ func TestDeleteUserController(t *testing.T) {
 
 	// test for db users
 	truncateUsers(db)
-	// database: just `users.username` varchar 15
-	users := []models.User{
-		{
-			Username: "admin",
-			Email:    "admin@website.com",
-		},
-		{
-			Username: "sugriwa",
-			Email:    "sugriwa@wanara.com",
-		},
-		{
-			Username: "subali",
-			Email:    "subali@wanara.com",
-		},
-	}
-
-	tx := db.Begin()
-	// *gorm.DB
-	if err := tx.Create(&users).Error; err != nil {
-		tx.Rollback()
-		panic(err.Error())
-	}
-	tx.Commit()
 
 	test_cases := []struct {
 		name   string
