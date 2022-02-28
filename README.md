@@ -114,6 +114,7 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
     Restore | Delete Permanently
 
 - Admin user button: delete not for admin
+- Admin user search
 - mock unit test
 - list pagination with next, previous, first and last
 - Mutex: BankAccount
