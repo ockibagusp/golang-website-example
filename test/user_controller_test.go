@@ -225,14 +225,17 @@ func TestUsersController(t *testing.T) {
 
 			result_body := result.Body().Raw()
 
-			var must_compile, actual string
+			var (
+				must_compile, actual, match string
+				regex                       *regexp.Regexp
+			)
 
 			if test.html_navbar.must_compile != "" {
 				must_compile = test.html_navbar.must_compile
 				actual = test.html_navbar.actual
 
-				regex := regexp.MustCompile(must_compile)
-				match := regex.FindString(result_body)
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
 
 				// assert.Equal(t, match, actual)
 				//
@@ -248,8 +251,8 @@ func TestUsersController(t *testing.T) {
 				must_compile = test.html_heading.must_compile
 				actual = test.html_heading.actual
 
-				regex := regexp.MustCompile(must_compile)
-				match := regex.FindString(result_body)
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
 
 				assert.Equal(match, actual)
 			}
@@ -524,6 +527,8 @@ func TestCreateUserController(t *testing.T) {
 }
 
 func TestReadUserController(t *testing.T) {
+	assert := assert.New(t)
+
 	no_auth := setupTestServer(t)
 	auth_admin := setupTestServerAuth(no_auth, 1)
 	auth_sugriwa := setupTestServerAuth(no_auth, 2)
@@ -532,12 +537,14 @@ func TestReadUserController(t *testing.T) {
 	truncateUsers(db)
 
 	test_cases := []struct {
-		name        string
-		expect      *httpexpect.Expect // auth or no-auth
-		method      int                // method: 1=GET or 2=POST
-		path        string
-		status      int
-		flash_error regex
+		name         string
+		expect       *httpexpect.Expect // auth or no-auth
+		method       int                // method: 1=GET or 2=POST
+		path         string
+		status       int
+		html_navbar  regex
+		html_heading regex
+		flash_error  regex
 	}{
 		/*
 			read it [admin]
@@ -549,6 +556,16 @@ func TestReadUserController(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Admin</h2>`,
+			},
 		},
 		{
 			name:   "users [admin] to GET read it failure",
@@ -566,9 +583,14 @@ func TestReadUserController(t *testing.T) {
 			name:   "users [sugriwa] to GET read it success",
 			expect: auth_sugriwa,
 			method: GET,
-			path:   "1",
+			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to GET read it failure",
@@ -627,11 +649,41 @@ func TestReadUserController(t *testing.T) {
 					Expect().
 					Status(test.status)
 
-				if test.flash_error.must_compile != "" {
-					regex := regexp.MustCompile(test.flash_error.must_compile)
-					match := regex.FindString(result.Body().Raw())
+				result_body := result.Body().Raw()
 
-					assert.Equal(t, match, test.flash_error.actual)
+				var (
+					must_compile, actual, match string
+					regex                       *regexp.Regexp
+				)
+
+				if test.html_navbar.must_compile != "" {
+					must_compile = test.html_navbar.must_compile
+					actual = test.html_navbar.actual
+
+					regex = regexp.MustCompile(must_compile)
+					match = regex.FindString(result_body)
+
+					assert.Equal(match, actual)
+				}
+
+				if test.html_heading.must_compile != "" {
+					must_compile = test.html_heading.must_compile
+					actual = test.html_heading.actual
+
+					regex = regexp.MustCompile(must_compile)
+					match = regex.FindString(result_body)
+
+					assert.Equal(match, actual)
+				}
+
+				if test.flash_error.must_compile != "" {
+					must_compile = test.flash_error.must_compile
+					actual = test.flash_error.actual
+
+					regex = regexp.MustCompile(must_compile)
+					match = regex.FindString(result_body)
+
+					assert.Equal(match, actual)
 				}
 			} else {
 				panic("method: 1=GET")
