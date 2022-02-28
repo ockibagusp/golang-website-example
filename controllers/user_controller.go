@@ -51,11 +51,14 @@ func (controller *Controller) Users(c echo.Context) error {
 		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
 	}
 
-	var users []models.User
-	var err error
+	var (
+		users []models.User
+		err   error
 
-	// typing: all, admin and user
-	var typing string
+		// typing: all, admin and user
+		typing string
+	)
+
 	if c.QueryParam("admin") == "all" {
 		log.Infof(`for GET to users admin models.User{}.FindAll(db, "admin")`)
 		typing = "Admin"
