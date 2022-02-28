@@ -308,7 +308,7 @@ func (controller *Controller) ReadUser(c echo.Context) error {
 			"for GET to read user without models.User{}.FirstByID() errors: `%v`", err,
 		)
 		log.Warn("END request method GET for read user: [-]failure")
-		// HTTP response status: 405 Method Not Allowed
+		// HTTP response status: 406 Method Not Acceptable
 		return c.HTML(http.StatusNotAcceptable, err.Error())
 	}
 
