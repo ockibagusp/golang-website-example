@@ -256,6 +256,14 @@ func TestUsersController(t *testing.T) {
 
 				assert.Equal(match, actual)
 			}
+
+			statusCode := result.Raw().StatusCode
+			if test.status != statusCode {
+				t.Logf(
+					"got: %d but expect %d", test.status, statusCode,
+				)
+				t.Fail()
+			}
 		})
 	}
 }
@@ -716,6 +724,8 @@ func TestUpdateUserController(t *testing.T) {
 		form   types.UserForm
 		status int
 
+		html_navbar  regex
+		html_heading regex
 		// flash message
 		html_flash_success regex
 		html_flash_error   regex
@@ -731,6 +741,16 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "1", // admin: 1 admin
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Admin</h2>`,
+			},
 		},
 		{
 			name:   "users [admin] to user GET update it success: id=2",
@@ -739,6 +759,16 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "2", // user: 2 sugriwa
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			},
 		},
 		{
 			name:   "users [admin] to -1 GET update it failure: id=-1",
@@ -760,6 +790,16 @@ func TestUpdateUserController(t *testing.T) {
 			// redirect @route: /users
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -779,6 +819,16 @@ func TestUpdateUserController(t *testing.T) {
 			// redirect @route: /users
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -807,6 +857,11 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "2", // user: 2 sugriwa ok
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa Success</h2>`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to GET update it failure: id=-2",
@@ -837,6 +892,11 @@ func TestUpdateUserController(t *testing.T) {
 			// redirect @route: /
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h1 class="display-4">(.*)</h1>`,
+				actual:       `<h1 class="display-4">Hello Sugriwa!</h1>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -931,31 +991,62 @@ func TestUpdateUserController(t *testing.T) {
 					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
-
-				result_body := result.Body().Raw()
-
-				var must_compile, actual string
-				var match_actual bool
-				if test.html_flash_success.must_compile != "" {
-					match_actual = true
-					must_compile = test.html_flash_success.must_compile
-					actual = test.html_flash_success.actual
-				}
-
-				if test.html_flash_error.must_compile != "" {
-					match_actual = true
-					must_compile = test.html_flash_error.must_compile
-					actual = test.html_flash_error.actual
-				}
-
-				if match_actual {
-					regex := regexp.MustCompile(must_compile)
-					match := regex.FindString(result_body)
-
-					assert.Equal(t, match, actual)
-				}
 			} else {
 				panic("method: 1=GET or 2=POST")
+			}
+
+			result_body := result.Body().Raw()
+
+			var (
+				must_compile, actual, match string
+				regex                       *regexp.Regexp
+			)
+
+			if test.html_navbar.must_compile != "" {
+				must_compile = test.html_navbar.must_compile
+				actual = test.html_navbar.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				// assert.Equal(t, match, actual)
+				//
+				// or,
+				//
+				// assert := assert.New(t)
+				// ...
+				// assert.Equal(match, actual)
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_heading.must_compile != "" {
+				must_compile = test.html_heading.must_compile
+				actual = test.html_heading.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_flash_success.must_compile != "" {
+				must_compile = test.html_flash_success.must_compile
+				actual = test.html_flash_success.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_flash_error.must_compile != "" {
+				must_compile = test.html_flash_error.must_compile
+				actual = test.html_flash_error.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode
