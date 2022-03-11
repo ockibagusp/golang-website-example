@@ -1076,6 +1076,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		form   types.NewPasswordForm
 		status int
 
+		html_heading regex
 		// flash message
 		html_flash_success regex
 		html_flash_error   regex
@@ -1091,6 +1092,11 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h3 class="mt-4">(.*)</h3>`,
+				actual:       `<h3 class="mt-4">User: Admin</h3>`,
+			},
 		},
 		{
 			name:   "users [admin] to [sugriwa] GET update user by password it success: id=2",
@@ -1099,6 +1105,11 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h3 class="mt-4">(.*)</h3>`,
+				actual:       `<h3 class="mt-4">User: Sugriwa</h3>`,
+			},
 		},
 		{
 			name: "users [admin] to GET update user by password it failure: id=-1" +
@@ -1122,6 +1133,11 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			},
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -1129,7 +1145,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			},
 		},
 		{
-			name:   "users [admin] to [sugriwa] POST update user by password it success: id=1",
+			name:   "users [admin] to [sugriwa] POST update user by password it success: id=2",
 			expect: auth_admin,
 			method: POST,
 			path:   "2",
@@ -1140,6 +1156,11 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			},
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -1195,6 +1216,11 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h3 class="mt-4">(.*)</h3>`,
+				actual:       `<h3 class="mt-4">User: Sugriwa</h3>`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to [admin] GET update user by password it failure: id=1",
@@ -1205,7 +1231,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusForbidden,
 		},
 		{
-			name:   "users [sugriwa] to [subali] GET update user by password it failure: id=2",
+			name:   "users [sugriwa] to [subali] GET update user by password it failure: id=3",
 			expect: auth_sugriwa,
 			method: GET,
 			path:   "3",
@@ -1377,31 +1403,45 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
-
-				result_body := result.Body().Raw()
-
-				var must_compile, actual string
-				var match_actual bool
-				if test.html_flash_success.must_compile != "" {
-					match_actual = true
-					must_compile = test.html_flash_success.must_compile
-					actual = test.html_flash_success.actual
-				}
-
-				if test.html_flash_error.must_compile != "" {
-					match_actual = true
-					must_compile = test.html_flash_error.must_compile
-					actual = test.html_flash_error.actual
-				}
-
-				if match_actual {
-					regex := regexp.MustCompile(must_compile)
-					match := regex.FindString(result_body)
-
-					assert.Equal(t, match, actual)
-				}
 			} else {
 				panic("method: 1=GET or 2=POST")
+			}
+
+			result_body := result.Body().Raw()
+
+			var (
+				must_compile, actual, match string
+				regex                       *regexp.Regexp
+			)
+
+			if test.html_heading.must_compile != "" {
+				must_compile = test.html_heading.must_compile
+				actual = test.html_heading.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_flash_success.must_compile != "" {
+				must_compile = test.html_flash_success.must_compile
+				actual = test.html_flash_success.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_flash_error.must_compile != "" {
+				must_compile = test.html_flash_error.must_compile
+				actual = test.html_flash_error.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode

@@ -115,8 +115,10 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
 
 - Admin user button: delete not for admin
 - Admin user search
+- move test to tests
 - mock unit test
 - list pagination with next, previous, first and last
+- moves files function Server and NewServer, etc.
 - Mutex: BankAccount
 - docker
 - too much

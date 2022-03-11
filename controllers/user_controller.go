@@ -373,7 +373,11 @@ func (controller *Controller) UpdateUser(c echo.Context) error {
 	// admin: yes
 	// (IsUser and (not user.Username)): 403 Forbidden
 	if middleware.IsUser(is_auth_type) && (user.Username != session.Values["username"]) {
-		log.Warn("IsUser and (not user.Username): 403 Forbidden")
+		log.Warnf(
+			"IsUser (%v) and [not user.Username (%v)]: 403 Forbidden",
+			middleware.IsUser(is_auth_type),
+			(user.Username != session.Values["username"]),
+		)
 		log.Warn("END request method GET for update user: [-]failure")
 		return c.HTML(http.StatusForbidden, "403 Forbidden")
 	}
@@ -511,15 +515,13 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 		controller.DB, id, session.Values["username"].(string),
 	)
 
-	if !middleware.IsAdmin(is_auth_type) {
-		if err != nil {
-			log.Warnf(
-				"for GET to update user by password without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
-			)
-			log.Warn("END request method GET for update user by password: [-]failure")
-			// HTTP response status: 403 Forbidden
-			return c.HTML(http.StatusForbidden, err.Error())
-		}
+	if middleware.IsUser(is_auth_type) && err != nil {
+		log.Warnf(
+			"for GET to update user by password without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
+		)
+		log.Warn("END request method GET for update user by password: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, err.Error())
 	}
 
 	if c.Request().Method == "POST" {
@@ -530,8 +532,13 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 			ConfirmNewPassword: c.FormValue("confirm_new_password"),
 		}
 
-		if !middleware.IsAdmin(is_auth_type) && !middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
-			log.Warnf("for POST to update user by password without !middleware.CheckHashPassword() errors: `%v`", err)
+		// TODO: middleware.CheckHashPassword?
+		if (middleware.IsAdmin(is_auth_type) && middleware.IsUser(is_auth_type)) && middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
+			log.Warnf(
+				"for POST to update user by password without IsAdmin and IsUser (%v) and check hash password (%v): 403 Forbidden",
+				middleware.IsAdmin(is_auth_type) && middleware.IsUser(is_auth_type),
+				middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword),
+			)
 			middleware.SetFlashError(c, "check hash password is wrong!")
 			log.Warn("END request method POST for update user by password: [-]failure")
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
