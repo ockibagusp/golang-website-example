@@ -1,4 +1,4 @@
-package test
+package tests
 
 // test flash message: struct
 type flash struct {

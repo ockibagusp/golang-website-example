@@ -138,7 +138,7 @@ func rootedPathName() (dir string) {
 	}
 
 	// TODO: Linux and MacOS: ok. Windows: ...?
-	regex := regexp.MustCompile("/test$")
+	regex := regexp.MustCompile("/tests$")
 	match := regex.Match([]byte(dir))
 
 	if match {
