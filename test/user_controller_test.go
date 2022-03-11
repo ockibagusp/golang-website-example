@@ -1469,8 +1469,10 @@ func TestDeleteUserController(t *testing.T) {
 		path   string             // id=string. Exemple, id="1"
 		status int
 
+		html_heading regex
 		// flash message
 		html_flash_success regex
+		html_flash_error   regex
 	}{
 		// GET all
 		/*
@@ -1490,6 +1492,11 @@ func TestDeleteUserController(t *testing.T) {
 			// redirect @route: /users
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -1535,6 +1542,11 @@ func TestDeleteUserController(t *testing.T) {
 			// redirect @route: /
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<p class="lead">(.*)</p>`,
+				actual:       `<p class="lead">Test.</p>`,
+			},
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
@@ -1552,6 +1564,11 @@ func TestDeleteUserController(t *testing.T) {
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 		{
 			name:   "users [no-auth] to DELETE it failure: id=-1",
@@ -1560,6 +1577,11 @@ func TestDeleteUserController(t *testing.T) {
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 		{
 			name:   "users [no-auth] to DELETE it failure: id=error",
@@ -1568,6 +1590,11 @@ func TestDeleteUserController(t *testing.T) {
 			// redirect @route: /login
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// flash message
+			html_flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
 		},
 	}
 
@@ -1580,11 +1607,41 @@ func TestDeleteUserController(t *testing.T) {
 				Expect().
 				Status(test.status)
 
-			if test.html_flash_success.must_compile != "" {
-				regex := regexp.MustCompile(test.html_flash_success.must_compile)
-				match := regex.FindString(result.Body().Raw())
+			result_body := result.Body().Raw()
 
-				assert.Equal(t, match, test.html_flash_success.actual)
+			var (
+				must_compile, actual, match string
+				regex                       *regexp.Regexp
+			)
+
+			if test.html_heading.must_compile != "" {
+				must_compile = test.html_heading.must_compile
+				actual = test.html_heading.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_flash_success.must_compile != "" {
+				must_compile = test.html_flash_success.must_compile
+				actual = test.html_flash_success.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.html_flash_error.must_compile != "" {
+				must_compile = test.html_flash_error.must_compile
+				actual = test.html_flash_error.actual
+
+				regex = regexp.MustCompile(must_compile)
+				match = regex.FindString(result_body)
+
+				assert.Equal(t, match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode
