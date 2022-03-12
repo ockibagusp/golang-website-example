@@ -532,11 +532,9 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 			ConfirmNewPassword: c.FormValue("confirm_new_password"),
 		}
 
-		// TODO: middleware.CheckHashPassword?
-		if (middleware.IsAdmin(is_auth_type) && middleware.IsUser(is_auth_type)) && middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
+		if !middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
 			log.Warnf(
-				"for POST to update user by password without IsAdmin and IsUser (%v) and check hash password (%v): 403 Forbidden",
-				middleware.IsAdmin(is_auth_type) && middleware.IsUser(is_auth_type),
+				"for POST to update user by password without check hash password (%v): 403 Forbidden",
 				middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword),
 			)
 			middleware.SetFlashError(c, "check hash password is wrong!")
