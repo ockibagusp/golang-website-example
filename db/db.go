@@ -14,7 +14,7 @@ var connection *gorm.DB
 var db *sql.DB
 var err error
 
-// Init: new database
+// Init: new database ["PROD" or "DEV"]
 func Init(env string) *gorm.DB {
 	var connectString string
 	configuration := config.GetConfig()

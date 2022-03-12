@@ -1,6 +1,6 @@
-### golang-website-example/test
+### golang-website-example/tests
 
-#### Test the packages
+#### Tests the packages
 
 ```
 $ go test

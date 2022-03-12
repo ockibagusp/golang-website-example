@@ -37,7 +37,7 @@ file: golang-website-example.sql -> new database: golang-website-example_test
 This using [router](https://github.com/ockibagusp/golang-website-example/blob/master/router/router.go).
 
 ## httpexpect: Test for Debug
-This using [debug](https://github.com/ockibagusp/golang-website-example/blob/master/test/main_test.go).
+This using [debug](https://github.com/ockibagusp/golang-website-example/blob/master/tests/main_test.go).
 
 Optional. Default value @debug: {true} or {1}.
 
@@ -96,13 +96,13 @@ $ go build
 #### Test the packages
 
 ```
-$ go test github.com/ockibagusp/golang-website-example/test 
+$ go test github.com/ockibagusp/golang-website-example/tests 
 ```
 
 or, verbose output (-v) flag:
 
 ```
-$ go test github.com/ockibagusp/golang-website-example/test -v
+$ go test github.com/ockibagusp/golang-website-example/tests -v
 ```
 
 
@@ -113,9 +113,12 @@ $ go test github.com/ockibagusp/golang-website-example/test -v
     Restore | Delete Permanently
 
 - Admin user button: delete not for admin
+- Admin user search
 - mock unit test
 - list pagination with next, previous, first and last
+- moves files function Server and NewServer, etc.
 - Mutex: BankAccount
+- docker
 - too much
 
 ## Operating System (with me)
