@@ -1168,7 +1168,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			},
 		},
 		{
-			name: "users [auth] to POST update user by password it failure: id=1" +
+			name: "users [admin] to POST update user by password it failure: id=1" +
 				" POST passwords don't match",
 			expect: auth_admin,
 			method: POST,
@@ -1182,7 +1182,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusForbidden,
 		},
 		{
-			name: "users [auth] to [sugriwa] POST update user by password it failure: id=2" +
+			name: "users [admin] to [sugriwa] POST update user by password it failure: id=2" +
 				" POST passwords don't match",
 			expect: auth_admin,
 			method: POST,
@@ -1196,7 +1196,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusForbidden,
 		},
 		{
-			name:   "users [auth] to POST update user by password it failure: id=-1",
+			name:   "users [admin] to POST update user by password it failure: id=-1",
 			expect: auth_admin,
 			method: POST,
 			path:   "-1",

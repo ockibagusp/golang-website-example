@@ -24,7 +24,7 @@ file: golang-website-example.sql -> new database: golang-website-example
 #### Testing
 file: golang-website-example.sql -> new database: golang-website-example_test
 
-## User Tables
+## Users Table
 
 | Username | Password | is Admin |
 | --- | --- | --- |

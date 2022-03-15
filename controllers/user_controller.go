@@ -506,7 +506,6 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 	}
 
 	/*
-		TODO:
 		for example:
 		username ockibagusp update by password 'ockibagusp': ok
 		username ockibagusp update by password 'sugriwa': no
@@ -533,10 +532,7 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 		}
 
 		if !middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
-			log.Warnf(
-				"for POST to update user by password without check hash password (%v): 403 Forbidden",
-				middleware.CheckHashPassword(user.Password, _newPasswordForm.OldPassword),
-			)
+			log.Warn("for POST to update user by password without not check hash password: 403 Forbidden")
 			middleware.SetFlashError(c, "check hash password is wrong!")
 			log.Warn("END request method POST for update user by password: [-]failure")
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
