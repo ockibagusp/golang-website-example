@@ -4,6 +4,9 @@ Golang Echo and html template.
 > move GitHub repository for [hello](https://github.com/ockibagusp/hello) to [golang-website-example](#)
 
 
+- [x] Website is ok
+- [ ] **Test failed: All from Session and CSRF.**
+
 
 ### Visual Studio Code
 
@@ -94,6 +97,7 @@ $ go build
     ```
 
 #### Test the packages
+
 
 ```
 $ go test github.com/ockibagusp/golang-website-example/tests 
