@@ -107,6 +107,9 @@ or, verbose output (-v) flag:
 $ go test github.com/ockibagusp/golang-website-example/tests -v
 ```
 
+## Air: cloud Live reload for Go apps
+[Air](https://github.com/cosmtrek/air) is yet another live-reloading command line utility for Go applications in development.
+
 
 ## TODO List
 - Admin Users: delete table User `deleted_at` @route: /users/admin/delete
