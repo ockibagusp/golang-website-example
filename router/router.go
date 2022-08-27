@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/ockibagusp/golang-website-example/controllers"
 	"github.com/ockibagusp/golang-website-example/template"
+	"github.com/sirupsen/logrus"
 )
 
 // Router init
@@ -17,10 +18,20 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 	// Middleware
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recover())
+
+	/*
+		set env. "session_test": [all], [session] or [CSRF]
+	*/
+	// if os.Getenv("session_test") == "all" || os.Getenv("session_test") == "session" {
+	logrus.Println("Setenv: session_test = session")
 	// TODO: .env cookie store ?
 	router.Use(session.Middleware(sessions.NewCookieStore(
 		[]byte("something-very-secret"),
 	)))
+	// }
+
+	// if os.Getenv("session_test") == "all" || os.Getenv("session_test") == "CSRF" {
+	logrus.Println("Setenv: session_test = CSRF")
 	router.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		// Optional. Default value "header:X-CSRF-Token".
 		// Possible values:
@@ -29,6 +40,7 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 		// - "query:<name>"
 		TokenLookup: "form:X-CSRF-Token",
 	}))
+	// }
 
 	// Instantiate a template registry with an array of template set
 	router.Renderer = template.NewTemplates()
@@ -53,6 +65,10 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 	router.POST("/users/view/:id/password", controllers.UpdateUserByPassword).
 		Name = "user/view/:id/password post"
 	router.GET("/users/delete/:id", controllers.DeleteUser).Name = "user/delete get"
+
+	// admin
+	router.GET("/admin/delete-permanently", controllers.DeletePermanently).
+		Name = "/admin/delete-permanently get"
 
 	return
 }

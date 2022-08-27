@@ -36,6 +36,9 @@ func NewTemplates() *Templates {
 	*/
 	t["user-view-password.html"] = parseFileHTMLOnly("views/users/user-view-password.html")
 
+	//admin
+	t["admin/admin-delete-permanently.html"] = parseFilesBase("views/admin/admin-delete-permanently.html")
+
 	return &Templates{
 		Templates: t,
 	}
