@@ -117,7 +117,6 @@ $ go test github.com/ockibagusp/golang-website-example/tests -v
     button:
     Restore | Delete Permanently
 
-- Admin user button: delete not for admin
 - too much
 
 ## Operating System (with me)
