@@ -80,6 +80,19 @@ func (user User) Save(db *gorm.DB) (*User, error) {
 // User: FirstUserByID
 func (user User) FirstUserByID(db *gorm.DB, id int) (*User, error) {
 	err := db.First(&user, id).Error
+
+	return isFirstUserByID(&user, err)
+}
+
+// User: UnscopedFirstUserByID
+func (user User) UnscopedFirstUserByID(db *gorm.DB, id int) (*User, error) {
+	err := db.Unscoped().First(&user, id).Error
+
+	return isFirstUserByID(&user, err)
+}
+
+// User: isFirstUserByID
+func isFirstUserByID(user *User, err error) (*User, error) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("User Not Found")
@@ -87,7 +100,7 @@ func (user User) FirstUserByID(db *gorm.DB, id int) (*User, error) {
 		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 // User: FirstByIDAndUsername
@@ -170,6 +183,52 @@ func (user User) Delete(db *gorm.DB, id int) error {
 
 	// if tx.Delete(&user, id).Error != nil {}
 	if err := tx.Delete(&user, id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+
+	return nil
+}
+
+// User: FindDeleteAll(db, admin_or_user={admin, user})
+func (user User) FindDeleteAll(db *gorm.DB, admin_or_user ...string) ([]User, error) {
+	users := []User{}
+
+	var err error
+
+	// same,
+	// if len(admin_or_user) == 0 || len(admin_or_user) == 1 && admin_or_user[0] == "all" {...}
+	if user.isAll(&admin_or_user) {
+		// Limit: 25 ?
+		err = db.Limit(25).Unscoped().Where("deleted_at is not null").Find(&users).Error
+	} else if user.isAdmin(&admin_or_user) {
+		err = db.Limit(25).Unscoped().Where("is_admin = 1 AND deleted_at is not null").Find(&users).Error
+	} else if user.isUser(&admin_or_user) {
+		err = db.Limit(25).Unscoped().Where("is_admin = 0 AND deleted_at is not null").Find(&users).Error
+	} else { // admin_or_user agrs [2,..]=string
+		return nil, errors.New(`models.User{}.FindDeleteAll: admin_or_user agrs [2]{"admin", "user"}=string`)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+// User: Delete Permanently
+func (user User) DeletePermanently(db *gorm.DB, id int) error {
+	tx := db.Begin()
+	var count int64
+	// if tx.Unscoped().Select("id").First(&user).Error != nil {}
+	if tx.Unscoped().Select("id").First(&user).Count(&count); count != 1 {
+		tx.Rollback()
+		return errors.New("User Not Found")
+	}
+
+	// if tx.Unscoped().Delete(&user, id).Error != nil {}
+	if err := tx.Unscoped().Delete(&user, id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
