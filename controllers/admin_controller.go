@@ -97,7 +97,7 @@ func (controller *Controller) DeletePermanently(c echo.Context) error {
  *
  * @target: [Admin] Delete Permanently By ID
  * @method: GET
- * @route: /admin/delete-permanently/:id
+ * @route: /admin/delete/permanently/:id
  */
 func (controller *Controller) DeletePermanentlyByID(c echo.Context) error {
 	session, _ := middleware.GetAuth(c)

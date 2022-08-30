@@ -69,8 +69,10 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 	// admin
 	router.GET("/admin/delete-permanently", controllers.DeletePermanently).
 		Name = "/admin/delete-permanently get"
-	router.GET("/admin/delete-permanently/:id", controllers.DeletePermanentlyByID).
-		Name = "/admin/delete-permanently:id get"
+	// "/admin/delete-permanently/:id" can not
+	// "/admin/delete/permanently/:id" can
+	router.GET("/admin/delete/permanently/:id", controllers.DeletePermanentlyByID).
+		Name = "/admin/delete/permanently/:id get"
 
 	return
 }
