@@ -28,9 +28,9 @@ func (controller *Controller) DeletePermanently(c echo.Context) error {
 
 	is_auth_type := session.Values["is_auth_type"]
 	if is_auth_type == -1 {
-		log.Warn("for GET to users without no-session [@route: /login]")
+		log.Warn("for GET to admin delete permanently without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for users: [-]failure")
+		log.Warn("END request method GET for admin delete permanently: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
