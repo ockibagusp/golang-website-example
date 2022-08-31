@@ -217,6 +217,26 @@ func (user User) FindDeleteAll(db *gorm.DB, admin_or_user ...string) ([]User, er
 	return users, nil
 }
 
+// User: Restore
+func (user User) Restore(db *gorm.DB, id int) error {
+	tx := db.Begin()
+	var count int64
+	// if tx.Unscoped().Select("id").First(&user).Error != nil {}
+	if tx.Unscoped().Select("id").First(&user).Count(&count); count != 1 {
+		tx.Rollback()
+		return errors.New("User Not Found")
+	}
+
+	// if tx.Model(&user).Unscoped().Where("id = ?", id).Update(...).Error; err != nil {}
+	if err := tx.Model(&user).Unscoped().Where("id = ?", id).Update("deleted_at", nil).First(&user).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+
+	return nil
+}
+
 // User: Delete Permanently
 func (user User) DeletePermanently(db *gorm.DB, id int) error {
 	tx := db.Begin()

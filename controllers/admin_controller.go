@@ -150,3 +150,64 @@ func (controller *Controller) DeletePermanentlyByID(c echo.Context) error {
 	log.Info("END request method GET for admin delete permanently by id: [+]success")
 	return c.Redirect(http.StatusMovedPermanently, "/admin/delete-permanently")
 }
+
+/*
+ * Restore User
+ *
+ * @target: [Admin] Restore User
+ * @method: GET
+ * @route: /admin/restore/:id
+ */
+func (controller *Controller) RestoreUser(c echo.Context) error {
+	session, _ := middleware.GetAuth(c)
+	log := log.WithFields(log.Fields{
+		"username": session.Values["username"],
+		"route":    c.Path(),
+	})
+	log.Info("START request method GET for admin restore")
+
+	is_auth_type := session.Values["is_auth_type"]
+	if is_auth_type == -1 {
+		log.Warn("for GET to admin restore without no-session [@route: /login]")
+		middleware.SetFlashError(c, "login process failed!")
+		log.Warn("END request method GET for admin restore: [-]failure")
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	// why?
+	// delete permanently not for admin
+	if id == 1 {
+		log.Warn("END request method GET for admin restore [admin]: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, "403 Forbidden")
+	}
+
+	if !middleware.IsAdmin(is_auth_type) {
+		log.Warn("END request method GET for admin restore: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.HTML(http.StatusNotFound, "404 Not Found")
+	}
+
+	user, err := (models.User{}).UnscopedFirstUserByID(controller.DB, id)
+	if err != nil {
+		log.Warnf("for GET to admin restore without models.User{}.FirstByID() errors: `%v`", err)
+		log.Warn("END request method GET for admin restore: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.HTML(http.StatusNotFound, err.Error())
+	}
+
+	if err := user.Restore(controller.DB, id); err != nil {
+		log.Warnf("for GET to admin restore without models.User{}.Restore() errors: `%v`", err)
+		log.Warn("END request method GET for admin restore: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, err.Error())
+	}
+
+	middleware.SetFlashSuccess(c, fmt.Sprintf("success restore user: %s!", user.Username))
+
+	// restore admin
+	log.Info("END request method GET for admin restore: [+]success")
+	return c.Redirect(http.StatusMovedPermanently, "/admin/delete-permanently")
+}
