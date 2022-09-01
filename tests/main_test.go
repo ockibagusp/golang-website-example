@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -8,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/types"
 )
 
 /*
@@ -59,18 +62,64 @@ func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 	no_auth = httpexpect.WithConfig(new_config)
 
 	setupTestSetCookieCSRF(no_auth)
+	// ?
+	setupTestSetCookie(no_auth)
 
 	return
 }
 
 // Setup test server to set cookie
-func setupTestSetCookie(noAuth *httpexpect.Expect) {
-	// TODO: set cookie to user and CSRF
+func setupTestSetCookie(no_auth *httpexpect.Expect) {
+	os.Setenv("session_test", "session")
+
+	// password: "admin|admin123" ?
+
+	// database: just `users.username` varchar 15
+	users := []models.User{
+		{
+			Username: "admin",
+			// Email:    "admin@website.com",
+			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
+			// Name:     "Admin",
+			// IsAdmin:  1,
+		},
+	}
+
+	fmt.Println("csrf (2): ", csrf_token)
+
+	set_cookie := no_auth.POST("/login").
+		WithCookie("_csrf", csrf_token).
+		WithForm(types.LoginForm{
+			Username: users[0].Username,
+			Password: users[0].Password,
+		}).
+		Expect().
+		Status(http.StatusOK).
+		Cookies().Raw()
+
+	// ? message=missing csrf token in the form parameter
+	fmt.Println("cookies: ", set_cookie)
+
+	fmt.Println()
+	// Set-Cookie:
+	// =================================== match[0] ================================
+	// =	 																	   =
+	// _csrf=M5CtIigue53Mcesal2vhW26OOfeOdGTq; Expires=Wed, 05 Jan 2022 10:47:03 GMT
+	//		 --------------------------------	       -----------------------------
+	//					match[1]							     match[2]
+	// regex := regexp.MustCompile(`(.*)`)
+	// match := regex.FindStringSubmatch(set_cookie.Value)
+
+	// fmt.Println(match)
+
+	// os.Setenv("session_test", "0")
 }
 
 // Setup test server to set cookie CSRF-Token
-func setupTestSetCookieCSRF(noAuth *httpexpect.Expect) {
-	set_cookie := noAuth.GET("/login").
+func setupTestSetCookieCSRF(no_auth *httpexpect.Expect) {
+	os.Setenv("session_test", "CSRF")
+
+	set_cookie := no_auth.GET("/login").
 		Expect().
 		Status(http.StatusOK).
 		Header("Set-Cookie").Raw()
@@ -89,6 +138,7 @@ func setupTestSetCookieCSRF(noAuth *httpexpect.Expect) {
 	// csrf_token, expires = match[1], match[2]
 	// csrf_token_expires, _ = time.Parse(time.RFC1123, expires)
 
+	// os.Setenv("session_test", "0")
 }
 
 // Setup test server no authentication and CSRF-Token
@@ -156,16 +206,22 @@ func setupTestServerAuth(e *httpexpect.Expect, is_user int) (auth *httpexpect.Ex
 	"is_auth_type" = 2
 */
 // session_admin: 13 Feb 2022
+// session_admin: 17 Mar 2022
+// session_admin: 8 Apr 2022
 // username: admin
-const session_admin = "MTY0NDc1NjYyMXxEdi1CQkFFQ180SUFBUkFCRUFBQVJ2LUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dIQUFWaFpHMXBiZ1p6ZEhKcGJtY01EZ0FNYVhOZllYVjBhRjkwZVhCbEEybHVkQVFDQUFJPXzGJsOgzg3EQABcu-KzSKZbF4t-XcL5xiPa7SWJayvohw=="
+const session_admin = "MTY0OTM4ODc0MXxEdi1CQkFFQ180SUFBUkFCRUFBQVJ2LUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dIQUFWaFpHMXBiZ1p6ZEhKcGJtY01EZ0FNYVhOZllYVjBhRjkwZVhCbEEybHVkQVFDQUFJPXx0zV0UyKh15vWQ9-jyGE30Q0g5rHOsqtGLqGl7pKAD0Q=="
 
 // session_sugriwa: 13 Feb 2022
+// session_sugriwa: 17 Mar 2022
+// session_sugriwa: 8 Apr 2022
 // username: sugriwa
-const session_sugriwa = "MTY0NDc1NjY5MXxEdi1CQkFFQ180SUFBUkFCRUFBQVNQLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dKQUFkemRXZHlhWGRoQm5OMGNtbHVad3dPQUF4cGMxOWhkWFJvWDNSNWNHVURhVzUwQkFJQUJBPT18hQITyGKwVrvKH5ejs2ueClNPLn2220-UOu95PoZPWmM="
+const session_sugriwa = "MTY0OTM4ODg5NHxEdi1CQkFFQ180SUFBUkFCRUFBQVNQLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dKQUFkemRXZHlhWGRoQm5OMGNtbHVad3dPQUF4cGMxOWhkWFJvWDNSNWNHVURhVzUwQkFJQUJBPT18n2m8huPmNFq6knl_SC4PUdYcaspR3g0GIq7EiYwYgkg="
 
 // session_subali: 13 Feb 2022
+// session_subali: 17 Mar 2022
+// session_subali: 8 Apr 2022
 // username: subali
-const session_subali = "MTY0NDc1Njc2M3xEdi1CQkFFQ180SUFBUkFCRUFBQVJfLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dJQUFaemRXSmhiR2tHYzNSeWFXNW5EQTRBREdselgyRjFkR2hmZEhsd1pRTnBiblFFQWdBRXwLr9YSphh8vmboeVdFTe2sMNP_sFDLBsp3A4DTxsV2cw=="
+const session_subali = "MTY0OTM4ODk5OXxEdi1CQkFFQ180SUFBUkFCRUFBQVJfLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dJQUFaemRXSmhiR2tHYzNSeWFXNW5EQTRBREdselgyRjFkR2hmZEhsd1pRTnBiblFFQWdBRXy82VF1-OA3f8IWmC5uOnWMiPSDVkI2jV4ibJdc09_04w=="
 
 /*
 	Cross Site Request Forgery (CSRF)

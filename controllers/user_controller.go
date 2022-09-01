@@ -484,7 +484,7 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 	if is_auth_type == -1 {
 		log.Warn("for GET to update user by password without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for read user: [-]failure")
+		log.Warn("END request method GET for update user by password: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
@@ -498,9 +498,9 @@ func (controller *Controller) UpdateUserByPassword(c echo.Context) error {
 	user, err := models.User{}.FirstUserByID(controller.DB, id)
 	if err != nil {
 		log.Warnf(
-			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
+			"for GET to update user by password without models.User{}.FirstByID() errors: `%v`", err,
 		)
-		log.Warn("END request method GET for update user: [-]failure")
+		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.HTML(http.StatusNotFound, err.Error())
 	}
@@ -676,7 +676,7 @@ func (controller *Controller) DeleteUser(c echo.Context) error {
 			log.Warnf(
 				"for GET to delete without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
 			)
-			log.Warn("END request method GET for delete: [-]failure")
+			log.Warn("END request method GET for delete user: [-]failure")
 			// HTTP response status: 403 Forbidden
 			return c.HTML(http.StatusForbidden, err.Error())
 		}

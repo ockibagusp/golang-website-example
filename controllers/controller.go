@@ -13,9 +13,9 @@ type Controller struct {
 // New Controller
 func New() *Controller {
 	// PROD or DEV
-	dbManager := db.Init("PROD")
+	db_manager := db.Init("PROD")
 
 	return &Controller{
-		DB: dbManager,
+		DB: db_manager,
 	}
 }
