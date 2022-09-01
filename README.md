@@ -97,14 +97,22 @@ Optional. Default value @debug: {true} or {1}.
 
 ### Test the packages
 
-```
+Example,
+
+```bash
 $ go test github.com/ockibagusp/golang-website-example/tests 
 ```
 
 or, verbose output (-v) flag:
 
+```bash
+$ go test ./tests -v
 ```
-$ go test github.com/ockibagusp/golang-website-example/tests -v
+
+or, verbose output (-v) select function (-run) flag:
+
+```bash
+$ go test ./tests -run=TestHomeController
 ```
 
 ## Air: cloud Live reload for Go apps
