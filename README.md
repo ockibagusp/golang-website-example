@@ -4,6 +4,9 @@ Golang Echo and html template.
 > move GitHub repository for [hello](https://github.com/ockibagusp/hello) to [golang-website-example](#)
 
 
+- [x] Website is ok
+- [ ] **Test failed: All from Session and CSRF.**
+
 
 ### Visual Studio Code
 
@@ -120,11 +123,7 @@ $ go test ./tests -run=TestHomeController
 
 
 ## TODO List
-- Admin Users: delete table User `deleted_at` @route: /users/admin/delete
-
-    button:
-    Restore | Delete Permanently
-
+- mock
 - too much
 
 ## Operating System (with me)
