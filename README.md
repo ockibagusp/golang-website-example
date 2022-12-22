@@ -123,7 +123,6 @@ $ go test ./tests -run=TestHomeController
 
 
 ## TODO List
-- mock unit test
 - too much
 
 ## Operating System (with me)
