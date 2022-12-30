@@ -1,11 +1,9 @@
 package tests
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
@@ -14,24 +12,24 @@ import (
 )
 
 /*
-	Setup test sever
+Setup test sever
 
-	TODO: .env debug: {true} or {false}
+TODO: .env debug: {true} or {false}, insyaallah
 
-	1. function debug (bool)
-	@function debug: {true} or {false}
+1. function debug (bool)
+@function debug: {true} or {false}
 
-	2. os.Setenv("debug", ...)
-	@debug: {true} or {1}
-	os.Setenv("debug", "true") or,
-	os.Setenv("debug", "1")
+2. os.Setenv("debug", ...)
+@debug: {true} or {1}
+os.Setenv("debug", "true") or,
+os.Setenv("debug", "1")
 
-	@debug: {false} or {0}
-	os.Setenv("debug", "false") or,
-	os.Setenv("debug", "0")
-
+@debug: {false} or {0}
+os.Setenv("debug", "false") or,
+os.Setenv("debug", "0")
 */
 func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
+	os.Setenv("session_test", "1")
 	os.Setenv("debug", "0")
 
 	handler := setupTestHandler()
@@ -60,9 +58,6 @@ func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 	}
 
 	no_auth = httpexpect.WithConfig(new_config)
-
-	setupTestSetCookieCSRF(no_auth)
-	// ?
 	setupTestSetCookie(no_auth)
 
 	return
@@ -70,10 +65,6 @@ func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 
 // Setup test server to set cookie
 func setupTestSetCookie(no_auth *httpexpect.Expect) {
-	os.Setenv("session_test", "session")
-
-	// password: "admin|admin123" ?
-
 	// database: just `users.username` varchar 15
 	users := []models.User{
 		{
@@ -85,10 +76,7 @@ func setupTestSetCookie(no_auth *httpexpect.Expect) {
 		},
 	}
 
-	fmt.Println("csrf (2): ", csrf_token)
-
-	set_cookie := no_auth.POST("/login").
-		WithCookie("_csrf", csrf_token).
+	no_auth.POST("/login").
 		WithForm(types.LoginForm{
 			Username: users[0].Username,
 			Password: users[0].Password,
@@ -96,58 +84,6 @@ func setupTestSetCookie(no_auth *httpexpect.Expect) {
 		Expect().
 		Status(http.StatusOK).
 		Cookies().Raw()
-
-	// ? message=missing csrf token in the form parameter
-	fmt.Println("cookies: ", set_cookie)
-
-	fmt.Println()
-	// Set-Cookie:
-	// =================================== match[0] ================================
-	// =	 																	   =
-	// _csrf=M5CtIigue53Mcesal2vhW26OOfeOdGTq; Expires=Wed, 05 Jan 2022 10:47:03 GMT
-	//		 --------------------------------	       -----------------------------
-	//					match[1]							     match[2]
-	// regex := regexp.MustCompile(`(.*)`)
-	// match := regex.FindStringSubmatch(set_cookie.Value)
-
-	// fmt.Println(match)
-
-	// os.Setenv("session_test", "0")
-}
-
-// Setup test server to set cookie CSRF-Token
-func setupTestSetCookieCSRF(no_auth *httpexpect.Expect) {
-	os.Setenv("session_test", "CSRF")
-
-	set_cookie := no_auth.GET("/login").
-		Expect().
-		Status(http.StatusOK).
-		Header("Set-Cookie").Raw()
-
-	// Set-Cookie:
-	// =================================== match[0] ================================
-	// =	 																	   =
-	// _csrf=M5CtIigue53Mcesal2vhW26OOfeOdGTq; Expires=Wed, 05 Jan 2022 10:47:03 GMT
-	//		 --------------------------------	       -----------------------------
-	//					match[1]							     match[2]
-	regex := regexp.MustCompile(`_csrf\=(.*); Expires\=(.*)$`)
-	match := regex.FindStringSubmatch(set_cookie)
-
-	csrf_token = match[1]
-	// var expires string
-	// csrf_token, expires = match[1], match[2]
-	// csrf_token_expires, _ = time.Parse(time.RFC1123, expires)
-
-	// os.Setenv("session_test", "0")
-}
-
-// Setup test server no authentication and CSRF-Token
-// request with cookie: csrf
-func setupTestServerNoAuthCSRF(e *httpexpect.Expect) (no_auth_CSRF *httpexpect.Expect) {
-	no_auth_CSRF = e.Builder(func(request *httpexpect.Request) {
-		request.WithCookie("_csrf", csrf_token)
-	})
-	return
 }
 
 // Setup test server authentication
@@ -158,17 +94,22 @@ func setupTestServerAuth(e *httpexpect.Expect, is_user int) (auth *httpexpect.Ex
 	auth = e.Builder(func(request *httpexpect.Request) {
 		var session string
 		if is_user == 1 {
-			session = session_admin
+			// session_admin: Expires=Fri, 06 Jan 2023 15:14:26 GMT
+			// username: admin
+			session = "MTY3MjQxMjk4M3xEdi1CQkFFQ180SUFBUkFCRUFBQVJ2LUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dIQUFWaFpHMXBiZ1p6ZEhKcGJtY01EZ0FNYVhOZllYVjBhRjkwZVhCbEEybHVkQVFDQUFJPXzGyQRp82nJXsgy9r8M36Dkx6TgQaU0DkXmG33b1oMemw=="
 		} else if is_user == 2 {
-			session = session_sugriwa
+			// session_sugriwa: Expires=Fri, 06 Jan 2023 15:14:26 GMT
+			// username: sugriwa
+			session = "MTY3MjQxMzE4OHxEdi1CQkFFQ180SUFBUkFCRUFBQVNQLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dKQUFkemRXZHlhWGRoQm5OMGNtbHVad3dPQUF4cGMxOWhkWFJvWDNSNWNHVURhVzUwQkFJQUJBPT18AWZDueSxCE0bnsSgZ9JAhiZa-8BAH8_EGRa8wjDApoI="
 		} else if is_user == 3 {
-			session = session_subali
+			// session_subali: Expires=Fri, 06 Jan 2023 15:14:26 GMT
+			// username: subali
+			session = "MTY3MjQxMzI2NnxEdi1CQkFFQ180SUFBUkFCRUFBQVJfLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dJQUFaemRXSmhiR2tHYzNSeWFXNW5EQTRBREdselgyRjFkR2hmZEhsd1pRTnBiblFFQWdBRXzZ_DZu_InZaU3feck1AT0uGJnDETiBLWEe14y3OkiiWA=="
 		} else {
 			panic("func setupTestServerAuth is type is_user: 1=admin, 2=sugriwa or 3=subali")
 		}
 
 		request.WithCookies(map[string]string{
-			"_csrf":   csrf_token,
 			"session": session,
 		})
 	})
@@ -205,44 +146,8 @@ func setupTestServerAuth(e *httpexpect.Expect, is_user int) (auth *httpexpect.Ex
 	"username" = "ockibagusp"
 	"is_auth_type" = 2
 */
-// session_admin: 13 Feb 2022
-// session_admin: 17 Mar 2022
-// session_admin: 8 Apr 2022
-// username: admin
-const session_admin = "MTY0OTM4ODc0MXxEdi1CQkFFQ180SUFBUkFCRUFBQVJ2LUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dIQUFWaFpHMXBiZ1p6ZEhKcGJtY01EZ0FNYVhOZllYVjBhRjkwZVhCbEEybHVkQVFDQUFJPXx0zV0UyKh15vWQ9-jyGE30Q0g5rHOsqtGLqGl7pKAD0Q=="
 
-// session_sugriwa: 13 Feb 2022
-// session_sugriwa: 17 Mar 2022
-// session_sugriwa: 8 Apr 2022
-// username: sugriwa
-const session_sugriwa = "MTY0OTM4ODg5NHxEdi1CQkFFQ180SUFBUkFCRUFBQVNQLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dKQUFkemRXZHlhWGRoQm5OMGNtbHVad3dPQUF4cGMxOWhkWFJvWDNSNWNHVURhVzUwQkFJQUJBPT18n2m8huPmNFq6knl_SC4PUdYcaspR3g0GIq7EiYwYgkg="
-
-// session_subali: 13 Feb 2022
-// session_subali: 17 Mar 2022
-// session_subali: 8 Apr 2022
-// username: subali
-const session_subali = "MTY0OTM4ODk5OXxEdi1CQkFFQ180SUFBUkFCRUFBQVJfLUNBQUlHYzNSeWFXNW5EQW9BQ0hWelpYSnVZVzFsQm5OMGNtbHVad3dJQUFaemRXSmhiR2tHYzNSeWFXNW5EQTRBREdselgyRjFkR2hmZEhsd1pRTnBiblFFQWdBRXy82VF1-OA3f8IWmC5uOnWMiPSDVkI2jV4ibJdc09_04w=="
-
-/*
-	Cross Site Request Forgery (CSRF)
-
-	HTTP Req. Headers:
-	Set-Cookie: _csrf=M5CtIigue53Mcesal2vhW26OOfeOdGTq; Expires=Wed, 05 Jan 2022 10:47:03 GMT
-*/
-// 					 ________________________________
-// Set-Cookie: _csrf=M5CtIigue53Mcesal2vhW26OOfeOdGTq; ...
-//				  	 --------------------------------
-var csrf_token string
-
-// (?)
-// 		   					_____________________________
-// Set-Cookie: ...; Expires=Wed, 05 Jan 2022 10:47:03 GMT
-// 		   					-----------------------------
-// var csrfTokenExpires time.Time
-
-func TestServer(t *testing.T) {
-	//
-}
+func TestServer(t *testing.T) {}
 
 func TestMain(m *testing.M) {
 	exit := m.Run()

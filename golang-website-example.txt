@@ -1,0 +1,40 @@
+# Insyaallah, New tasks:
+[] test without csrf
+
+[] test controller DeteleUser: id=3
+controllers/user_controller.go:678
+...
+time="2022-12-30T14:54:47+07:00" level=info msg="START request method GET for delete user" route="/users/delete/:id -> id:3" username="<nil>"
+{"time":"2022-12-30T14:54:47.752300052+07:00","level":"-","prefix":"echo","file":"recover.go","line":"92","message":"[PANIC RECOVER] interface conversion: interface {} is nil, not string goroutine 289 [running]:\ngithub.com/labstack/echo/v4/middleware.RecoverWithConfig.func1.1.1()\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/labstack/echo/v4/middleware/recover.go:77 +0x10d\npanic({0xaec560, 0xc0004f9680})\n\t/usr/lib/golang/src/runtime/panic.go:884 +0x212\ngithub.com/ockibagusp/golang-website-example/controllers.(*Controller).DeleteUser(0x11273e8, {0xcbfed0, 0xc0000a4280})\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/controllers/user_controller.go:678 +0xc65\ngithub.com/labstack/echo/v4.(*Echo).add.func1({0xcbfed0, 0xc0000a4280})\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/labstack/echo/v4/echo.go:552 +0x51\ngithub.com/labstack/echo-contrib/session.MiddlewareWithConfig.func1.1({0xcbfed0, 0xc0000a4280})\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/labstack/echo-contrib/session/session.go:70 +0x105\ngithub.com/labstack/echo/v4/middleware.RecoverWithConfig.func1.1({0xcbfed0, 0xc0000a4280})\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/labstack/echo/v4/middleware/recover.go:98 +0xf8\ngithub.com/labstack/echo/v4/middleware.LoggerWithConfig.func2.1({0xcbfed0, 0xc0000a4280})\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/labstack/echo/v4/middleware/logger.go:117 +0xe2\ngithub.com/labstack/echo/v4.(*Echo).ServeHTTP(0xc000358d80, {0xcb7450?, 0xc0003f72c0}, 0xc000521200)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/labstack/echo/v4/echo.go:662 +0x3d1\ngithub.com/gavv/httpexpect/v2.Binder.RoundTrip({{0xcb2620?, 0xc000358d80?}, 0x0?}, 0xc000521100)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/binder.go:64 +0x3f4\nnet/http.send(0xc000521100, {0xcb34a0, 0xc000482a38}, {0xb75360?, 0xc00002d501?, 0x0?})\n\t/usr/lib/golang/src/net/http/client.go:251 +0x5f7\nnet/http.(*Client).send(0xc0003935f0, 0xc000521100, {0x29?, 0x36?, 0x0?})\n\t/usr/lib/golang/src/net/http/client.go:175 +0x9b\nnet/http.(*Client).do(0xc0003935f0, 0xc000521100)\n\t/usr/lib/golang/src/net/http/client.go:715 +0x8fc\nnet/http.(*Client).Do(0xc000437a00?, 0x48f5d7?)\n\t/usr/lib/golang/src/net/http/client.go:581 +0x19\ngithub.com/gavv/httpexpect/v2.(*Request).sendRequest.func1()\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/request.go:1276 +0x2d\ngithub.com/gavv/httpexpect/v2.(*Request).retryRequest.func1(0xc000060bb0?, 0xc000437b88, 0xc000423ae8, 0xc000423b18, 0xc000423ab0)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/request.go:1344 +0x19e\ngithub.com/gavv/httpexpect/v2.(*Request).retryRequest(0xc0005042c0, 0x0?)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/request.go:1346 +0x2bc\ngithub.com/gavv/httpexpect/v2.(*Request).sendRequest(0xc0005042c0)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/request.go:1275 +0x4c\ngithub.com/gavv/httpexpect/v2.(*Request).roundTrip(0xc0005042c0)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/request.go:1194 +0x12c\ngithub.com/gavv/httpexpect/v2.(*Request).Expect(0xc0005042c0)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/vendor/github.com/gavv/httpexpect/v2/request.go:1155 +0x36\ngithub.com/ockibagusp/golang-website-example/tests.TestDeleteUserController.func1(0xc0000cda00)\n\t/home/ockibagusp/go/src/github.com/ockibagusp/golang-website-example/tests/user_controller_test.go:1604 +0xd5\ntesting.tRunner(0xc0000cda00, 0xc0005b05a0)\n\t/usr/lib/golang/src/testing/testing.go:1446 +0x10b\ncreated by testing.(*T).Run\n\t/usr/lib/golang/src/testing/testing.go:1493 +0x35f\n\ngoroutine 1 [chan receive]:\ntesting.(*T).Run(0xc00008a680, {0xba2483?, 0x5234e5?}, 0xbec030)\n\t/usr/lib/golang/src/testing/testing.go:1494 \n"}
+{"time":"2022-12-30T14:54:47.754727104+07:00","id":"","remote_ip":"","host":"127.0.0.1:38137","method":"GET","uri":"/users/delete/3","user_agent":"","status":500,"error":"","latency":4300702,"latency_human":"4.300702ms","bytes_in":0,"bytes_out":36}
+time="2022-12-30T14:54:47+07:00" level=warning msg="for GET to delete user without no-session [@route: /login]" route="/users/delete/:id -> id:1" username=
+...
+
+[] test main_test.go func setupTestSetCookie(...)
+    admin v
+    sugriwa x
+    subali x
+
+
+# Completed task:
+1. [-] testing session
+    [-] Set-Cookie headers there isn't any: session
+
+    [-] 2 missing users
+        Func: TestLogin
+        Users:
+            - admin - ok x
+            - sugriwa - ok x
+            - subali - ok x
+            - ockibagusp - no v
+
+    [-] UndeclaredName: setupTestHandler v
+        https://pkg.go.dev/golang.org/x/tools/internal/typesinternal#UndeclaredName
+
+        package tests v
+        session.go x
+            - for example: setupTestHandler() -> UndeclaredName
+        move:
+            - session.go to session_test.go v
+
+2. [x] controller UpdateUser: validation

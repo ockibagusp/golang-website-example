@@ -32,7 +32,7 @@ func (controller Controller) Home(c echo.Context) error {
 		var user models.User
 		if err := controller.DB.Select("name").Where(
 			"username = ?", session.Values["username"],
-		).First(&user); err.Error != nil { // TODO: why?
+		).First(&user); err.Error != nil { // why?
 			log.Warnf(`session values "username" error: %v`, err.Error)
 		}
 

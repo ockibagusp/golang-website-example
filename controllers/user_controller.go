@@ -29,6 +29,11 @@ func (controller *Controller) Users(c echo.Context) error {
 	})
 	log.Info("START request method GET for users")
 
+	log.Println(session.ID)
+	log.Println(session.IsNew)
+	log.Println(session.Options)
+	log.Println(session.Values)
+
 	is_auth_type := session.Values["is_auth_type"]
 	if is_auth_type == -1 {
 		log.Warn("for GET to users without no-session [@route: /login]")
@@ -149,7 +154,7 @@ func (controller *Controller) CreateUser(c echo.Context) error {
 		}
 
 		// userForm: type of a user
-		_userForm := types.UserForm{
+		userForm := types.UserForm{
 			Username:        c.FormValue("username"),
 			Email:           c.FormValue("email"),
 			Password:        c.FormValue("password"),
@@ -159,19 +164,19 @@ func (controller *Controller) CreateUser(c echo.Context) error {
 			Photo:           c.FormValue("photo"),
 		}
 
-		// _userForm: Validate of a validate user
+		// userForm: Validate of a validate user
 		err := validation.Errors{
 			"username": validation.Validate(
-				_userForm.Username, validation.Required, validation.Length(4, 15),
+				userForm.Username, validation.Required, validation.Length(4, 15),
 			),
-			"email": validation.Validate(_userForm.Email, validation.Required, is.Email),
+			"email": validation.Validate(userForm.Email, validation.Required, is.EmailFormat),
 			"password": validation.Validate(
-				_userForm.Password, validation.Required, validation.Length(6, 18),
-				validation.By(types.PasswordEquals(_userForm.ConfirmPassword)),
+				userForm.Password, validation.Required, validation.Length(6, 18),
+				validation.By(types.PasswordEquals(userForm.ConfirmPassword)),
 			),
-			"name":  validation.Validate(_userForm.Name, validation.Required),
-			"city":  validation.Validate(_userForm.City),
-			"photo": validation.Validate(_userForm.Photo),
+			"name":  validation.Validate(userForm.Name, validation.Required),
+			"city":  validation.Validate(userForm.City),
+			"photo": validation.Validate(userForm.Photo),
 		}.Filter()
 		/* if err = validation.Errors{...}.Filter(); err != nil {
 			...
@@ -196,7 +201,7 @@ func (controller *Controller) CreateUser(c echo.Context) error {
 		}
 
 		// Password Hash
-		hash, err := middleware.PasswordHash(_userForm.Password)
+		hash, err := middleware.PasswordHash(userForm.Password)
 		if err != nil {
 			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
 			log.Warn("END request method POST for create user: [-]failure")
@@ -204,12 +209,12 @@ func (controller *Controller) CreateUser(c echo.Context) error {
 		}
 
 		user := models.User{
-			Username: _userForm.Username,
-			Email:    _userForm.Email,
+			Username: userForm.Username,
+			Email:    userForm.Email,
 			Password: hash,
-			Name:     _userForm.Name,
-			City:     _userForm.City,
-			Photo:    _userForm.Photo,
+			Name:     userForm.Name,
+			City:     userForm.City,
+			Photo:    userForm.Photo,
 		}
 
 		// _, err := user.Save(...): be able
@@ -403,9 +408,9 @@ func (controller *Controller) UpdateUser(c echo.Context) error {
 			Email:    c.FormValue("email"),
 			Name:     c.FormValue("name"),
 			City:     city,
-			// TODO: photo
+			// TODO: photo, insyaallah
 			Photo: "",
-			// TODO: is admin
+			// TODO: is admin, insyaallah
 			IsAdmin: 0,
 		}
 
@@ -666,8 +671,11 @@ func (controller *Controller) DeleteUser(c echo.Context) error {
 		for example:
 		username ockibagusp delete 'ockibagusp': ok
 		username ockibagusp delete 'sugriwa': no
+
+		insyaallah
 	*/
 	_, err = models.User{}.FirstByIDAndUsername(
+		// ???
 		controller.DB, id, session.Values["username"].(string),
 	)
 

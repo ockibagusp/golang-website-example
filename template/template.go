@@ -136,11 +136,11 @@ func parseFileHTMLOnly(name string) *template.Template {
 func rootedPathName() (dir string) {
 	dir, err := os.Getwd()
 	if err != nil {
-		// TODO: Docker, Kubernetes ex.?
+		// Docker, Kubernetes ex.? insyaallah
 		log.Fatal(err)
 	}
 
-	// TODO: Linux and MacOS: ok. Windows: ...?
+	// Linux and MacOS: ok. Windows: ...? insyaallah
 	regex := regexp.MustCompile("/tests$")
 	match := regex.Match([]byte(dir))
 

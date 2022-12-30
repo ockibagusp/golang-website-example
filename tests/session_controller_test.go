@@ -17,7 +17,6 @@ const POST = 2
 
 func TestLogin(t *testing.T) {
 	no_auth := setupTestServer(t)
-	no_auth_CSRF := setupTestServerNoAuthCSRF(no_auth)
 
 	// test for db users
 	truncateUsers(db)
@@ -76,9 +75,8 @@ func TestLogin(t *testing.T) {
 				return
 			}
 			// tc.method == POST
-			result := no_auth_CSRF.POST("/login").
+			result := no_auth.POST("/login").
 				WithForm(test.user).
-				WithFormField("X-CSRF-Token", csrf_token).
 				Expect().
 				Status(test.status)
 

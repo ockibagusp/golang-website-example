@@ -5,8 +5,6 @@ import (
 	"strconv"
 )
 
-// TODO: why?
-
 // function map more
 var FuncMapMore = func() template.FuncMap {
 	list := template.FuncMap{
@@ -16,7 +14,7 @@ var FuncMapMore = func() template.FuncMap {
 	return list
 }
 
-// TODO
+// TODO, insyaallah
 //
 // Code: session_gorilla.Values["s_auth_type"]
 // HTML: {{index $.session_gorilla.Values "is_auth_type" | toString}} ?

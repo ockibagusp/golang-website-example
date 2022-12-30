@@ -51,7 +51,7 @@ func truncateUsers(db *gorm.DB) {
 	tx.Commit()
 }
 
-// TODO: types users error
+// TODO: types users error, insyaallah
 // // type: users test cases
 // type usersTestCases []struct {
 // 	name   string
@@ -72,7 +72,7 @@ func TestUsersController(t *testing.T) {
 	// test for db users
 	truncateUsers(db)
 
-	// TODO: rows all, admin dan user
+	// TODO: rows all, admin dan user, insyaallah
 
 	test_cases := []struct {
 		name         string
@@ -276,7 +276,7 @@ func TestCreateUserController(t *testing.T) {
 	// test for db users
 	truncateUsers(db)
 
-	// TODO: flash with redirect on failure
+	// TODO: flash with redirect on failure, insyaallah
 
 	test_cases := []struct {
 		name   string
@@ -344,7 +344,8 @@ func TestCreateUserController(t *testing.T) {
 				actual:       `<strong>success:</strong> success new user: unit-test!`,
 			},
 		},
-		// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' "
+		// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'email_UNIQUE' " v
+		//			-> " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' " x
 		{
 			name:   "users [admin] to POST create it failure: Duplicate entry",
 			expect: auth_admin,
@@ -371,7 +372,7 @@ func TestCreateUserController(t *testing.T) {
 			// flash message error
 			html_flash_error: regex{
 				must_compile: `<strong>error:</strong> (.*)`,
-				actual:       `<strong>error:</strong> Error 1062: Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;users.email_UNIQUE&#39;!`,
+				actual:       `<strong>error:</strong> Error 1062: Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;email_UNIQUE&#39;!`,
 			},
 		},
 
@@ -452,7 +453,7 @@ func TestCreateUserController(t *testing.T) {
 				must_compile: `<strong>success:</strong> (.*)`,
 				actual:       `<strong>success:</strong> success new user: ockibagusp!`,
 			},
-			// TODO: difficult html_navbar and html_heading
+			// TODO: difficult html_navbar and html_heading, insyaallah
 		},
 	}
 
@@ -469,7 +470,6 @@ func TestCreateUserController(t *testing.T) {
 			} else if test.method == POST {
 				result = expect.POST("/users/add").
 					WithForm(test.form).
-					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
 			} else {
@@ -988,7 +988,6 @@ func TestUpdateUserController(t *testing.T) {
 				result = expect.POST("/users/view/{id}").
 					WithPath("id", test.path).
 					WithForm(test.form).
-					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
 			} else {
@@ -1400,7 +1399,6 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				result = expect.POST("/users/view/{id}/password").
 					WithPath("id", test.path).
 					WithForm(test.form).
-					WithFormField("X-CSRF-Token", csrf_token).
 					Expect().
 					Status(test.status)
 			} else {

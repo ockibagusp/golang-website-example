@@ -8,5 +8,6 @@ golang-website-example
 golang-website-example.exe
 
 # air
+bin
 .air.toml
 tmp
