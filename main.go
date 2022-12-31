@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+	os.Setenv("session_test", "0")
+
 	// controllers init
 	controllers := controllers.New()
 

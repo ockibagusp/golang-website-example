@@ -5,7 +5,7 @@ Golang Echo and html template.
 
 
 - [x] Website is ok
-- [ ] **Test failed: All from Session and CSRF.**
+- [ ] **Test failed: All from Session.**
 
 
 ### Visual Studio Code

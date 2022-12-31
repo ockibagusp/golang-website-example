@@ -9,7 +9,7 @@
       <div class="col-md-12">
         <h2 class="mt-4">{{ .name }}</h2>
 
-        <!-- TODO: flash.html -->
+        <!-- TODO: flash.html, insyaallah -->
         {{ if gt (len .flash.success) 0 }}
           {{ range $index, $value := .flash.success }}
           <div class="alert alert-success alert-dismissible fade show" role="alert">

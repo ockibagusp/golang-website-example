@@ -1,6 +1,8 @@
 package router
 
 import (
+	"os"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -20,27 +22,35 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 	router.Use(middleware.Recover())
 
 	/*
-		set env. "session_test": [all], [session] or [CSRF]
+		Insyaallah, TODO: .env session_test: {1} or {0}
+				   session_test: {true} or {false}
+
+		1. os.Setenv("session_test", ...)
+		@session_test: {true} or {1}
+		os.Setenv("session_test", "true") or,
+		os.Setenv("session_test", "1")
+
+		@session_test: {false} or {0}
+		os.Setenv("session_test", "false") or,
+		os.Setenv("session_test", "0")
 	*/
-	// if os.Getenv("session_test") == "all" || os.Getenv("session_test") == "session" {
 	logrus.Println("Setenv: session_test = session")
-	// TODO: .env cookie store ?
 	router.Use(session.Middleware(sessions.NewCookieStore(
 		[]byte("something-very-secret"),
 	)))
-	// }
 
-	// if os.Getenv("session_test") == "all" || os.Getenv("session_test") == "CSRF" {
-	logrus.Println("Setenv: session_test = CSRF")
-	router.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		// Optional. Default value "header:X-CSRF-Token".
-		// Possible values:
-		// - "header:<name>"
-		// - "form:<name>"
-		// - "query:<name>"
-		TokenLookup: "form:X-CSRF-Token",
-	}))
-	// }
+	// PROD
+	if os.Getenv("session_test") == "0" || os.Getenv("session_test") == "false" {
+		logrus.Println("Setenv: session_test = CSRF")
+		router.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+			// Optional. Default value "header:X-CSRF-Token".
+			// Possible values:
+			// - "header:<name>"
+			// - "form:<name>"
+			// - "query:<name>"
+			TokenLookup: "form:X-CSRF-Token",
+		}))
+	}
 
 	// Instantiate a template registry with an array of template set
 	router.Renderer = template.NewTemplates()

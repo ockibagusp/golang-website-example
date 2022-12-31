@@ -71,7 +71,7 @@ func TestHomeController(t *testing.T) {
 
 			result_body := result.Body().Raw()
 
-			// TODO: why?
+			// why?
 			var regex *regexp.Regexp
 			var match string
 			if test.html_navbar.must_compile != "" {
