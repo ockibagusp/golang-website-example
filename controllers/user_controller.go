@@ -674,9 +674,9 @@ func (controller *Controller) DeleteUser(c echo.Context) error {
 
 		insyaallah
 	*/
+	oldUsername := session.Values["username"]
 	_, err = models.User{}.FirstByIDAndUsername(
-		// ???
-		controller.DB, id, session.Values["username"].(string),
+		controller.DB, id, oldUsername.(string),
 	)
 
 	if !middleware.IsAdmin(is_auth_type) {
