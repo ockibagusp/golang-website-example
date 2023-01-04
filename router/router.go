@@ -41,7 +41,7 @@ func New(controllers *controllers.Controller) (router *echo.Echo) {
 
 	// PROD
 	if os.Getenv("session_test") == "0" || os.Getenv("session_test") == "false" {
-		logrus.Println("Setenv: session_test = CSRF")
+		logrus.Println(`Setenv: "session_test" != "0" || "session_test" != "false"`)
 		router.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 			// Optional. Default value "header:X-CSRF-Token".
 			// Possible values:
