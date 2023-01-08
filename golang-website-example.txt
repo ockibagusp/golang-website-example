@@ -1,4 +1,6 @@
 # Insyaallah, New tasks:
+[] BasicAuth
+
 [] test main_test.go func setupTestSetCookie(...)
     admin v
     sugriwa x
@@ -6,10 +8,10 @@
 
 
 # Completed task:
-1. [-] testing session
-    [-] Set-Cookie headers there isn't any: session
+1. [x] testing session
+    [x] Set-Cookie headers there isn't any: session
 
-    [-] 2 missing users
+    [x] 2 missing users
         Func: TestLogin
         Users:
             - admin - ok x
@@ -17,7 +19,7 @@
             - subali - ok x
             - ockibagusp - no v
 
-    [-] UndeclaredName: setupTestHandler v
+    [x] UndeclaredName: setupTestHandler v
         https://pkg.go.dev/golang.org/x/tools/internal/typesinternal#UndeclaredName
 
         package tests v
@@ -26,9 +28,9 @@
         move:
             - session.go to session_test.go v
 
-2. [x] controller UpdateUser: validation
+2. [v] controller UpdateUser: validation
 
-3. [x] test controller DeteleUser: id=3
+3. [v] test controller DeteleUser: id=3
 controllers/user_controller.go:678
 
 name:   "users [subali] to [subali] DELETE it success: id=3",
@@ -40,4 +42,4 @@ time="2022-12-30T14:54:47+07:00" level=info msg="START request method GET for de
 time="2022-12-30T14:54:47+07:00" level=warning msg="for GET to delete user without no-session [@route: /login]" route="/users/delete/:id -> id:1" username=
 ...
 
-4. [x] test without csrf
+4. [v] test without csrf

@@ -1,10 +1,13 @@
 package middleware
 
 import (
+	"os"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/models"
+	testModels "github.com/ockibagusp/golang-website-example/tests/models"
 )
 
 // base.html -> {{if eq ((index .session.Values "is_auth_type") | tostring) -1 }}ok{{end}}
@@ -63,6 +66,16 @@ func GetAdmin(c echo.Context) (session_gorilla *sessions.Session, err error) {
 
 // SetSession: set session from User
 func SetSession(user models.User, c echo.Context) (session_gorilla *sessions.Session, err error) {
+	// Test: session_test = true
+	if os.Getenv("session_test") == "10" {
+		for _, testUser := range testModels.TestUsers {
+			if user.Username == testUser.Username {
+				user.Username = testUser.Username
+			}
+		}
+	}
+
+	// ? Test: admin, ...
 	session_gorilla, err = session.Get("session", c)
 	if err != nil {
 		return
