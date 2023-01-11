@@ -1,21 +1,53 @@
 package middleware
 
 import (
+	"errors"
 	"os"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/models"
-	testModels "github.com/ockibagusp/golang-website-example/tests/models"
+	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 )
 
 // base.html -> {{if eq ((index .session.Values "is_auth_type") | tostring) -1 }}ok{{end}}
 
 // GetAuth: get session to authenticated
 func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
-	if session_gorilla, err = session.Get("session", c); err != nil {
-		return
+	// Test: session_test = true
+	if false { // os.Getenv("session_test") == "1" ???
+		if modelsTest.UserSelectTest == "" && session_gorilla.IsNew == false {
+			session_gorilla = &sessions.Session{
+				Values: map[interface{}]interface{}{
+					"username":     "",
+					"is_auth_type": -1,
+				},
+			}
+
+			err = errors.New("no session")
+			return
+		}
+
+		for _, testUser := range modelsTest.UsersTest {
+			if modelsTest.UserSelectTest == testUser.Username {
+				session_gorilla = &sessions.Session{
+					Values: map[interface{}]interface{}{
+						"username": testUser.Username,
+					},
+				}
+
+				if testUser.IsAdmin == 1 {
+					session_gorilla.Values["is_auth_type"] = 1 // admin: 1
+				} else if testUser.IsAdmin == 0 {
+					session_gorilla.Values["is_auth_type"] = 2 // user: 2
+				}
+			}
+		}
+	} else {
+		if session_gorilla, err = session.Get("session", c); err != nil {
+			return
+		}
 	}
 
 	is_auth_type := session_gorilla.Values["is_auth_type"]
@@ -67,15 +99,14 @@ func GetAdmin(c echo.Context) (session_gorilla *sessions.Session, err error) {
 // SetSession: set session from User
 func SetSession(user models.User, c echo.Context) (session_gorilla *sessions.Session, err error) {
 	// Test: session_test = true
-	if os.Getenv("session_test") == "10" {
-		for _, testUser := range testModels.TestUsers {
-			if user.Username == testUser.Username {
+	if os.Getenv("session_test") == "1" {
+		for _, testUser := range modelsTest.UsersTest {
+			if modelsTest.UserSelectTest == testUser.Username {
 				user.Username = testUser.Username
 			}
 		}
 	}
 
-	// ? Test: admin, ...
 	session_gorilla, err = session.Get("session", c)
 	if err != nil {
 		return

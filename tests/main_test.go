@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
-	"github.com/ockibagusp/golang-website-example/models"
-	"github.com/ockibagusp/golang-website-example/types"
 )
 
 /*
@@ -58,34 +56,10 @@ func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 	}
 
 	no_auth = httpexpect.WithConfig(new_config)
-	setupTestSetCookie(no_auth)
-
 	return
 }
 
-// Setup test server to set cookie
-func setupTestSetCookie(no_auth *httpexpect.Expect) {
-	// database: just `users.username` varchar 15
-	users := []models.User{
-		{
-			Username: "admin",
-			// Email:    "admin@website.com",
-			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
-			// Name:     "Admin",
-			// IsAdmin:  1,
-		},
-	}
-
-	no_auth.POST("/login").
-		WithForm(types.LoginForm{
-			Username: users[0].Username,
-			Password: users[0].Password,
-		}).
-		Expect().
-		Status(http.StatusOK).
-		Cookies().Raw()
-}
-
+// ???
 // Setup test server authentication
 // request with cookie session and csrf
 //
