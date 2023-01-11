@@ -1,14 +1,12 @@
+[v] success
+[x] failure
+[-] load
+
 # Insyaallah, New tasks:
-[] BasicAuth
-
-[] test main_test.go func setupTestSetCookie(...)
-    admin v
-    sugriwa x
-    subali x
-
+[] ...
 
 # Completed task:
-1. [x] testing session
+1. [-] testing session
     [x] Set-Cookie headers there isn't any: session
 
     [x] 2 missing users
@@ -27,6 +25,9 @@
             - for example: setupTestHandler() -> UndeclaredName
         move:
             - session.go to session_test.go v
+    
+    [-] SetSession and GetAuth
+        v login
 
 2. [v] controller UpdateUser: validation
 
