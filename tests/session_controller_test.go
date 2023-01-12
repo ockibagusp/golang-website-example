@@ -22,12 +22,12 @@ func TestLogin(t *testing.T) {
 	truncateUsers(db)
 
 	test_cases := []struct {
-		name           string
-		method         int
-		userSelectTest string
-		user           types.LoginForm
-		flash          regex
-		status         int
+		name   string
+		method int
+		expect string
+		user   types.LoginForm
+		flash  regex
+		status int
 	}{
 		/*
 			users [admin]
@@ -35,13 +35,14 @@ func TestLogin(t *testing.T) {
 		{
 			name:   "users [admin] to GET login",
 			method: GET,
+			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:           "users [admin] to POST login success",
-			method:         POST,
-			userSelectTest: "admin",
+			name:   "users [admin] to POST login success",
+			method: POST,
+			expect: ADMIN,
 			user: types.LoginForm{
 				Username: "admin",
 				Password: "admin123",
@@ -50,9 +51,9 @@ func TestLogin(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			name:           "users [admin] to POST login failure",
-			method:         POST,
-			userSelectTest: "admin",
+			name:   "users [admin] to POST login failure",
+			method: POST,
+			expect: ADMIN,
 			user: types.LoginForm{
 				Username: "admin",
 				Password: "<bad password>",
@@ -71,13 +72,14 @@ func TestLogin(t *testing.T) {
 		{
 			name:   "users [ockibagusp] to GET login",
 			method: GET,
+			expect: OCKIBAGUSP,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			name:           "users [ockibagusp] to POST login success",
-			method:         POST,
-			userSelectTest: "ockibagusp",
+			name:   "users [ockibagusp] to POST login success",
+			method: POST,
+			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
 				Password: "user123",
@@ -86,9 +88,9 @@ func TestLogin(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			name:           "users [ockibagusp] to POST login failure",
-			method:         POST,
-			userSelectTest: "ockibagusp",
+			name:   "users [ockibagusp] to POST login failure",
+			method: POST,
+			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
 				Password: "<bad password>",
@@ -110,7 +112,7 @@ func TestLogin(t *testing.T) {
 					Status(test.status)
 				return
 			}
-			modelsTest.UserSelectTest = test.userSelectTest
+			modelsTest.UserSelectTest = test.expect
 			// tc.method == POST
 			result := no_auth.POST("/login").
 				WithForm(test.user).

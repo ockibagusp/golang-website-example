@@ -9,6 +9,13 @@ import (
 	"github.com/gavv/httpexpect/v2"
 )
 
+const (
+	ADMIN      string = "admin"
+	SUGRIWA           = "sugriwa"
+	SUBALI            = "subali"
+	OCKIBAGUSP        = "ockibagusp"
+)
+
 /*
 Setup test sever
 
