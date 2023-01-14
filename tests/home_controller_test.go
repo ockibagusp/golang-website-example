@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,18 +14,16 @@ func TestHomeController(t *testing.T) {
 	assert := assert.New(t)
 
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	test_cases := []struct {
 		name           string
-		expect         *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
+		expect         string // admin, sugriwa
 		html_navbar    regex
 		html_jumbotron regex
 	}{
 		{
 			name:   "home [no-auth] success",
-			expect: no_auth,
+			expect: "",
 			html_navbar: regex{
 				must_compile: `<a href="/login" (.*)</a>`,
 				actual:       `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
@@ -36,7 +35,7 @@ func TestHomeController(t *testing.T) {
 		},
 		{
 			name:   "home [admin] success",
-			expect: auth_admin,
+			expect: ADMIN,
 			html_navbar: regex{
 				must_compile: `<a class="btn">(.*)</a>`,
 				actual:       `<a class="btn">ADMIN</a>`,
@@ -48,7 +47,7 @@ func TestHomeController(t *testing.T) {
 		},
 		{
 			name:   "home [user] success",
-			expect: auth_sugriwa,
+			expect: SUGRIWA,
 			html_navbar: regex{
 				must_compile: `<a href="/users" (.*)</a>`,
 				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
@@ -62,10 +61,10 @@ func TestHomeController(t *testing.T) {
 
 	for _, test := range test_cases {
 		var result *httpexpect.Response
-		expect := test.expect // auth_admin, auth_sugriwa or no-auth
+		modelsTest.UserSelectTest = test.expect // auth_admin, auth_sugriwa or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
-			result = expect.GET("/").
+			result = no_auth.GET("/").
 				Expect().
 				Status(http.StatusOK)
 
