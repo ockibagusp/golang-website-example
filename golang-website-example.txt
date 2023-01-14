@@ -37,6 +37,7 @@ time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=
     [-] SetSession and GetAuth
         v login
         v user controller
+        v home controller
 
 2. [v] controller UpdateUser: validation
 
