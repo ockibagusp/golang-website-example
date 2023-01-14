@@ -28,7 +28,7 @@ var UsersTest []models.User = []models.User{
 	},
 }
 
-func UserUsername(user *models.User) {
+func SetAuthSession(user *models.User) {
 	for _, testUser := range UsersTest {
 		if UserSelectTest == testUser.Username {
 			user.Username = testUser.Username

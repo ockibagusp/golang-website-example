@@ -74,7 +74,7 @@ func GetAdmin(c echo.Context) (session_gorilla *sessions.Session, err error) {
 func SetSession(user models.User, c echo.Context) (session_gorilla *sessions.Session, err error) {
 	// Test: session_test = true
 	if os.Getenv("session_test") == "1" {
-		modelsTest.UserUsername(&user)
+		modelsTest.SetAuthSession(&user)
 	}
 
 	session_gorilla, err = session.Get("session", c)
