@@ -28,6 +28,7 @@
     
     [-] SetSession and GetAuth
         v login
+        v user controller
 
 2. [v] controller UpdateUser: validation
 

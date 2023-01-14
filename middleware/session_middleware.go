@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/tests/method"
 	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 )
 
@@ -16,8 +17,8 @@ import (
 // GetAuth: get session to authenticated
 func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
 	// Test: session_test = true
-	if false { // os.Getenv("session_test") == "1" ???
-		if modelsTest.UserSelectTest == "" && session_gorilla.IsNew == false {
+	if os.Getenv("session_test") == "1" && method.SetSession == false {
+		if modelsTest.UserSelectTest == "" {
 			session_gorilla = &sessions.Session{
 				Values: map[interface{}]interface{}{
 					"username":     "",

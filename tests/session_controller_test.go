@@ -5,15 +5,11 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/ockibagusp/golang-website-example/tests/method"
 	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 	"github.com/ockibagusp/golang-website-example/types"
 	"github.com/stretchr/testify/assert"
 )
-
-const GET int = 1
-
-// POST int = 2
-const POST = 2
 
 func TestLogin(t *testing.T) {
 	no_auth := setupTestServer(t)
@@ -34,14 +30,14 @@ func TestLogin(t *testing.T) {
 		*/
 		{
 			name:   "users [admin] to GET login",
-			method: GET,
+			method: method.HTTP_REQUEST_GET,
 			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
 			name:   "users [admin] to POST login success",
-			method: POST,
+			method: method.HTTP_REQUEST_POST,
 			expect: ADMIN,
 			user: types.LoginForm{
 				Username: "admin",
@@ -52,7 +48,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to POST login failure",
-			method: POST,
+			method: method.HTTP_REQUEST_POST,
 			expect: ADMIN,
 			user: types.LoginForm{
 				Username: "admin",
@@ -71,14 +67,14 @@ func TestLogin(t *testing.T) {
 		*/
 		{
 			name:   "users [ockibagusp] to GET login",
-			method: GET,
+			method: method.HTTP_REQUEST_GET,
 			expect: OCKIBAGUSP,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
 			name:   "users [ockibagusp] to POST login success",
-			method: POST,
+			method: method.HTTP_REQUEST_POST,
 			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
@@ -89,7 +85,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:   "users [ockibagusp] to POST login failure",
-			method: POST,
+			method: method.HTTP_REQUEST_POST,
 			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
@@ -104,15 +100,17 @@ func TestLogin(t *testing.T) {
 		},
 	}
 
+	method.SetSession = true
 	for _, test := range test_cases {
 		t.Run(test.name, func(t *testing.T) {
-			if test.method == GET {
+			modelsTest.UserSelectTest = test.expect // ADMIN and OCKIBAGUSP
+
+			if test.method == method.HTTP_REQUEST_GET {
 				no_auth.GET("/login").
 					Expect().
 					Status(test.status)
 				return
 			}
-			modelsTest.UserSelectTest = test.expect
 			// tc.method == POST
 			result := no_auth.POST("/login").
 				WithForm(test.user).
