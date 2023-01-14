@@ -39,6 +39,7 @@ time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=
         v user controller
         v home controller
         v about controller
+        - admin controller
 
 2. [v] controller UpdateUser: validation
 

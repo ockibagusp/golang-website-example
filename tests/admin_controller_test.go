@@ -5,19 +5,18 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 )
 
 func TestAdminDeletePermanently(t *testing.T) {
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	// auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
 	// test for db users
 	truncateUsers(db)
 
 	test_cases := []struct {
 		name      string
-		expect    *httpexpect.Expect // auth or no-auth
+		expect    string // auth or no-auth
 		url_query string
 		status    int
 	}{
@@ -26,7 +25,7 @@ func TestAdminDeletePermanently(t *testing.T) {
 		*/
 		{
 			name:   "delete permanently [admin] to GET it success: all",
-			expect: auth_admin,
+			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
@@ -61,18 +60,18 @@ func TestAdminDeletePermanently(t *testing.T) {
 
 			var expect = test.expect
 		*/
-		var expect *httpexpect.Expect = test.expect
+		modelsTest.UserSelectTest = test.expect // ADMIN and SUGRIWA
 
 		t.Run(test.name, func(t *testing.T) {
 			// @route: exemple "/admin/delete-permanently?admin=all"
 			if test.url_query != "" {
-				result = expect.GET("/admin/delete-permanently").
+				result = no_auth.GET("/admin/delete-permanently").
 					WithQuery(test.url_query, "all").
 					Expect().
 					Status(test.status)
 			} else {
 				// @route: "/admin/delete-permanently"
-				result = expect.GET("/admin/delete-permanently").
+				result = no_auth.GET("/admin/delete-permanently").
 					Expect().
 					Status(test.status)
 			}
