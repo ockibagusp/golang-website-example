@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"os"
 
 	"github.com/gorilla/sessions"
@@ -18,33 +17,7 @@ import (
 func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
 	// Test: session_test = true
 	if os.Getenv("session_test") == "1" && method.SetSession == false {
-		if modelsTest.UserSelectTest == "" {
-			session_gorilla = &sessions.Session{
-				Values: map[interface{}]interface{}{
-					"username":     "",
-					"is_auth_type": -1,
-				},
-			}
-
-			err = errors.New("no session")
-			return
-		}
-
-		for _, testUser := range modelsTest.UsersTest {
-			if modelsTest.UserSelectTest == testUser.Username {
-				session_gorilla = &sessions.Session{
-					Values: map[interface{}]interface{}{
-						"username": testUser.Username,
-					},
-				}
-
-				if testUser.IsAdmin == 1 {
-					session_gorilla.Values["is_auth_type"] = 1 // admin: 1
-				} else if testUser.IsAdmin == 0 {
-					session_gorilla.Values["is_auth_type"] = 2 // user: 2
-				}
-			}
-		}
+		session_gorilla, err = modelsTest.GetAuthSession()
 	} else {
 		if session_gorilla, err = session.Get("session", c); err != nil {
 			return
