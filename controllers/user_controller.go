@@ -29,11 +29,6 @@ func (controller *Controller) Users(c echo.Context) error {
 	})
 	log.Info("START request method GET for users")
 
-	log.Println(session.ID)
-	log.Println(session.IsNew)
-	log.Println(session.Options)
-	log.Println(session.Values)
-
 	is_auth_type := session.Values["is_auth_type"]
 	if is_auth_type == -1 {
 		log.Warn("for GET to users without no-session [@route: /login]")
