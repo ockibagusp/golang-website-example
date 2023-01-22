@@ -1,15 +1,23 @@
-# Insyaallah, New tasks:
-[] test main_test.go func setupTestSetCookie(...)
-    admin v
-    sugriwa x
-    subali x
+[v] success
+[x] failure
+[-] load
 
+# Insyaallah, New tasks:
+[] no debug for create models.User
+
+example,
+[6.075ms] [rows:0] INSERT INTO `users` ... VALUES (...'unit-test','unit-test@exemple.com','$2a$10$wyzBl/d31ahlHVU52kgkT.cH1lXI9b0cmdiM9Gw2ciyY9C69bTLh6','Unit Test',0,'',0)
+...
+time="2023-01-14T15:14:14+07:00" level=info msg="START request method POST for create user" route=/users/add username=
+time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=/users/add user_success="{{... example example@example.com $2a$10$1cbJNsJNOXk4hwYYVtlUT.B0MwNwp4sRmI2pS9frCuC.0IBLyRsSO Example 0  0}" username=}}
+
+[] ...
 
 # Completed task:
 1. [-] testing session
-    [-] Set-Cookie headers there isn't any: session
+    [x] Set-Cookie headers there isn't any: session
 
-    [-] 2 missing users
+    [x] 2 missing users
         Func: TestLogin
         Users:
             - admin - ok x
@@ -17,7 +25,7 @@
             - subali - ok x
             - ockibagusp - no v
 
-    [-] UndeclaredName: setupTestHandler v
+    [x] UndeclaredName: setupTestHandler v
         https://pkg.go.dev/golang.org/x/tools/internal/typesinternal#UndeclaredName
 
         package tests v
@@ -25,10 +33,50 @@
             - for example: setupTestHandler() -> UndeclaredName
         move:
             - session.go to session_test.go v
+    
+    [-] SetSession and GetAuth
+        v login
+        v user controller
+        v home controller
+        v about controller
+        - admin controller
 
-2. [x] controller UpdateUser: validation
+        --- FAIL: TestUsersController
+            - user_controller_test.go:253
+            - user_controller_test.go:263
 
-3. [x] test controller DeteleUser: id=3
+        http://127.0.0.1:35351/users
+        http://127.0.0.1:35351/users?admin=all
+        http://127.0.0.1:35351/users?user=all
+        http://127.0.0.1:35351/users?false=all
+
+        --- FAIL: TestCreateUserController
+            users_[admin]_to_GET_create_it_success
+            GET http://127.0.0.1:39181/users/add
+
+            - user_controller_test.go:518
+
+        --- FAIL: TestCreateUserController/user_[admin]_to_POST_create_it_success
+
+            POST http://127.0.0.1:39181/users/add
+
+        --- FAIL: TestCreateUserController/users_[admin]_to_POST_create_it_failure:_Duplicate_entry
+
+        --- FAIL: TestReadUserController
+
+        --- FAIL: TestUpdateUserController
+            --- FAIL: TestUpdateUserController/users_[admin]_to_admin_GET_update_it_success:_id=1
+
+            --- FAIL: TestUpdateUserController/users_[admin]_to_user_GET_update_it_success:_id=2
+
+            --- FAIL: TestUpdateUserController/users_[admin]_to_admin_POST_update_it_success:_id=1
+
+        --- FAIL: TestUpdateUserByPasswordUserController
+            --- FAIL: TestUpdateUserByPasswordUserController/users_[admin]_to_GET_update_user_by_password_it_success:_id=1
+
+2. [v] controller UpdateUser: validation
+
+3. [v] test controller DeteleUser: id=3
 controllers/user_controller.go:678
 
 name:   "users [subali] to [subali] DELETE it success: id=3",
@@ -40,4 +88,4 @@ time="2022-12-30T14:54:47+07:00" level=info msg="START request method GET for de
 time="2022-12-30T14:54:47+07:00" level=warning msg="for GET to delete user without no-session [@route: /login]" route="/users/delete/:id -> id:1" username=
 ...
 
-4. [x] test without csrf
+4. [v] test without csrf

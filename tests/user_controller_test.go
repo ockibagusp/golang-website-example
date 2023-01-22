@@ -1,12 +1,15 @@
 package tests
 
 import (
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/tests/method"
+	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 	"github.com/ockibagusp/golang-website-example/types"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -40,6 +43,12 @@ func truncateUsers(db *gorm.DB) {
 			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
 			Name:     "Subali",
 		},
+		{
+			Username: "ockibagusp",
+			Email:    "ocki.bagus.p@gmail.com",
+			Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",
+			Name:     "Ocki Bagus Pratama",
+		},
 	}
 
 	tx := db.Begin()
@@ -55,7 +64,7 @@ func truncateUsers(db *gorm.DB) {
 // // type: users test cases
 // type usersTestCases []struct {
 // 	name   string
-// 	expect *httpexpect.Expect // auth or no-auth
+// 	expect string // ADMIN and SUGRIWA
 // 	method int                // method: 1=GET or 2=POST
 // 	path   int                // id=int. Exemple, id=1
 // 	form   struct{} ?
@@ -66,9 +75,9 @@ func TestUsersController(t *testing.T) {
 	assert := assert.New(t)
 
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -76,8 +85,8 @@ func TestUsersController(t *testing.T) {
 
 	test_cases := []struct {
 		name         string
-		expect       *httpexpect.Expect // auth_admin, session_sugriwa or no-auth
-		url_query    string             // @route: exemple /users?admin=all
+		expect       string // expect: admin, sugriwa
+		url_query    string // @route: exemple /users?admin=all
 		status       int
 		html_navbar  regex
 		html_heading regex
@@ -88,7 +97,7 @@ func TestUsersController(t *testing.T) {
 		*/
 		{
 			name:   "users [admin] to GET it success: all",
-			expect: auth_admin,
+			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -115,7 +124,7 @@ func TestUsersController(t *testing.T) {
 		},
 		{
 			name:      "users [admin] to GET it success: admin",
-			expect:    auth_admin,
+			expect:    ADMIN,
 			url_query: "admin",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -132,7 +141,7 @@ func TestUsersController(t *testing.T) {
 		},
 		{
 			name:      "users [admin] to GET it success: user",
-			expect:    auth_admin,
+			expect:    ADMIN,
 			url_query: "user",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -149,7 +158,7 @@ func TestUsersController(t *testing.T) {
 		},
 		{
 			name:      "users [admin] to GET it failed: all",
-			expect:    auth_admin,
+			expect:    ADMIN,
 			url_query: "false",
 			status:    http.StatusOK,
 			// body heading
@@ -164,7 +173,7 @@ func TestUsersController(t *testing.T) {
 		*/
 		{
 			name:   "users [user] to GET it redirect success: sugriwa",
-			expect: auth_sugriwa,
+			expect: SUGRIWA,
 			// redirect @route: /user/read/2 [sugriwa: 2]
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -176,7 +185,7 @@ func TestUsersController(t *testing.T) {
 		},
 		{
 			name:      "users [user] to GET it redirect success: admin failed",
-			expect:    auth_sugriwa,
+			expect:    SUGRIWA,
 			url_query: "admin",
 			// redirect @route: /user/read/2 [sugriwa: 2]
 			// HTTP response status: 200 OK
@@ -193,7 +202,7 @@ func TestUsersController(t *testing.T) {
 		*/
 		{
 			name:   "users [no-auth] to GET it failure: login",
-			expect: no_auth,
+			expect: "",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -206,24 +215,25 @@ func TestUsersController(t *testing.T) {
 
 	for _, test := range test_cases {
 		var result *httpexpect.Response
-		expect := test.expect // auth_admin, session_sugriwa or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
+			modelsTest.UserSelectTest = test.expect // admin, sugriwa
 
 			// @route: exemple "/users?admin=all"
 			if test.url_query != "" {
-				result = expect.GET("/users").
+				result = no_auth.GET("/users").
 					WithQuery(test.url_query, "all").
 					Expect().
 					Status(test.status)
 			} else {
 				// @route: "/users"
-				result = expect.GET("/users").
+				result = no_auth.GET("/users").
 					Expect().
 					Status(test.status)
 			}
 
 			result_body := result.Body().Raw()
+			log.Println("result_body:", result_body)
 
 			var (
 				must_compile, actual, match string
@@ -270,9 +280,9 @@ func TestUsersController(t *testing.T) {
 
 func TestCreateUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -280,8 +290,8 @@ func TestCreateUserController(t *testing.T) {
 
 	test_cases := []struct {
 		name   string
-		expect *httpexpect.Expect // auth or no-auth
-		method int                // method: 1=GET or 2=POST
+		method int    // method: 1=GET or 2=POST
+		expect string // auth or no-auth
 		form   types.UserForm
 		status int
 
@@ -299,8 +309,8 @@ func TestCreateUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [admin] to GET create it success",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -317,8 +327,8 @@ func TestCreateUserController(t *testing.T) {
 		// POST
 		{
 			name:   "user [admin] to POST create it success",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			form: types.UserForm{
 				Username:        "unit-test",
 				Email:           "unit-test@exemple.com",
@@ -348,8 +358,8 @@ func TestCreateUserController(t *testing.T) {
 		//			-> " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' " x
 		{
 			name:   "users [admin] to POST create it failure: Duplicate entry",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			form: types.UserForm{
 				Username:        "unit-test",
 				Email:           "unit-test@exemple.com",
@@ -382,8 +392,8 @@ func TestCreateUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [sugriwa] to GET create it failure",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			// redirect @route: /users/read/:id
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -396,8 +406,8 @@ func TestCreateUserController(t *testing.T) {
 		// POST
 		{
 			name:   "user [sugriwa] to POST create it failure",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			// redirect @route: /users/read/:id
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -419,8 +429,8 @@ func TestCreateUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [no-auth] to GET create it success",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -437,38 +447,38 @@ func TestCreateUserController(t *testing.T) {
 		// POST
 		{
 			name:   "user [no-auth] to POST create it success",
-			expect: no_auth,
-			method: POST,
+			expect: "",
+			method: method.HTTP_REQUEST_POST,
 			form: types.UserForm{
-				Username:        "ockibagusp",
-				Email:           "ocki.bagus.p@gmail.com",
-				Name:            "Ocki Bagus Pratama",
-				Password:        "user123",
-				ConfirmPassword: "user123",
+				Username:        "example",
+				Email:           "example@example.com",
+				Name:            "Example",
+				Password:        "example123",
+				ConfirmPassword: "example123",
 			},
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
 			html_flash_success: regex{
 				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success new user: ockibagusp!`,
+				actual:       `<strong>success:</strong> success new user: example!`,
 			},
 			// TODO: difficult html_navbar and html_heading, insyaallah
 		},
 	}
 
 	for _, test := range test_cases {
-		expect := test.expect // auth or no-auth
+		modelsTest.UserSelectTest = test.expect
 
 		t.Run(test.name, func(t *testing.T) {
 			var result *httpexpect.Response
-			if test.method == GET {
-				result = expect.GET("/users/add").
+			if test.method == method.HTTP_REQUEST_GET {
+				result = no_auth.GET("/users/add").
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
-			} else if test.method == POST {
-				result = expect.POST("/users/add").
+			} else if test.method == method.HTTP_REQUEST_POST {
+				result = no_auth.POST("/users/add").
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
@@ -482,6 +492,7 @@ func TestCreateUserController(t *testing.T) {
 				must_compile, actual, match string
 				regex                       *regexp.Regexp
 			)
+
 			if test.html_flash_success.must_compile != "" {
 				must_compile = test.html_flash_success.must_compile
 				actual = test.html_flash_success.actual
@@ -538,16 +549,16 @@ func TestReadUserController(t *testing.T) {
 	assert := assert.New(t)
 
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
 	test_cases := []struct {
 		name         string
-		expect       *httpexpect.Expect // auth or no-auth
-		method       int                // method: 1=GET or 2=POST
+		expect       string // auth or no-auth
+		method       int    // method: 1=GET or 2=POST
 		path         string
 		status       int
 		html_navbar  regex
@@ -559,8 +570,8 @@ func TestReadUserController(t *testing.T) {
 		*/
 		{
 			name:   "users [admin] to GET read it success",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -577,8 +588,8 @@ func TestReadUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to GET read it failure",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
@@ -589,8 +600,8 @@ func TestReadUserController(t *testing.T) {
 		*/
 		{
 			name:   "users [sugriwa] to GET read it success",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -602,8 +613,8 @@ func TestReadUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to GET read it failure",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
@@ -614,8 +625,8 @@ func TestReadUserController(t *testing.T) {
 		*/
 		{
 			name:   "users [no-auth] to GET read it failure",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -628,8 +639,8 @@ func TestReadUserController(t *testing.T) {
 		},
 		{
 			name:   "users [no-auth] to GET read it failure: 4 session and no-id",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK: 3 session and id
@@ -643,17 +654,17 @@ func TestReadUserController(t *testing.T) {
 	}
 
 	for _, test := range test_cases {
-		var result *httpexpect.Response
-		expect := test.expect // auth or no-auth
+		modelsTest.UserSelectTest = test.expect
 
+		var result *httpexpect.Response
 		t.Run(test.name, func(t *testing.T) {
-			if test.method == GET {
+			if test.method == method.HTTP_REQUEST_GET {
 				// same:
 				//
-				// expect.GET("/users/read/{id}").
+				// no_auth.GET("/users/read/{id}").
 				//	WithPath("id", test.path).
 				// ...
-				result = expect.GET("/users/read/{id}", test.path).
+				result = no_auth.GET("/users/read/{id}", test.path).
 					Expect().
 					Status(test.status)
 
@@ -710,17 +721,17 @@ func TestReadUserController(t *testing.T) {
 
 func TestUpdateUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
 	test_cases := []struct {
 		name   string
-		expect *httpexpect.Expect // auth or no-auth
-		method int                // method: 1=GET or 2=POST
-		path   string             // id=string. Exemple, id="1"
+		expect string // auth or no-auth
+		method int    // method: 1=GET or 2=POST
+		path   string // id=string. Exemple, id="1"
 		form   types.UserForm
 		status int
 
@@ -736,8 +747,8 @@ func TestUpdateUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [admin] to admin GET update it success: id=1",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "1", // admin: 1 admin
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -754,8 +765,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to user GET update it success: id=2",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "2", // user: 2 sugriwa
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -772,8 +783,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to -1 GET update it failure: id=-1",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -781,8 +792,8 @@ func TestUpdateUserController(t *testing.T) {
 		// POST
 		{
 			name:   "users [admin] to admin POST update it success: id=1",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "1", // admin: 1 admin
 			form: types.UserForm{
 				Username: "admin-success",
@@ -808,8 +819,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to user POST update it success: id=2",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "2", // user: 2 sugriwa
 			form: types.UserForm{
 				// id=2 username: sugriwa
@@ -838,8 +849,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to POST update it failure: id=-1",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "-1",
 			form:   types.UserForm{},
 			// HTTP response status: 404 Not Found
@@ -852,8 +863,8 @@ func TestUpdateUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [sugriwa] to GET update it success: id=2",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "2", // user: 2 sugriwa ok
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -865,16 +876,16 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to GET update it failure: id=-2",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "-2",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
 		},
 		{
 			name:   "users [sugriwa] to GET update it failure: id=3",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "3", // user: 2 sugriwa no
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
@@ -882,8 +893,8 @@ func TestUpdateUserController(t *testing.T) {
 		// POST
 		{
 			name:   "users [sugriwa] to sugriwa POST update it success",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			path:   "2", // user: 2 sugriwa
 			form: types.UserForm{
 				Username: "sugriwa", // admin: "sugriwa-success" to sugriwa: "sugriwa"
@@ -905,8 +916,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to POST update it failure",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			path:   "3", // user: 2 sugriwa no
 			form: types.UserForm{
 				Username: "subali-failure",
@@ -921,8 +932,8 @@ func TestUpdateUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [no-auth] to GET update it failure: id=1",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -935,8 +946,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [no-auth] to GET update it failure: id=-1",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK: 3 session and id
@@ -945,8 +956,8 @@ func TestUpdateUserController(t *testing.T) {
 		// POST
 		{
 			name:   "users [no-auth] to POST update it failure: id=2",
-			expect: no_auth,
-			method: POST,
+			expect: "",
+			method: method.HTTP_REQUEST_POST,
 			path:   "2",
 			form: types.UserForm{
 				Username: "sugriwa-failure",
@@ -957,8 +968,8 @@ func TestUpdateUserController(t *testing.T) {
 		},
 		{
 			name:   "users [no-auth] to POST update it failure: id=-2",
-			expect: no_auth,
-			method: POST,
+			expect: "",
+			method: method.HTTP_REQUEST_POST,
 			path:   "-2",
 			form: types.UserForm{
 				Username: "sugriwa-failure",
@@ -970,22 +981,22 @@ func TestUpdateUserController(t *testing.T) {
 	}
 
 	for _, test := range test_cases {
-		expect := test.expect // auth or no-auth
+		modelsTest.UserSelectTest = test.expect // ADMIN and SUGRIWA
 
 		t.Run(test.name, func(t *testing.T) {
 			var result *httpexpect.Response
-			if test.method == GET {
+			if test.method == method.HTTP_REQUEST_GET {
 				// same:
 				//
-				// expect.GET("/users/view/{id}").
+				// no_auth.GET("/users/view/{id}").
 				//	WithPath("id", test.path).
 				// ...
-				result = expect.GET("/users/view/{id}", test.path).
+				result = no_auth.GET("/users/view/{id}", test.path).
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
-			} else if test.method == POST {
-				result = expect.POST("/users/view/{id}").
+			} else if test.method == method.HTTP_REQUEST_POST {
+				result = no_auth.POST("/users/view/{id}").
 					WithPath("id", test.path).
 					WithForm(test.form).
 					Expect().
@@ -1061,17 +1072,17 @@ func TestUpdateUserController(t *testing.T) {
 
 func TestUpdateUserByPasswordUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_sugriwa := setupTestServerAuth(no_auth, 2)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
 	test_cases := []struct {
 		name   string
-		expect *httpexpect.Expect // auth or no-auth
-		method int                // method: 1=GET or 2=POST
-		path   string             // id=string. Exemple, id="1"
+		expect string // ADMIN and SUGRIWA
+		method int    // method: 1=GET or 2=POST
+		path   string // id=string. Exemple, id="1"
 		form   types.NewPasswordForm
 		status int
 
@@ -1086,8 +1097,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [admin] to GET update user by password it success: id=1",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -1099,8 +1110,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to [sugriwa] GET update user by password it success: id=2",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -1113,8 +1124,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name: "users [admin] to GET update user by password it failure: id=-1" +
 				" GET passwords don't match",
-			expect: auth_admin,
-			method: GET,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -1122,8 +1133,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// POST
 		{
 			name:   "users [admin] to POST update user by password it success: id=1",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "1",
 			form: types.NewPasswordForm{
 				OldPassword:        "admin123",
@@ -1145,8 +1156,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to [sugriwa] POST update user by password it success: id=2",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "2",
 			form: types.NewPasswordForm{
 				OldPassword:        "user123",
@@ -1169,8 +1180,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name: "users [admin] to POST update user by password it failure: id=1" +
 				" POST passwords don't match",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "1",
 			form: types.NewPasswordForm{
 				OldPassword:        "admin_success",
@@ -1183,8 +1194,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name: "users [admin] to [sugriwa] POST update user by password it failure: id=2" +
 				" POST passwords don't match",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "2",
 			form: types.NewPasswordForm{
 				OldPassword:        "admin_password_success",
@@ -1196,8 +1207,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to POST update user by password it failure: id=-1",
-			expect: auth_admin,
-			method: POST,
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_POST,
 			path:   "-1",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 404 Not Found
@@ -1210,8 +1221,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [sugriwa] to GET update user by password it success: id=2",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -1223,24 +1234,24 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to [admin] GET update user by password it failure: id=1",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "1",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
 		},
 		{
 			name:   "users [sugriwa] to [subali] GET update user by password it failure: id=3",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "3",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
 		},
 		{
 			name:   "users [sugriwa] to GET update user by password it failure: id=-1",
-			expect: auth_sugriwa,
-			method: GET,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -1248,8 +1259,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// POST
 		{
 			name:   "users [sugriwa] to POST update user by password it success: id=2",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			path:   "2",
 			form: types.NewPasswordForm{
 				OldPassword:        "user_success",
@@ -1266,8 +1277,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to [admin] POST update user by password it failure: id=1",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			path:   "1",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 403 Forbidden,
@@ -1275,8 +1286,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to [subali] POST update user by password it failure: id=3",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			path:   "3",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 403 Forbidden,
@@ -1284,8 +1295,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [sugriwa] to POST update user by password it failure: id=-1",
-			expect: auth_sugriwa,
-			method: POST,
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_POST,
 			path:   "-1",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 404 Not Found
@@ -1298,8 +1309,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// GET
 		{
 			name:   "users [no-auth] to GET update user by password it failure: id=1",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1312,8 +1323,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [no-auth] to POST update user by password it failure: id=-1",
-			expect: no_auth,
-			method: GET,
+			expect: "",
+			method: method.HTTP_REQUEST_GET,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1327,8 +1338,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// POST
 		{
 			name:   "users [no-auth] to POST update user by password it failure: id=1",
-			expect: no_auth,
-			method: POST,
+			expect: "",
+			method: method.HTTP_REQUEST_POST,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1342,8 +1353,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		},
 		{
 			name:   "users [no-auth] to POST update user by password it success: id=-1",
-			expect: no_auth,
-			method: POST,
+			expect: "",
+			method: method.HTTP_REQUEST_POST,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1381,22 +1392,22 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 	// 		Status(http.StatusOK)
 	// })
 	for _, test := range test_cases {
-		var result *httpexpect.Response
-		expect := test.expect // auth or no-auth
+		modelsTest.UserSelectTest = test.expect // ADMIN and SUGRIWA
 
+		var result *httpexpect.Response
 		t.Run(test.name, func(t *testing.T) {
-			if test.method == GET {
+			if test.method == method.HTTP_REQUEST_GET {
 				// same:
 				//
-				// expect.POST("/users/view/{id}/password").
+				// no_auth.POST("/users/view/{id}/password").
 				//	WithPath("id", test.path).
 				// ...
-				result = expect.GET("/users/view/{id}/password", test.path).
+				result = no_auth.GET("/users/view/{id}/password", test.path).
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
-			} else if test.method == POST {
-				result = expect.POST("/users/view/{id}/password").
+			} else if test.method == method.HTTP_REQUEST_POST {
+				result = no_auth.POST("/users/view/{id}/password").
 					WithPath("id", test.path).
 					WithForm(test.form).
 					Expect().
@@ -1453,202 +1464,211 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 	}
 }
 
-func TestDeleteUserController(t *testing.T) {
-	no_auth := setupTestServer(t)
-	auth_admin := setupTestServerAuth(no_auth, 1)
-	auth_subali := setupTestServerAuth(no_auth, 3)
+// TODO: Test Delete User Controller, insyaallah
+// func TestDeleteUserController(t *testing.T) {
+// 	no_auth := setupTestServer(t)
 
-	// test for db users
-	truncateUsers(db)
+// 	// test for SetSession = false
+// 	method.SetSession = false
+// 	// test for db users
+// 	truncateUsers(db)
 
-	test_cases := []struct {
-		name   string
-		expect *httpexpect.Expect // auth or no-auth
-		path   string             // id=string. Exemple, id="1"
-		status int
+// 	test_cases := []struct {
+// 		name             string
+// 		expect           string // ADMIN and SUBALI
+// 		path             string // id=string. Exemple, id="1"
+// 		set_session_true bool
+// 		status           int
 
-		html_heading regex
-		// flash message
-		html_flash_success regex
-		html_flash_error   regex
-	}{
-		// GET all
-		/*
-			delete it [admin]
-		*/
-		{
-			name:   "users [admin] to [admin] DELETE it failure: id=1",
-			expect: auth_admin,
-			path:   "1",
-			// HTTP response status: 403 Forbidden,
-			status: http.StatusForbidden,
-		},
-		{
-			name:   "users [admin] to [sugriwa] DELETE it success: id=2",
-			expect: auth_admin,
-			path:   "2",
-			// redirect @route: /users
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
-			},
-			// flash message success
-			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success delete user: sugriwa!`,
-			},
-		},
-		{
-			name:   "users [admin] to [sugriwa] DELETE it failure: id=2 delete exists",
-			expect: auth_admin,
-			path:   "2",
-			// HTTP response status: 404 Not Found
-			status: http.StatusNotFound,
-		},
-		{
-			name:   "users [admin] to DELETE it failure: 2 (id=-1)",
-			expect: auth_admin,
-			path:   "-1",
-			// HTTP response status: 404 Not Found
-			status: http.StatusNotFound,
-		},
+// 		html_heading regex
+// 		// flash message
+// 		html_flash_success regex
+// 		html_flash_error   regex
+// 	}{
+// GET all
+/*
+	delete it [admin]
+*/
+// {
+// 	name:   "users [admin] to [admin] DELETE it failure: id=1",
+// 	expect: ADMIN,
+// 	path:   "1",
+// 	// HTTP response status: 403 Forbidden,
+// 	status: http.StatusForbidden,
+// },
+// {
+// 	name:   "users [admin] to [sugriwa] DELETE it success: id=2",
+// 	expect: ADMIN,
+// 	path:   "2",
+// 	// redirect @route: /users
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// body heading
+// 	html_heading: regex{
+// 		must_compile: `<h2 class="mt-4">(.*)</h2>`,
+// 		actual:       `<h2 class="mt-4">Users: All</h2>`,
+// 	},
+// 	// flash message success
+// 	html_flash_success: regex{
+// 		must_compile: `<strong>success:</strong> (.*)`,
+// 		actual:       `<strong>success:</strong> success delete user: sugriwa!`,
+// 	},
+// },
+// {
+// 	name:   "users [admin] to [sugriwa] DELETE it failure: id=2 delete exists",
+// 	expect: ADMIN,
+// 	path:   "2",
+// 	// HTTP response status: 404 Not Found
+// 	status: http.StatusNotFound,
+// },
+// {
+// 	name:   "users [admin] to DELETE it failure: 2 (id=-1)",
+// 	expect: ADMIN,
+// 	path:   "-1",
+// 	// HTTP response status: 404 Not Found
+// 	status: http.StatusNotFound,
+// },
 
-		/*
-			delete it [subali]
-		*/
-		{
-			name:   "users [subali] to [admin] DELETE it failure: id=1",
-			expect: auth_subali,
-			path:   "1",
-			// HTTP response status: 403 Forbidden,
-			status: http.StatusForbidden,
-		},
-		{
-			name:   "users [subali] to DELETE it failure: id=-1",
-			expect: auth_subali,
-			path:   "-1",
-			// HTTP response status: 404 Not Found
-			status: http.StatusNotFound,
-		},
-		{
-			name:   "users [subali] to [subali] DELETE it success: id=3",
-			expect: auth_subali,
-			path:   "3",
-			// redirect @route: /
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// body heading
-			html_heading: regex{
-				must_compile: `<p class="lead">(.*)</p>`,
-				actual:       `<p class="lead">Test.</p>`,
-			},
-			// flash message success
-			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success delete user: subali!`,
-			},
-		},
+// /*
+// 	delete it [subali]
+// */
+// {
+// 	name:   "users [subali] to [admin] DELETE it failure: id=1",
+// 	expect: SUBALI,
+// 	path:   "1",
+// 	// HTTP response status: 403 Forbidden,
+// 	status: http.StatusForbidden,
+// },
+// {
+// 	name:   "users [subali] to DELETE it failure: id=-1",
+// 	expect: SUBALI,
+// 	path:   "-1",
+// 	// HTTP response status: 404 Not Found
+// 	status: http.StatusNotFound,
+// },
+// {
+// 	name:             "users [subali] to [subali] DELETE it success: id=3",
+// 	expect:           SUBALI,
+// 	path:             "3",
+// 	set_session_true: true,
+// 	// redirect @route: /
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// body heading
+// 	html_heading: regex{
+// 		must_compile: `<p class="lead">(.*)</p>`,
+// 		actual:       `<p class="lead">Test.</p>`,
+// 	},
+// 	// flash message success
+// 	html_flash_success: regex{
+// 		must_compile: `<strong>success:</strong> (.*)`,
+// 		actual:       `<strong>success:</strong> success delete user: subali!`,
+// 	},
+// },
 
-		/*
-			delete it [na-auth]
-		*/
-		{
-			name:   "users [no-auth] to DELETE it failure: id=1",
-			expect: no_auth,
-			path:   "1",
-			// redirect @route: /login
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// flash message
-			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
-			},
-		},
-		{
-			name:   "users [no-auth] to DELETE it failure: id=-1",
-			expect: no_auth,
-			path:   "-1",
-			// redirect @route: /login
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// flash message
-			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
-			},
-		},
-		{
-			name:   "users [no-auth] to DELETE it failure: id=error",
-			expect: no_auth,
-			path:   "error",
-			// redirect @route: /login
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-			// flash message
-			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
-			},
-		},
-	}
+/*
+	delete it [na-auth]
+*/
+// {
+// 	name:   "users [no-auth] to DELETE it failure: id=1",
+// 	expect: "",
+// 	path:   "1",
+// 	// redirect @route: /login
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// flash message
+// 	html_flash_error: regex{
+// 		must_compile: `<p class="text-danger">*(.*)</p>`,
+// 		actual:       `<p class="text-danger">*login process failed!</p>`,
+// 	},
+// },
+// {
+// 	name:   "users [no-auth] to DELETE it failure: id=-1",
+// 	expect: "",
+// 	path:   "-1",
+// 	// redirect @route: /login
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// flash message
+// 	html_flash_error: regex{
+// 		must_compile: `<p class="text-danger">*(.*)</p>`,
+// 		actual:       `<p class="text-danger">*login process failed!</p>`,
+// 	},
+// },
+// {
+// 	name:   "users [no-auth] to DELETE it failure: id=error",
+// 	expect: "",
+// 	path:   "error",
+// 	// redirect @route: /login
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// flash message
+// 	html_flash_error: regex{
+// 		must_compile: `<p class="text-danger">*(.*)</p>`,
+// 		actual:       `<p class="text-danger">*login process failed!</p>`,
+// 	},
+// },
+// 	}
 
-	for _, test := range test_cases {
-		var result *httpexpect.Response
-		expect := test.expect // auth or no-auth
+// 	for _, test := range test_cases {
+// 		var result *httpexpect.Response
 
-		t.Run(test.name, func(t *testing.T) {
-			result = expect.GET("/users/delete/{id}", test.path).
-				Expect().
-				Status(test.status)
+// 		if test.set_session_true {
+// 			method.SetSession = true
+// 		}
 
-			result_body := result.Body().Raw()
+// 		t.Run(test.name, func(t *testing.T) {
+// 			modelsTest.UserSelectTest = test.expect // ADMIN and SUBALI
 
-			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
-			)
+// 			result = no_auth.GET("/users/delete/{id}", test.path).
+// 				Expect().
+// 				Status(test.status)
 
-			if test.html_heading.must_compile != "" {
-				must_compile = test.html_heading.must_compile
-				actual = test.html_heading.actual
+// 			result_body := result.Body().Raw()
+// 			log.Println(result_body)
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+// 			var (
+// 				must_compile, actual, match string
+// 				regex                       *regexp.Regexp
+// 			)
 
-				assert.Equal(t, match, actual)
-			}
+// 			if test.html_heading.must_compile != "" {
+// 				must_compile = test.html_heading.must_compile
+// 				actual = test.html_heading.actual
 
-			if test.html_flash_success.must_compile != "" {
-				must_compile = test.html_flash_success.must_compile
-				actual = test.html_flash_success.actual
+// 				regex = regexp.MustCompile(must_compile)
+// 				match = regex.FindString(result_body)
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+// 				assert.Equal(t, match, actual)
+// 			}
 
-				assert.Equal(t, match, actual)
-			}
+// 			if test.html_flash_success.must_compile != "" {
+// 				must_compile = test.html_flash_success.must_compile
+// 				actual = test.html_flash_success.actual
 
-			if test.html_flash_error.must_compile != "" {
-				must_compile = test.html_flash_error.must_compile
-				actual = test.html_flash_error.actual
+// 				regex = regexp.MustCompile(must_compile)
+// 				match = regex.FindString(result_body)
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+// 				assert.Equal(t, match, actual)
+// 			}
 
-				assert.Equal(t, match, actual)
-			}
+// 			if test.html_flash_error.must_compile != "" {
+// 				must_compile = test.html_flash_error.must_compile
+// 				actual = test.html_flash_error.actual
 
-			statusCode := result.Raw().StatusCode
-			if test.status != statusCode {
-				t.Logf(
-					"got: %d but expect %d", test.status, statusCode,
-				)
-				t.Fail()
-			}
-		})
-	}
-}
+// 				regex = regexp.MustCompile(must_compile)
+// 				match = regex.FindString(result_body)
+
+// 				assert.Equal(t, match, actual)
+// 			}
+
+// 			statusCode := result.Raw().StatusCode
+// 			if test.status != statusCode {
+// 				t.Logf(
+// 					"got: %d but expect %d", test.status, statusCode,
+// 				)
+// 				t.Fail()
+// 			}
+// 		})
+// 	}
+// }

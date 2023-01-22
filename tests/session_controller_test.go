@@ -5,44 +5,77 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/tests/method"
+	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 	"github.com/ockibagusp/golang-website-example/types"
 	"github.com/stretchr/testify/assert"
 )
-
-const GET int = 1
-
-// POST int = 2
-const POST = 2
 
 func TestLogin(t *testing.T) {
 	no_auth := setupTestServer(t)
 
 	// test for db users
 	truncateUsers(db)
-	models.User{
-		Username: "ockibagusp",
-		Email:    "ocki.bagus.p@gmail.com",
-		Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",
-		Name:     "Ocki Bagus Pratama",
-	}.Save(db)
 
 	test_cases := []struct {
-		method int
 		name   string
+		method int
+		expect string
 		user   types.LoginForm
 		flash  regex
 		status int
 	}{
+		/*
+			users [admin]
+		*/
 		{
-			method: GET,
-			name:   "login get",
+			name:   "users [admin] to GET login",
+			method: method.HTTP_REQUEST_GET,
+			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
-			method: POST,
-			name:   "login success",
+			name:   "users [admin] to POST login success",
+			method: method.HTTP_REQUEST_POST,
+			expect: ADMIN,
+			user: types.LoginForm{
+				Username: "admin",
+				Password: "admin123",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		{
+			name:   "users [admin] to POST login failure",
+			method: method.HTTP_REQUEST_POST,
+			expect: ADMIN,
+			user: types.LoginForm{
+				Username: "admin",
+				Password: "<bad password>",
+			},
+			flash: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*username or password not match</p>`,
+			},
+			// HTTP response status: 403 Forbidden
+			status: http.StatusForbidden,
+		},
+
+		/*
+			users [ockibagusp]
+		*/
+		{
+			name:   "users [ockibagusp] to GET login",
+			method: method.HTTP_REQUEST_GET,
+			expect: OCKIBAGUSP,
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		{
+			name:   "users [ockibagusp] to POST login success",
+			method: method.HTTP_REQUEST_POST,
+			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
 				Password: "user123",
@@ -51,8 +84,9 @@ func TestLogin(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			method: POST,
-			name:   "login failure",
+			name:   "users [ockibagusp] to POST login failure",
+			method: method.HTTP_REQUEST_POST,
+			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
 				Password: "<bad password>",
@@ -66,9 +100,12 @@ func TestLogin(t *testing.T) {
 		},
 	}
 
+	method.SetSession = true
 	for _, test := range test_cases {
 		t.Run(test.name, func(t *testing.T) {
-			if test.method == GET {
+			modelsTest.UserSelectTest = test.expect // ADMIN and OCKIBAGUSP
+
+			if test.method == method.HTTP_REQUEST_GET {
 				no_auth.GET("/login").
 					Expect().
 					Status(test.status)

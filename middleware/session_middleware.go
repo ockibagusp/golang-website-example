@@ -1,18 +1,27 @@
 package middleware
 
 import (
+	"os"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/models"
+	"github.com/ockibagusp/golang-website-example/tests/method"
+	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 )
 
 // base.html -> {{if eq ((index .session.Values "is_auth_type") | tostring) -1 }}ok{{end}}
 
 // GetAuth: get session to authenticated
 func GetAuth(c echo.Context) (session_gorilla *sessions.Session, err error) {
-	if session_gorilla, err = session.Get("session", c); err != nil {
-		return
+	// Test: session_test = true
+	if os.Getenv("session_test") == "1" && method.SetSession == false {
+		session_gorilla, err = modelsTest.GetAuthSession()
+	} else {
+		if session_gorilla, err = session.Get("session", c); err != nil {
+			return
+		}
 	}
 
 	is_auth_type := session_gorilla.Values["is_auth_type"]
@@ -63,6 +72,11 @@ func GetAdmin(c echo.Context) (session_gorilla *sessions.Session, err error) {
 
 // SetSession: set session from User
 func SetSession(user models.User, c echo.Context) (session_gorilla *sessions.Session, err error) {
+	// Test: session_test = true
+	if os.Getenv("session_test") == "1" {
+		modelsTest.SetAuthSession(&user)
+	}
+
 	session_gorilla, err = session.Get("session", c)
 	if err != nil {
 		return
