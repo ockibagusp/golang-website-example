@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	"github.com/ockibagusp/golang-website-example/tests/method"
 	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,6 +15,11 @@ func TestAboutSuccess(t *testing.T) {
 	assert := assert.New(t)
 
 	no_auth := setupTestServer(t)
+
+	// test for SetSession = false
+	method.SetSession = false
+	// test for db users
+	truncateUsers(db)
 
 	test_cases := []struct {
 		name        string

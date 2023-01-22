@@ -41,6 +41,39 @@ time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=
         v about controller
         - admin controller
 
+        --- FAIL: TestUsersController
+            - user_controller_test.go:253
+            - user_controller_test.go:263
+
+        http://127.0.0.1:35351/users
+        http://127.0.0.1:35351/users?admin=all
+        http://127.0.0.1:35351/users?user=all
+        http://127.0.0.1:35351/users?false=all
+
+        --- FAIL: TestCreateUserController
+            users_[admin]_to_GET_create_it_success
+            GET http://127.0.0.1:39181/users/add
+
+            - user_controller_test.go:518
+
+        --- FAIL: TestCreateUserController/user_[admin]_to_POST_create_it_success
+
+            POST http://127.0.0.1:39181/users/add
+
+        --- FAIL: TestCreateUserController/users_[admin]_to_POST_create_it_failure:_Duplicate_entry
+
+        --- FAIL: TestReadUserController
+
+        --- FAIL: TestUpdateUserController
+            --- FAIL: TestUpdateUserController/users_[admin]_to_admin_GET_update_it_success:_id=1
+
+            --- FAIL: TestUpdateUserController/users_[admin]_to_user_GET_update_it_success:_id=2
+
+            --- FAIL: TestUpdateUserController/users_[admin]_to_admin_POST_update_it_success:_id=1
+
+        --- FAIL: TestUpdateUserByPasswordUserController
+            --- FAIL: TestUpdateUserByPasswordUserController/users_[admin]_to_GET_update_user_by_password_it_success:_id=1
+
 2. [v] controller UpdateUser: validation
 
 3. [v] test controller DeteleUser: id=3

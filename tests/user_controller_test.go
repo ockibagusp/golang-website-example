@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
@@ -75,6 +76,8 @@ func TestUsersController(t *testing.T) {
 
 	no_auth := setupTestServer(t)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -230,6 +233,7 @@ func TestUsersController(t *testing.T) {
 			}
 
 			result_body := result.Body().Raw()
+			log.Println("result_body:", result_body)
 
 			var (
 				must_compile, actual, match string
@@ -277,6 +281,8 @@ func TestUsersController(t *testing.T) {
 func TestCreateUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -544,6 +550,8 @@ func TestReadUserController(t *testing.T) {
 
 	no_auth := setupTestServer(t)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -714,6 +722,8 @@ func TestReadUserController(t *testing.T) {
 func TestUpdateUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -1063,6 +1073,8 @@ func TestUpdateUserController(t *testing.T) {
 func TestUpdateUserByPasswordUserController(t *testing.T) {
 	no_auth := setupTestServer(t)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
@@ -1452,149 +1464,158 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 	}
 }
 
+// TODO: Test Delete User Controller, insyaallah
 // func TestDeleteUserController(t *testing.T) {
 // 	no_auth := setupTestServer(t)
 
+// 	// test for SetSession = false
+// 	method.SetSession = false
 // 	// test for db users
 // 	truncateUsers(db)
 
 // 	test_cases := []struct {
-// 		name   string
-// 		expect string // ADMIN and SUBALI
-// 		path   string // id=string. Exemple, id="1"
-// 		status int
+// 		name             string
+// 		expect           string // ADMIN and SUBALI
+// 		path             string // id=string. Exemple, id="1"
+// 		set_session_true bool
+// 		status           int
 
 // 		html_heading regex
 // 		// flash message
 // 		html_flash_success regex
 // 		html_flash_error   regex
 // 	}{
-// 		// GET all
-// 		/*
-// 			delete it [admin]
-// 		*/
-// 		{
-// 			name:   "users [admin] to [admin] DELETE it failure: id=1",
-// 			expect: ADMIN,
-// 			path:   "1",
-// 			// HTTP response status: 403 Forbidden,
-// 			status: http.StatusForbidden,
-// 		},
-// 		{
-// 			name:   "users [admin] to [sugriwa] DELETE it success: id=2",
-// 			expect: ADMIN,
-// 			path:   "2",
-// 			// redirect @route: /users
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body heading
-// 			html_heading: regex{
-// 				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-// 				actual:       `<h2 class="mt-4">Users: All</h2>`,
-// 			},
-// 			// flash message success
-// 			html_flash_success: regex{
-// 				must_compile: `<strong>success:</strong> (.*)`,
-// 				actual:       `<strong>success:</strong> success delete user: sugriwa!`,
-// 			},
-// 		},
-// 		{
-// 			name:   "users [admin] to [sugriwa] DELETE it failure: id=2 delete exists",
-// 			expect: ADMIN,
-// 			path:   "2",
-// 			// HTTP response status: 404 Not Found
-// 			status: http.StatusNotFound,
-// 		},
-// 		{
-// 			name:   "users [admin] to DELETE it failure: 2 (id=-1)",
-// 			expect: ADMIN,
-// 			path:   "-1",
-// 			// HTTP response status: 404 Not Found
-// 			status: http.StatusNotFound,
-// 		},
+// GET all
+/*
+	delete it [admin]
+*/
+// {
+// 	name:   "users [admin] to [admin] DELETE it failure: id=1",
+// 	expect: ADMIN,
+// 	path:   "1",
+// 	// HTTP response status: 403 Forbidden,
+// 	status: http.StatusForbidden,
+// },
+// {
+// 	name:   "users [admin] to [sugriwa] DELETE it success: id=2",
+// 	expect: ADMIN,
+// 	path:   "2",
+// 	// redirect @route: /users
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// body heading
+// 	html_heading: regex{
+// 		must_compile: `<h2 class="mt-4">(.*)</h2>`,
+// 		actual:       `<h2 class="mt-4">Users: All</h2>`,
+// 	},
+// 	// flash message success
+// 	html_flash_success: regex{
+// 		must_compile: `<strong>success:</strong> (.*)`,
+// 		actual:       `<strong>success:</strong> success delete user: sugriwa!`,
+// 	},
+// },
+// {
+// 	name:   "users [admin] to [sugriwa] DELETE it failure: id=2 delete exists",
+// 	expect: ADMIN,
+// 	path:   "2",
+// 	// HTTP response status: 404 Not Found
+// 	status: http.StatusNotFound,
+// },
+// {
+// 	name:   "users [admin] to DELETE it failure: 2 (id=-1)",
+// 	expect: ADMIN,
+// 	path:   "-1",
+// 	// HTTP response status: 404 Not Found
+// 	status: http.StatusNotFound,
+// },
 
-// 		/*
-// 			delete it [subali]
-// 		*/
-// 		{
-// 			name:   "users [subali] to [admin] DELETE it failure: id=1",
-// 			expect: SUBALI,
-// 			path:   "1",
-// 			// HTTP response status: 403 Forbidden,
-// 			status: http.StatusForbidden,
-// 		},
-// 		{
-// 			name:   "users [subali] to DELETE it failure: id=-1",
-// 			expect: SUBALI,
-// 			path:   "-1",
-// 			// HTTP response status: 404 Not Found
-// 			status: http.StatusNotFound,
-// 		},
-// 		{
-// 			name:   "users [subali] to [subali] DELETE it success: id=3",
-// 			expect: SUBALI,
-// 			path:   "3",
-// 			// redirect @route: /
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body heading
-// 			html_heading: regex{
-// 				must_compile: `<p class="lead">(.*)</p>`,
-// 				actual:       `<p class="lead">Test.</p>`,
-// 			},
-// 			// flash message success
-// 			html_flash_success: regex{
-// 				must_compile: `<strong>success:</strong> (.*)`,
-// 				actual:       `<strong>success:</strong> success delete user: subali!`,
-// 			},
-// 		},
+// /*
+// 	delete it [subali]
+// */
+// {
+// 	name:   "users [subali] to [admin] DELETE it failure: id=1",
+// 	expect: SUBALI,
+// 	path:   "1",
+// 	// HTTP response status: 403 Forbidden,
+// 	status: http.StatusForbidden,
+// },
+// {
+// 	name:   "users [subali] to DELETE it failure: id=-1",
+// 	expect: SUBALI,
+// 	path:   "-1",
+// 	// HTTP response status: 404 Not Found
+// 	status: http.StatusNotFound,
+// },
+// {
+// 	name:             "users [subali] to [subali] DELETE it success: id=3",
+// 	expect:           SUBALI,
+// 	path:             "3",
+// 	set_session_true: true,
+// 	// redirect @route: /
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// body heading
+// 	html_heading: regex{
+// 		must_compile: `<p class="lead">(.*)</p>`,
+// 		actual:       `<p class="lead">Test.</p>`,
+// 	},
+// 	// flash message success
+// 	html_flash_success: regex{
+// 		must_compile: `<strong>success:</strong> (.*)`,
+// 		actual:       `<strong>success:</strong> success delete user: subali!`,
+// 	},
+// },
 
-// 		/*
-// 			delete it [na-auth]
-// 		*/
-// 		{
-// 			name:   "users [no-auth] to DELETE it failure: id=1",
-// 			expect: "",
-// 			path:   "1",
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// flash message
-// 			html_flash_error: regex{
-// 				must_compile: `<p class="text-danger">*(.*)</p>`,
-// 				actual:       `<p class="text-danger">*login process failed!</p>`,
-// 			},
-// 		},
-// 		{
-// 			name:   "users [no-auth] to DELETE it failure: id=-1",
-// 			expect: "",
-// 			path:   "-1",
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// flash message
-// 			html_flash_error: regex{
-// 				must_compile: `<p class="text-danger">*(.*)</p>`,
-// 				actual:       `<p class="text-danger">*login process failed!</p>`,
-// 			},
-// 		},
-// 		{
-// 			name:   "users [no-auth] to DELETE it failure: id=error",
-// 			expect: "",
-// 			path:   "error",
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// flash message
-// 			html_flash_error: regex{
-// 				must_compile: `<p class="text-danger">*(.*)</p>`,
-// 				actual:       `<p class="text-danger">*login process failed!</p>`,
-// 			},
-// 		},
+/*
+	delete it [na-auth]
+*/
+// {
+// 	name:   "users [no-auth] to DELETE it failure: id=1",
+// 	expect: "",
+// 	path:   "1",
+// 	// redirect @route: /login
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// flash message
+// 	html_flash_error: regex{
+// 		must_compile: `<p class="text-danger">*(.*)</p>`,
+// 		actual:       `<p class="text-danger">*login process failed!</p>`,
+// 	},
+// },
+// {
+// 	name:   "users [no-auth] to DELETE it failure: id=-1",
+// 	expect: "",
+// 	path:   "-1",
+// 	// redirect @route: /login
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// flash message
+// 	html_flash_error: regex{
+// 		must_compile: `<p class="text-danger">*(.*)</p>`,
+// 		actual:       `<p class="text-danger">*login process failed!</p>`,
+// 	},
+// },
+// {
+// 	name:   "users [no-auth] to DELETE it failure: id=error",
+// 	expect: "",
+// 	path:   "error",
+// 	// redirect @route: /login
+// 	// HTTP response status: 200 OK
+// 	status: http.StatusOK,
+// 	// flash message
+// 	html_flash_error: regex{
+// 		must_compile: `<p class="text-danger">*(.*)</p>`,
+// 		actual:       `<p class="text-danger">*login process failed!</p>`,
+// 	},
+// },
 // 	}
 
 // 	for _, test := range test_cases {
 // 		var result *httpexpect.Response
+
+// 		if test.set_session_true {
+// 			method.SetSession = true
+// 		}
 
 // 		t.Run(test.name, func(t *testing.T) {
 // 			modelsTest.UserSelectTest = test.expect // ADMIN and SUBALI
@@ -1604,6 +1625,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 // 				Status(test.status)
 
 // 			result_body := result.Body().Raw()
+// 			log.Println(result_body)
 
 // 			var (
 // 				must_compile, actual, match string

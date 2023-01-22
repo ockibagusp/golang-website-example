@@ -5,12 +5,15 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	"github.com/ockibagusp/golang-website-example/tests/method"
 	modelsTest "github.com/ockibagusp/golang-website-example/tests/models"
 )
 
 func TestAdminDeletePermanently(t *testing.T) {
 	no_auth := setupTestServer(t)
 
+	// test for SetSession = false
+	method.SetSession = false
 	// test for db users
 	truncateUsers(db)
 
