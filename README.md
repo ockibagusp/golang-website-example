@@ -4,10 +4,6 @@ Golang Echo and html template.
 > move GitHub repository for [hello](https://github.com/ockibagusp/hello) to [golang-website-example](#)
 
 
-- [x] Website is ok
-- [ ] **Test failed: All from Session.**
-
-
 ### Visual Studio Code
 
 #### Run and Debug: [launch.json](https://github.com/ockibagusp/golang-website-example/blob/master/.vscode/launch.json).
