@@ -3,6 +3,9 @@
 [-] load
 
 # Insyaallah, New tasks:
+[] log file lines (caller), example,
+{"file": ".../controllers/user_controller.go:76", ...}
+
 [] no debug for create models.User
 
 example,
