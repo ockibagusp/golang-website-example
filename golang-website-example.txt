@@ -39,43 +39,26 @@ time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=
     
     [-] SetSession and GetAuth
         v login
-        v user controller
+        - user controller
+
+		--- FAIL: TestDeleteUserController/users_[subali]_to_[subali]_DELETE_it_success:_id=3
+
+        title: Login
+        ...
+        <p class="text-danger">*login process failed!</p>
+        ...
+        
         v home controller
         v about controller
         - admin controller
 
-        --- FAIL: TestUsersController
-            - user_controller_test.go:253
-            - user_controller_test.go:263
-
-        http://127.0.0.1:35351/users
-        http://127.0.0.1:35351/users?admin=all
-        http://127.0.0.1:35351/users?user=all
-        http://127.0.0.1:35351/users?false=all
-
-        --- FAIL: TestCreateUserController
-            users_[admin]_to_GET_create_it_success
-            GET http://127.0.0.1:39181/users/add
-
-            - user_controller_test.go:518
-
-        --- FAIL: TestCreateUserController/user_[admin]_to_POST_create_it_success
-
-            POST http://127.0.0.1:39181/users/add
-
-        --- FAIL: TestCreateUserController/users_[admin]_to_POST_create_it_failure:_Duplicate_entry
-
-        --- FAIL: TestReadUserController
-
-        --- FAIL: TestUpdateUserController
-            --- FAIL: TestUpdateUserController/users_[admin]_to_admin_GET_update_it_success:_id=1
-
-            --- FAIL: TestUpdateUserController/users_[admin]_to_user_GET_update_it_success:_id=2
-
-            --- FAIL: TestUpdateUserController/users_[admin]_to_admin_POST_update_it_success:_id=1
-
-        --- FAIL: TestUpdateUserByPasswordUserController
-            --- FAIL: TestUpdateUserByPasswordUserController/users_[admin]_to_GET_update_user_by_password_it_success:_id=1
+        --- FAIL: TestAdminDeletePermanently/delete_permanently_[no-auth]_to_GET_it_failure (0.00s)
+        admin_controller_test.go:87: got: 404 but expect 200
+        
+        title: Login
+        ...
+        <p class="text-danger">*login process failed!</p>
+        ...
 
 2. [v] controller UpdateUser: validation
 
