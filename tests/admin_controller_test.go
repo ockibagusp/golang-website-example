@@ -33,22 +33,22 @@ func TestAdminDeletePermanently(t *testing.T) {
 			status: http.StatusOK,
 		},
 
-		// /*
-		// 	delete permanently [sugriwa]
-		// */
-		// {
-		// 	name:   "delete permanently [sugriwa] to GET it success: all",
-		// 	expect: auth_sugriwa,
-		// 	// HTTP response status: 404 Not Found
-		// 	status: http.StatusNotFound,
-		// },
+		/*
+			delete permanently [sugriwa]
+		*/
+		{
+			name:   "delete permanently [sugriwa] to GET it success: all",
+			expect: SUGRIWA,
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
 
 		// /*
 		// 	No Auth
 		// */
 		// {
 		// 	name:   "delete permanently [no-auth] to GET it failure",
-		// 	expect: no_auth,
+		// 	expect: "",
 		// 	// HTTP response status: 404 Not Found
 		// 	status: http.StatusNotFound,
 		// },
