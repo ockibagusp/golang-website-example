@@ -3,6 +3,20 @@
 [-] load
 
 # Insyaallah, New tasks:
+[] coverage tests
+
+➜  golang-website-example git:(master) ✗ go test -cover               
+?       github.com/ockibagusp/golang-website-example    [no test files]
+
+➜  golang-website-example git:(master) ✗ go test ./tests -cover               
+ok      github.com/ockibagusp/golang-website-example/tests      2.827s  coverage: [no statements]
+
+➜  golang-website-example git:(master) ✗ go test ./tests -coverpkg=./...      
+ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of statements in ./...
+                                                                    --------
+
+move...
+
 [] log file lines (caller), example,
 {"file": ".../controllers/user_controller.go:76", ...}
 
