@@ -3,9 +3,12 @@ vendor
 __debug_bin
 gin-bin
 
+# godotenv
+.env
+
 # build
-golang-website-example
-golang-website-example.exe
+main
+main.exe
 
 # air
 bin

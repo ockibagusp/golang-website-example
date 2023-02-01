@@ -20,6 +20,45 @@ move to new package...
 [] log file lines (caller), example,
 {"file": ".../controllers/user_controller.go:76", ...}
 
+https://stackoverflow.com/questions/42762391/is-it-possible-to-wrap-log-logger-functions-without-losing-the-line-number-prefi
+
+... 
+log.SetFlags(log.Lshortfile)
+log.Println("hello")
+...
+
+I was going to include this in the question as my current workaround, but I suppose it is a valid answer. I'm hoping somebody can tell me of a logger config option I've missed that lets me adjust the depth the logger uses when it calls runtime.Caller.
+A workaround is to remove the log.Lshortfile flag and implement the behavior manually:
+
+func info(format string, args ...interface{}) {
+    _, file, line, _ := runtime.Caller(1)
+
+    prefix := fmt.Sprintf("%v:%v: ", path.Base(file), line)
+
+    if logger != nil {
+        logger.Printf(prefix+format+"\n", args...)
+    }
+}
+
+https://www.honeybadger.io/blog/golang-logging/
+
+import (
+    "log"
+    ...
+)
+
+var (
+    ...
+    InfoLogger    *log.Logger
+    ...
+)
+
+WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+...
+    WarningLogger.Println("There is something you should know about")
+...
+WARNING: 2019/12/09 12:01:06 main.go:28: There is something you should know about
+
 [] no debug for create models.User
 
 example,
