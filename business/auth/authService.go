@@ -12,7 +12,7 @@ type (
 	}
 
 	Service interface {
-		VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser user.User, validPassword bool)
+		VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool)
 		CheckHashPassword(hash, password string) bool
 	}
 )
@@ -24,7 +24,7 @@ func NewService(userService user.Service) Service {
 }
 
 // VerifyLogin: get-user and valid-password
-func (s *service) VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser user.User, validPassword bool) {
+func (s *service) VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool) {
 	getUser, err := s.userService.FindByEmail(ic, email)
 	if err != nil {
 		return
