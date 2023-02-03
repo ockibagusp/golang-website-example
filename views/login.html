@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Login</title>
+
+    <link rel="canonical" href="/login">
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" 
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="/assets/css/signin.css">
+  </head>
+
+  <body class="text-center">
+    <form class="form-signin" action="/login" method="post">
+      <a href="/" style="color: rgb(52, 58, 64);">&lt;--back</a>
+      
+      <input type="hidden" name="X-CSRF-Token" value="{{.csrf}}"/>
+      <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+      {{ if index .flash_error }}
+        <div>
+        {{ range $index, $value := .flash_error }}
+          <p class="text-danger">*{{ $value }}</p>
+        {{ end }}
+        </div>
+      {{ end }}
+      <label for="username" class="sr-only">Username</label>
+      <input type="username" name="username" class="form-control" placeholder="Usernane" value="admin" required autofocus>
+      <label for="password" class="sr-only">Password</label>
+      <input type="password" name="password" class="form-control" placeholder="Password" value="admin123" required>
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </br>
+
+      <table class="table table-sm table-hover">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Password</th>
+            <th scope="col">is Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td scope="row">admin</td>
+            <td>admin123</td>
+            <td>yes</td>
+          </tr>
+          <tr>
+            <td scope="row">sugriwa</td>
+            <td>user123</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td scope="row">subali</td>
+            <td>user123</td>
+            <td>no</td>
+          </tr>
+        </tbody>
+      </table> 
+
+      <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
+    </form>
+  </body>
+</html>
