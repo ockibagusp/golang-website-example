@@ -3,6 +3,8 @@
 [-] load
 
 # Insyaallah, New tasks:
+[] out of the package template, example: t["login.html"] = parseFileHTMLOnly("views/login.html")
+
 [] coverage tests
 
 ➜  golang-website-example git:(master) ✗ go test -cover               
