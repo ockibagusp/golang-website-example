@@ -23,9 +23,10 @@ func RegisterPath(
 	// Instantiate a template registry with an array of template set
 	e.Renderer = template.NewTemplates()
 
-	e.GET("/", controller.Users)
+	e.GET("/", controller.Home).Name = "home"
 	e.GET("/login", controller.Login).Name = "login get"
 	e.POST("/login", controller.Login).Name = "login post"
+	e.GET("/users", controller.Users).Name = "users"
 	e.GET("/users/add", controller.CreateUser).Name = "user/add get"
 	e.POST("/users/add", controller.CreateUser).Name = "user/add post"
 }
