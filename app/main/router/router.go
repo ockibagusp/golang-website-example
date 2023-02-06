@@ -26,4 +26,6 @@ func RegisterPath(
 	e.GET("/", controller.Users)
 	e.GET("/login", controller.Login).Name = "login get"
 	e.POST("/login", controller.Login).Name = "login post"
+	e.GET("/users/add", controller.CreateUser).Name = "user/add get"
+	e.POST("/users/add", controller.CreateUser).Name = "user/add post"
 }

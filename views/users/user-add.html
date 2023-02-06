@@ -1,0 +1,96 @@
+{{define "title"}} 
+  {{index . "name"}} 
+{{end}} 
+
+{{define "body"}}
+<main role="main">
+  <div class="container">
+    <div class="content body">
+      <div class="col-md-12">
+        <!-- &lcud;{ is_new ? 'New Node' : 'Edit Node' }&rcud; -->
+        <h2 class="mt-4">New User</h2>
+
+        {{ if .flash_error }}
+          {{ range $index, $value := .flash_error }}
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>error:</strong> {{ $value }}!
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {{ end }}
+        {{ end }}
+
+        {{template "users/user-form.html" .}}
+      </div>
+    </div>
+  </div>
+</main>
+{{end}}
+
+<!-- jQuery Validate -->
+<!-- too long, around 2015 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $("#user-form").validate({
+      // Specify the validation rules
+      rules: {
+        username: {
+          required: true,
+          minlength: 4,
+          maxlength: 15
+        },
+        name: "required",
+        email: {
+          required: true,
+          email: true
+        },
+        password: {
+          required: true,
+          minlength: 6,
+          maxlength: 18,
+        },
+        confirm_password: {
+          required: true,
+          minlength: 6,
+          maxlength: 18,
+          equalTo: "#password"
+        },
+        city: {
+          required: true,
+          number: true
+        },
+        // photo: ?
+        // agree: "required"
+      },
+
+      // Specify the validation error messages
+      messages: {
+        username: {
+          required: "Please enter your username",
+          minlength: "Your username must be at least 4-15 characters long",
+          maxlength: "Your username must be at least 4-15 characters long"
+        },
+        name: "Please enter your name",
+        email: "Please enter a valid email address",
+        password: {
+          required: "Please provide a password",
+          minlength: "Your password must be at least 6-18 characters long",
+          maxlength: "Your password must be at least 6-18 characters long"
+        },
+        confirm_password: {
+          required: "Please provide a confirm password",
+          minlength: "Your password must be at least 6-18 characters long",
+          maxlength: "Your password must be at least 6-18 characters long"
+        },
+        city: "Please enter a valid city address",
+        // agree: "Please accept our policy"
+      },
+
+      submitHandler: function (form) {
+        form.submit();
+      }
+    })
+  });
+</script>
