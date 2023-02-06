@@ -24,6 +24,7 @@ func RegisterPath(
 	e.Renderer = template.NewTemplates()
 
 	e.GET("/", controller.Home).Name = "home"
+	e.GET("/about", controller.About).Name = "about"
 	e.GET("/login", controller.Login).Name = "login get"
 	e.POST("/login", controller.Login).Name = "login post"
 	e.GET("/users", controller.Users).Name = "users"
