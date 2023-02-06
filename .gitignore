@@ -7,8 +7,8 @@ gin-bin
 .env
 
 # build
-main
-main.exe
+# main
+# main.exe
 
 # air
 bin

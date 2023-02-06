@@ -3,8 +3,6 @@
 [-] load
 
 # Insyaallah, New tasks:
-[] out of the package template, example: t["login.html"] = parseFileHTMLOnly("views/login.html")
-
 [] coverage tests
 
 ➜  golang-website-example git:(master) ✗ go test -cover               
@@ -130,3 +128,12 @@ time="2022-12-30T14:54:47+07:00" level=warning msg="for GET to delete user witho
 ...
 
 4. [v] test without csrf
+
+5. [v] out of the package template, example: t["login.html"] = parseFileHTMLOnly("views/login.html")
+app/main/template/template.go
+
+x map[string]*template.Template
+var AppendTemplates = map[string]*template.Template
+
+v make(...)
+var AppendTemplates = make(map[string]*template.Template)
