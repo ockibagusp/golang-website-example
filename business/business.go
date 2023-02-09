@@ -2,16 +2,18 @@ package business
 
 import (
 	"context"
-	"time"
+	"database/sql"
 
 	"gorm.io/gorm"
 )
 
 // gorm.Model
 type Model struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
+	ID uint `gorm:"primarykey"`
+	// rittneje: `time.Time` to `sql.Scanner`
+	// -> https://github.com/mattn/go-sqlite3/issues/951
+	CreatedAt sql.Scanner    `json:"-"`
+	UpdatedAt sql.Scanner    `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
