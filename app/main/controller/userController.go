@@ -6,10 +6,11 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 
 	"github.com/ockibagusp/golang-website-example/business"
-	selectedCities "github.com/ockibagusp/golang-website-example/business/city"
+	selectedLocations "github.com/ockibagusp/golang-website-example/business/location"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
 )
 
@@ -29,24 +30,38 @@ func init() {
  */
 func (ctrl *Controller) Users(c echo.Context) error {
 	session := sessions.Session{}
+	ic := business.NewInternalContext("users")
 
 	var (
-		users []selectUser.User
-		// err   error
+		users *[]selectUser.User
+		err   error
 
 		// typing: all, admin and user
 		typing string
 	)
 
-	users = append(users, selectUser.User{
-		Model:    business.Model{ID: 1},
-		Role:     "user",
-		Username: "ockibagusp",
-		Name:     "Ocki Bagus Pratama",
-	})
+	if c.QueryParam("admin") == "all" {
+		log.Infof(`for GET to users admin ctrl.userService.FindAll(ic, "admin")`)
+		typing = "Admin"
+		users, err = ctrl.userService.FindAll(ic, "admin")
+	} else if c.QueryParam("user") == "all" {
+		log.Infof(`for GET to users user ctrl.userService.FindAll(ic, "user")`)
+		typing = "User"
+		users, err = ctrl.userService.FindAll(ic, "user")
+	} else {
+		log.Infof(`for GET to users ctrl.userService.FindAll(ic) or ctrl.userService.FindAll(ic, "all")`)
+		typing = "All"
+		users, err = ctrl.userService.FindAll(ic)
+	}
 
-	typing = "all"
+	if err != nil {
+		log.Warnf("for GET to users without ctrl.userService.FindAll errors: `%v`", err)
+		log.Warn("END request method GET for users: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.HTML(http.StatusNotFound, err.Error())
+	}
 
+	log.Info("END request method GET for users: [+]success")
 	return c.Render(http.StatusOK, "users/user-all.html", echo.Map{
 		"name":    fmt.Sprintf("Users: %v", typing),
 		"nav":     "users", // (?)
@@ -99,7 +114,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		"session":     session,
 		"csrf":        c.Get("csrf"),
 		"flash_error": []string{},
-		"cities":      selectedCities.City{},
+		"locations":   selectedLocations.Location{},
 		"is_new":      true,
 	})
 }

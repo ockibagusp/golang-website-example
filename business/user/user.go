@@ -14,7 +14,7 @@ type (
 		Email    string `gorm:"unique;not null" form:"email"`
 		Password string `gorm:"not null" form:"password"`
 		Name     string `gorm:"not null" form:"name"`
-		City     uint   `form:"city"`
+		Location uint   `form:"location"`
 		Photo    string `form:"photo"`
 
 		business.ObjectMetadata

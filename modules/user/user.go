@@ -153,7 +153,7 @@ func (repo *GormRepository) Update(ic business.InternalContext, id int) (selecte
 		Username: selectedUser.Username,
 		Email:    selectedUser.Email,
 		Name:     selectedUser.Name,
-		City:     selectedUser.City,
+		Location: selectedUser.Location,
 		Photo:    selectedUser.Photo,
 	}).Error
 	if err != nil {
