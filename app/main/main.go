@@ -13,10 +13,8 @@ import (
 	"github.com/ockibagusp/golang-website-example/app/main/controller"
 	"github.com/ockibagusp/golang-website-example/app/main/router"
 	"github.com/ockibagusp/golang-website-example/business/auth"
-	"github.com/ockibagusp/golang-website-example/business/location"
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
-	locationModule "github.com/ockibagusp/golang-website-example/modules/location"
 	userModule "github.com/ockibagusp/golang-website-example/modules/user"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -31,13 +29,6 @@ func newUserService(db *gorm.DB) user.Service {
 	return user.NewService(userRepo)
 }
 
-func newLocationService(db *gorm.DB) (locationService location.Service) {
-	locationRepo := locationModule.NewGormRepository(db)
-
-	locationService = location.NewService(locationRepo)
-	return
-}
-
 func main() {
 	conf := config.GetAPPConfig()
 	db := conf.GetDatabaseConnection()
@@ -46,14 +37,12 @@ func main() {
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	userService := newUserService(db)
-	locationService := newLocationService(db)
 	authService := auth.NewService(userService)
 
 	controllerAPP := controller.NewController(
 		conf,
 		authService,
 		userService,
-		locationService,
 	)
 
 	router.RegisterPath(
