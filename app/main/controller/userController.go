@@ -11,6 +11,7 @@ import (
 
 	"github.com/ockibagusp/golang-website-example/business"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
+	locationModules "github.com/ockibagusp/golang-website-example/modules/location"
 )
 
 func init() {
@@ -108,7 +109,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
-	locations, _ := ctrl.locationService.FindAll(ic)
+	locations, _ := locationModules.NewServiceDB().FindAll(ic)
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
 		"name":        "User Add",
 		"nav":         "user Add", // (?)

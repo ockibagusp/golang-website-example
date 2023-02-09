@@ -5,6 +5,7 @@ import (
 
 	"github.com/ockibagusp/golang-website-example/business"
 	selectedLocation "github.com/ockibagusp/golang-website-example/business/location"
+	"github.com/ockibagusp/golang-website-example/config"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,14 @@ func NewGormRepository(db *gorm.DB) *GormRepository {
 	return &GormRepository{
 		db.Table("locations"),
 	}
+}
+
+func NewServiceDB() selectedLocation.Service {
+	conf := config.GetAPPConfig()
+	db := conf.GetDatabaseConnection()
+	locationRepo := NewGormRepository(db)
+
+	return selectedLocation.NewService(locationRepo)
 }
 
 // Location: FindAll(ic)
