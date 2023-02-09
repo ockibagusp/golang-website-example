@@ -42,6 +42,16 @@
     <div class="form-group col-md-6">
       <label for="location">Location</label>
       <!-- ? -->
+      <select id="location" name="location" class="form-control" {{if.is_read}}disabled{{end}}>
+        <option value="0">-----</option>
+        {{range $key, $value := .locations}}
+        {{if not $.is_new}}
+        <option value="{{$value.ID}}" {{if eq $value.ID $.user.Location}}selected{{end}}>{{$value.Location}}</option>
+        {{else}}
+        <option value="{{$value.ID}}">{{$value.Location}}</option>
+        {{end}}
+        {{end}}
+      </select>
     </div>
     <div class="form-group col-md-6">
       <label for="photo">Photo</label>

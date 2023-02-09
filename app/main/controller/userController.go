@@ -10,7 +10,6 @@ import (
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 
 	"github.com/ockibagusp/golang-website-example/business"
-	selectedLocations "github.com/ockibagusp/golang-website-example/business/location"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
 )
 
@@ -90,6 +89,7 @@ func (ctrl *Controller) Users(c echo.Context) error {
  */
 func (ctrl *Controller) CreateUser(c echo.Context) error {
 	session := sessions.Session{}
+	ic := business.NewInternalContext("create user")
 
 	var (
 		users []selectUser.User
@@ -108,13 +108,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
+	locations, _ := ctrl.locationService.FindAll(ic)
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
 		"name":        "User Add",
 		"nav":         "user Add", // (?)
 		"session":     session,
 		"csrf":        c.Get("csrf"),
 		"flash_error": []string{},
-		"locations":   selectedLocations.Location{},
+		"locations":   locations,
 		"is_new":      true,
 	})
 }
