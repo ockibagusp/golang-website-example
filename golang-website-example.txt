@@ -18,7 +18,7 @@ ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of st
 move to new package...
 
 [] log file lines (caller), example,
-{"file": ".../controllers/user_controller.go:76", ...}
+{"caller": ".../controllers/user_controller.go:76", "method": "...", ...}
 
 https://stackoverflow.com/questions/42762391/is-it-possible-to-wrap-log-logger-functions-without-losing-the-line-number-prefi
 
