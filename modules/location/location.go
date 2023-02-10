@@ -21,12 +21,18 @@ func NewGormRepository(db *gorm.DB) *GormRepository {
 	}
 }
 
-func NewServiceDB() selectedLocation.Service {
+func newServiceDB() (locationRepo *GormRepository) {
 	conf := config.GetAPPConfig()
 	db := conf.GetDatabaseConnection()
-	locationRepo := NewGormRepository(db)
+	locationRepo = NewGormRepository(db)
 
-	return selectedLocation.NewService(locationRepo)
+	return
+}
+
+func NewServiceDB() selectedLocation.Service {
+	return selectedLocation.NewService(
+		newServiceDB(),
+	)
 }
 
 // Location: FindAll(ic)
