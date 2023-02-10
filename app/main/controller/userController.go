@@ -109,7 +109,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
-	locations, _ := locationModules.NewServiceDB().FindAll(ic)
+	locations, _ := locationModules.NewDB().FindAll(ic)
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
 		"name":        "User Add",
 		"nav":         "user Add", // (?)

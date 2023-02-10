@@ -21,7 +21,7 @@ func NewGormRepository(db *gorm.DB) *GormRepository {
 	}
 }
 
-func newServiceDB() (locationRepo *GormRepository) {
+func newDB() (locationRepo *GormRepository) {
 	conf := config.GetAPPConfig()
 	db := conf.GetDatabaseConnection()
 	locationRepo = NewGormRepository(db)
@@ -29,9 +29,9 @@ func newServiceDB() (locationRepo *GormRepository) {
 	return
 }
 
-func NewServiceDB() selectedLocation.Service {
+func NewDB() selectedLocation.Service {
 	return selectedLocation.NewService(
-		newServiceDB(),
+		newDB(),
 	)
 }
 
