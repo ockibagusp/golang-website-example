@@ -2,8 +2,10 @@ package router
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
+
 	"github.com/ockibagusp/golang-website-example/app/main/controller"
+	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	"github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/config"
 )
@@ -14,8 +16,9 @@ func RegisterPath(
 	controller *controller.Controller,
 ) {
 	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	e.Use(echoMiddleware.Logger())
+	e.Use(echoMiddleware.Recover())
+	e.Use(middleware.SessionNewCookieStore())
 
 	// Why bootstrap.min.css, bootstrap.min.js, jquery.min.js?
 	e.Static("/assets", "assets")
@@ -23,11 +26,18 @@ func RegisterPath(
 	// Instantiate a template registry with an array of template set
 	e.Renderer = template.NewTemplates()
 
-	e.GET("/", controller.Home).Name = "home"
-	e.GET("/about", controller.About).Name = "about"
-	e.GET("/login", controller.Login).Name = "login get"
-	e.POST("/login", controller.Login).Name = "login post"
-	e.GET("/users", controller.Users).Name = "users"
-	e.GET("/users/add", controller.CreateUser).Name = "user/add get"
-	e.POST("/users/add", controller.CreateUser).Name = "user/add post"
+	sessionMiddleware := middleware.SessionMiddleware()
+
+	// public
+	public := e.Group("", sessionMiddleware)
+	public.GET("/", controller.Home).Name = "home"
+	public.GET("/about", controller.About).Name = "about"
+	public.GET("/login", controller.Login).Name = "login get"
+	public.POST("/login", controller.Login).Name = "login post"
+
+	// user
+	user := e.Group("/users", sessionMiddleware)
+	user.GET("", controller.Users).Name = "users"
+	user.GET("/add", controller.CreateUser).Name = "user/add get"
+	user.POST("/add", controller.CreateUser).Name = "user/add post"
 }
