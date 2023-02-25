@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -30,11 +31,21 @@ type (
 	}
 )
 
-func GetAPPConfig() *Config {
-	err := godotenv.Load()
+const projectDirName = "golang-website-example"
+
+func loadEnv() {
+	projectName := regexp.MustCompile(`^(.*` + projectDirName + `)`)
+	currentWorkDirectory, _ := os.Getwd()
+	rootPath := projectName.Find([]byte(currentWorkDirectory))
+
+	err := godotenv.Load(string(rootPath) + `/.env`)
 	if err != nil {
-		log.Fatal("error loading .env file")
+		log.Fatalf("Error loading .env file")
 	}
+}
+
+func GetAPPConfig() *Config {
+	loadEnv()
 
 	return &Config{
 		// app

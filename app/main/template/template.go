@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 
 	"github.com/labstack/echo/v4"
 )
@@ -113,12 +114,16 @@ func ParseFileHTMLOnly(name string) *template.Template {
 	)
 }
 
+const projectDirName = "golang-website-example"
+
 // Rooted Path Name
-func rootedPathName() (dir string) {
-	dir, err := os.Getwd()
+func rootedPathName() string {
+	projectName := regexp.MustCompile(`^(.*` + projectDirName + `)`)
+	currentWorkDirectory, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
+	rootPath := projectName.Find([]byte(currentWorkDirectory))
 
-	return
+	return string(rootPath)
 }
