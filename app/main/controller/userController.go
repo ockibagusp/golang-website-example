@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 
 	"github.com/ockibagusp/golang-website-example/business"
@@ -29,8 +30,7 @@ func init() {
  * @route: /users
  */
 func (ctrl *Controller) Users(c echo.Context) error {
-	session := sessions.Session{}
-	ic := business.NewInternalContext("users")
+	ic := business.InternalContext{}
 
 	var (
 		users *[]selectUser.User
@@ -39,6 +39,24 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		// typing: all, admin and user
 		typing string
 	)
+
+	id, _ := c.Get("id").(int)
+	username, _ := c.Get("username").(string)
+	role, _ := c.Get("role").(string)
+
+	// is user?
+	if role != "admin" {
+		user, err := ctrl.userService.FirstUserByID(ic, id)
+		log.Print(user)
+		log.Print(err)
+		if err != nil {
+			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
+			log.Warn("END request method GET for user: [-]failure")
+			return err
+		}
+		log.Infof("END [user] request method GET for users to users/read/%v: [+]success", user.ID)
+		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
+	}
 
 	if c.QueryParam("admin") == "all" {
 		log.Infof(`for GET to users admin ctrl.userService.FindAll(ic, "admin")`)
@@ -63,9 +81,10 @@ func (ctrl *Controller) Users(c echo.Context) error {
 
 	log.Info("END request method GET for users: [+]success")
 	return c.Render(http.StatusOK, "users/user-all.html", echo.Map{
-		"name":    fmt.Sprintf("Users: %v", typing),
-		"nav":     "users", // (?)
-		"session": session,
+		"name":             fmt.Sprintf("Users: %v", typing),
+		"nav":              "users", // (?)
+		"session_username": username,
+		"session_role":     role,
 		/*
 			"flash": echo.Map{"success": ..., "error": ...}
 			or,
@@ -74,8 +93,8 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		*/
 
 		"flash": echo.Map{
-			"success": []string{},
-			"error":   []string{},
+			"success": middleware.GetFlashSuccess(c),
+			"error":   middleware.GetFlashError(c),
 		},
 		"users": users,
 	})

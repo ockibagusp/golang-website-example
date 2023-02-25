@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/ockibagusp/golang-website-example/app/main/controller"
 	"github.com/ockibagusp/golang-website-example/app/main/router"
 	"github.com/ockibagusp/golang-website-example/business/auth"
@@ -33,9 +31,6 @@ func main() {
 	conf := config.GetAPPConfig()
 	db := conf.GetDatabaseConnection()
 
-	e := echo.New()
-	e.Pre(middleware.RemoveTrailingSlash())
-
 	userService := newUserService(db)
 	authService := auth.NewService(userService)
 
@@ -45,8 +40,7 @@ func main() {
 		userService,
 	)
 
-	router.RegisterPath(
-		e,
+	e := router.RegisterPath(
 		conf,
 		controllerAPP,
 	)

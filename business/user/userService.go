@@ -13,6 +13,7 @@ type (
 		FindByEmail(ic business.InternalContext, email string) (selectedUser *User, err error)
 		Save(ic business.InternalContext) (selectedUser *User, err error)
 		FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error)
+		FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 		FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *User, err error)
 		FirstByCityID(ic business.InternalContext, id int) (selectedUser *User, err error)
 		Update(ic business.InternalContext, id int) (selectedUser *User, err error)
@@ -36,6 +37,11 @@ func (s *service) FindAll(ic business.InternalContext, role ...string) (selected
 
 func (s *service) FindByID(ic business.InternalContext, id int) (selectedUser *User, err error) {
 	return s.repository.FindByID(ic, id)
+}
+
+// login
+func (s *service) FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error) {
+	return s.repository.FirstUserByUsername(ic, username)
 }
 
 func (s *service) FindByEmail(ic business.InternalContext, email string) (selectedUser *User, err error) {

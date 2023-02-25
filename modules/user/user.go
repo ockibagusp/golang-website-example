@@ -99,6 +99,18 @@ func isFirstUserByID(user *selectUser.User, err error) (*selectUser.User, error)
 	return user, nil
 }
 
+// User: FirstUserByUsername -> login
+func (repo *GormRepository) FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *selectUser.User, err error) {
+	query := repo.DB.WithContext(ic.ToContext())
+
+	if err = query.Where(
+		"username = ?", username,
+	).First(&selectedUser).Error; err != nil {
+		return nil, err
+	}
+	return
+}
+
 // User: FirstByIDAndUsername
 //
 // example:

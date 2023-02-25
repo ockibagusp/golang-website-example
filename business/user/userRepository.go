@@ -8,6 +8,7 @@ type Repository interface {
 	FindByEmail(ic business.InternalContext, email string) (selectedUser *User, err error)
 	Save(ic business.InternalContext) (selectedUser *User, err error)
 	FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error)
+	FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 	FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *User, err error)
 	FirstByCityID(ic business.InternalContext, id int) (selectedUser *User, err error)
 	Update(ic business.InternalContext, id int) (selectedUser *User, err error)
