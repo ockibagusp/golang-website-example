@@ -63,7 +63,7 @@ func GetAPPConfig() *Config {
 		// sqlite
 		DBSQLiteName: os.Getenv("DB_SQLITE_NAME"),
 		// secure cookie
-		SessionsCookieStore: os.Getenv("DB_SQLITE_NAME"),
+		SessionsCookieStore: os.Getenv("SESSIONS_COOKIE_STORE"),
 		// session test
 		SessionTest: os.Getenv("SESSION_TEST"),
 		// debug
