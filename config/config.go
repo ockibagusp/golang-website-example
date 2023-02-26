@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -37,12 +38,16 @@ type (
 
 const projectDirName = "golang-website-example"
 
-func loadEnv() {
+func fullProjetDir() string {
 	projectName := regexp.MustCompile(`^(.*` + projectDirName + `)`)
 	currentWorkDirectory, _ := os.Getwd()
 	rootPath := projectName.Find([]byte(currentWorkDirectory))
 
-	err := godotenv.Load(string(rootPath) + `/.env`)
+	return string(rootPath)
+}
+
+func loadEnv() {
+	err := godotenv.Load(fullProjetDir() + `/.env`)
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
@@ -91,7 +96,10 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 	}
 
 	if config.AppDBDriver == "sqlite" {
-		db, err := gorm.Open(sqlite.Open(config.DBSQLiteName), &gorm.Config{Logger: newDBLogger()})
+		projectDir := fullProjetDir() + "/" + config.DBSQLiteName
+		db, err := gorm.Open(sqlite.Open(
+			strings.ReplaceAll(projectDir, "./", ""),
+		), &gorm.Config{Logger: newDBLogger()})
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -99,9 +107,7 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 		return db.Debug()
 	}
 
-	log.Println(config.AppDBDriver)
 	log.Fatal("unsupported driver")
-
 	return nil
 }
 
