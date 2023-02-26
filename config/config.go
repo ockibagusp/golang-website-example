@@ -28,6 +28,10 @@ type (
 		DBSQLiteName string
 		// secure cookie
 		SessionsCookieStore string
+		// session test
+		SessionTest string
+		// debug
+		Debug string
 	}
 )
 
@@ -60,6 +64,10 @@ func GetAPPConfig() *Config {
 		DBSQLiteName: os.Getenv("DB_SQLITE_NAME"),
 		// secure cookie
 		SessionsCookieStore: os.Getenv("DB_SQLITE_NAME"),
+		// session test
+		SessionTest: os.Getenv("SESSION_TEST"),
+		// debug
+		Debug: os.Getenv("DEBUG"),
 	}
 }
 
@@ -107,4 +115,31 @@ func newDBLogger() logger.Interface {
 			Colorful:                  false,            // Enable Color
 		},
 	)
+}
+
+func (config *Config) GetSessionTest() {
+	if config.SessionTest == "true" || config.SessionTest == "1" {
+		os.Setenv("SESSION_TEST", "1")
+	} else if config.SessionTest == "" || config.SessionTest == "0" {
+		os.Setenv("SESSION_TEST", "0")
+	} else {
+		log.Fatal("unsupported session test")
+	}
+}
+
+func (config *Config) GetDebug() {
+	if config.Debug == "true" || config.Debug == "1" {
+		os.Setenv("DEBUG", "1")
+	} else if config.Debug == "false" || config.Debug == "0" {
+		os.Setenv("DEBUG", "0")
+	} else {
+		log.Fatal("unsupported debug")
+	}
+}
+
+func (config *Config) GetDebugAsTrue(debug []bool) bool {
+	if (len(debug) == 1 && debug[0] == true) || os.Getenv("DEBUG") == "1" {
+		return true
+	}
+	panic("func GetDebugAsTrue: (debug [1]: true or false) or no debug")
 }

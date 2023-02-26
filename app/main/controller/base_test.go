@@ -3,7 +3,6 @@ package controller_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
@@ -53,7 +52,6 @@ func newUserService(db *gorm.DB) user.Service {
 
 // Controller test
 func setupTestController() *ctrl.Controller {
-	conf := config.GetAPPConfig()
 	db := conf.GetDatabaseConnection()
 
 	userService := newUserService(db)
@@ -67,21 +65,17 @@ func setupTestController() *ctrl.Controller {
 
 /*
 Setup test sever
-TODO: .env debug: {true} or {false}, insyaallah
-1. function debug (bool)
-@function debug: {true} or {false}
-2. os.Setenv("debug", ...)
-@debug: {true} or {1}
-os.Setenv("debug", "true") or,
-os.Setenv("debug", "1")
 
-@debug: {false} or {0}
-os.Setenv("debug", "false") or,
-os.Setenv("debug", "0")
+repository: .env
+1. function conf.GetSessionTest()
+@SESSION_TEST: {true} or {false}
+
+2. function conf.GetDebug()
+@DEBUG: {true} or {false}
 */
 func SetupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
-	os.Setenv("session_test", "1")
-	os.Setenv("debug", "0")
+	conf.GetSessionTest()
+	conf.GetDebug()
 
 	handler := setupTestHandler()
 
@@ -100,12 +94,10 @@ func SetupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 		},
 	}
 
-	if (len(debug) == 1 && debug[0] == true) || (os.Getenv("debug") == "1" || os.Getenv("debug") == "true") {
+	if conf.GetDebugAsTrue(debug) {
 		new_config.Printers = []httpexpect.Printer{
 			httpexpect.NewDebugPrinter(t, true),
 		}
-	} else if len(debug) > 1 {
-		panic("func setupTestServer: (debug [1]: true or false) or no debug")
 	}
 
 	no_auth = httpexpect.WithConfig(new_config)
