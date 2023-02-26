@@ -60,8 +60,6 @@ func SessionMiddleware() echo.MiddlewareFunc {
 				username = "anonymous"
 			}
 
-			log.Print("id ->", id)
-
 			c.Set("id", id)
 			c.Set("username", username)
 			c.Set("role", role)
