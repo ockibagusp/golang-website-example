@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -25,8 +22,6 @@ type (
 		DBMySQLUser     string
 		DBMySQLPassword string
 		DBMySQLName     string
-		// sqlite
-		DBSQLiteName string
 		// secure cookie
 		SessionsCookieStore string
 		// session test
@@ -36,25 +31,11 @@ type (
 	}
 )
 
-const projectDirName = "golang-website-example"
-
-func fullProjetDir() string {
-	projectName := regexp.MustCompile(`^(.*` + projectDirName + `)`)
-	currentWorkDirectory, _ := os.Getwd()
-	rootPath := projectName.Find([]byte(currentWorkDirectory))
-
-	return string(rootPath)
-}
-
-func loadEnv() {
-	err := godotenv.Load(fullProjetDir() + `/.env`)
+func GetAPPConfig() *Config {
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-}
-
-func GetAPPConfig() *Config {
-	loadEnv()
 
 	return &Config{
 		// app
@@ -65,8 +46,6 @@ func GetAPPConfig() *Config {
 		DBMySQLUser:     os.Getenv("DB_MYSQL_USER"),
 		DBMySQLPassword: os.Getenv("DB_MYSQL_PASSWORD"),
 		DBMySQLName:     os.Getenv("DB_MYSQL_NAME"),
-		// sqlite
-		DBSQLiteName: os.Getenv("DB_SQLITE_NAME"),
 		// secure cookie
 		SessionsCookieStore: os.Getenv("SESSIONS_COOKIE_STORE"),
 		// session test
@@ -88,18 +67,6 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 		)
 
 		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: newDBLogger()})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		return db.Debug()
-	}
-
-	if config.AppDBDriver == "sqlite" {
-		projectDir := fullProjetDir() + "/" + config.DBSQLiteName
-		db, err := gorm.Open(sqlite.Open(
-			strings.ReplaceAll(projectDir, "./", ""),
-		), &gorm.Config{Logger: newDBLogger()})
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -147,5 +114,5 @@ func (config *Config) GetDebugAsTrue(debug []bool) bool {
 	if (len(debug) == 1 && debug[0] == true) || os.Getenv("DEBUG") == "1" {
 		return true
 	}
-	panic("func GetDebugAsTrue: (debug [1]: true or false) or no debug")
+	panic("func (*Config) GetDebugAsTrue: (debug [1]: true or false) or no debug")
 }

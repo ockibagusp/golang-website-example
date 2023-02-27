@@ -70,13 +70,13 @@ func (repo *GormRepository) FindByEmail(ic business.InternalContext, email strin
 }
 
 // User: Save
-func (repo *GormRepository) Save(ic business.InternalContext) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) Save(ic business.InternalContext, newUser *selectUser.User) (*selectUser.User, error) {
 	query := repo.DB.WithContext(ic.ToContext())
-	if err := query.Create(&selectedUser).Error; err != nil {
-		return selectedUser, err
+	if err := query.Create(&newUser).Error; err != nil {
+		return nil, err
 	}
 
-	return
+	return newUser, nil
 }
 
 // User: FirstUserByID

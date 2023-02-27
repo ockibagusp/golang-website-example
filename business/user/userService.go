@@ -11,7 +11,7 @@ type (
 		FindAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)
 		FindByID(ic business.InternalContext, id int) (selectedUser *User, err error)
 		FindByEmail(ic business.InternalContext, email string) (selectedUser *User, err error)
-		Save(ic business.InternalContext) (selectedUser *User, err error)
+		Save(ic business.InternalContext, newUser *User) (*User, error)
 		FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error)
 		FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 		FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *User, err error)
@@ -48,8 +48,8 @@ func (s *service) FindByEmail(ic business.InternalContext, email string) (select
 	return s.repository.FindByEmail(ic, email)
 }
 
-func (s *service) Save(ic business.InternalContext) (selectedUser *User, err error) {
-	return s.repository.Save(ic)
+func (s *service) Save(ic business.InternalContext, user *User) (selectedUser *User, err error) {
+	return s.repository.Save(ic, user)
 }
 
 func (s *service) FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error) {
