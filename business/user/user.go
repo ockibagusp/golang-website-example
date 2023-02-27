@@ -11,9 +11,9 @@ type (
 		Role string
 		// database: just `username` varchar 15
 		Username string `gorm:"unique;not null;type:varchar(15)" form:"username"`
-		Email    string `gorm:"unique;not null" form:"email"`
+		Email    string `gorm:"unique;not null;type:varchar(30)" form:"email"`
 		Password string `gorm:"not null" form:"password"`
-		Name     string `gorm:"not null" form:"name"`
+		Name     string `gorm:"not null;type:varchar(30)" form:"name"`
 		Location uint   `form:"location"`
 		Photo    string `form:"photo"`
 
