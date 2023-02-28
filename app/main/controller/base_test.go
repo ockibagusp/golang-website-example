@@ -8,6 +8,7 @@ import (
 	"github.com/gavv/httpexpect/v2"
 	ctrl "github.com/ockibagusp/golang-website-example/app/main/controller"
 	"github.com/ockibagusp/golang-website-example/app/main/router"
+	"github.com/ockibagusp/golang-website-example/business"
 	"github.com/ockibagusp/golang-website-example/business/auth"
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
@@ -23,7 +24,72 @@ const (
 	OCKIBAGUSP        = "ockibagusp"
 )
 
+const (
+	HTTP_REQUEST_GET = 1 << iota
+	// POST int = 2
+	HTTP_REQUEST_POST
+)
+
+// test flash message: struct
+type flash struct {
+	success_message string
+	error_message   string
+}
+
+// test regex: struct
+type regex struct {
+	must_compile string
+	actual       string
+}
+
 var conf *config.Config = config.GetAPPConfig()
+var db *gorm.DB = conf.GetDatabaseConnection()
+var setSession bool = false
+var userSelectTest string
+
+// truncate Users
+func truncateUsers() {
+	db.Exec("TRUNCATE users;")
+
+	// database: just `users.username` varchar 15
+	users := []user.User{
+		{
+			Username: "admin",
+			Email:    "admin@website.com",
+			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
+			Name:     "Admin",
+			Role:     "admin",
+		},
+		{
+			Username: "sugriwa",
+			Email:    "sugriwa@wanara.com",
+			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
+			Name:     "Sugriwa",
+			Role:     "user",
+		},
+		{
+			Username: "subali",
+			Email:    "subali@wanara.com",
+			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
+			Name:     "Subali",
+			Role:     "user",
+		},
+		{
+			Username: "ockibagusp",
+			Email:    "ocki.bagus.p@gmail.com",
+			Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",
+			Name:     "Ocki Bagus Pratama",
+			Role:     "user",
+		},
+	}
+
+	for _, user := range users {
+		_, err := newUserService(db).Save(business.InternalContext{}, &user)
+		if err != nil {
+			panic("Username not already: " + err.Error())
+		}
+	}
+}
 
 func TestController(t *testing.T) {
 	/*
@@ -52,8 +118,6 @@ func newUserService(db *gorm.DB) user.Service {
 
 // Controller test
 func setupTestController() *ctrl.Controller {
-	db := conf.GetDatabaseConnection()
-
 	userService := newUserService(db)
 	authService := auth.NewService(userService)
 	return ctrl.NewController(
@@ -73,7 +137,7 @@ repository: .env
 2. function conf.GetDebug()
 @DEBUG: {true} or {false}
 */
-func SetupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
+func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 	conf.GetSessionTest()
 	conf.GetDebug()
 
