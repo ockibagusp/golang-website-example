@@ -128,6 +128,9 @@ func (config *Config) GetDebug() {
 func (config *Config) GetDebugAsTrue(debug []bool) bool {
 	if (len(debug) == 1 && debug[0] == true) || os.Getenv("DEBUG") == "1" {
 		return true
+	} else if len(debug) > 1 {
+		panic("func (*Config) GetDebugAsTrue: (debug [1]: true or false) or no debug")
 	}
-	panic("func (*Config) GetDebugAsTrue: (debug [1]: true or false) or no debug")
+
+	return false
 }
