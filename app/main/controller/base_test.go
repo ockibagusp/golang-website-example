@@ -84,7 +84,7 @@ func truncateUsers() {
 	}
 
 	for _, user := range users {
-		_, err := newUserService(db).Save(business.InternalContext{}, &user)
+		_, err := newUserService(db).Create(business.InternalContext{}, &user)
 		if err != nil {
 			panic("Username not already: " + err.Error())
 		}

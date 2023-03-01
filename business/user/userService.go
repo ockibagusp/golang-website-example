@@ -11,7 +11,8 @@ type (
 		FindAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)
 		FindByID(ic business.InternalContext, id int) (selectedUser *User, err error)
 		FindByEmail(ic business.InternalContext, email string) (selectedUser *User, err error)
-		Save(ic business.InternalContext, newUser *User) (*User, error)
+		Create(ic business.InternalContext, newUser *User) (*User, error)
+		CreatesBatch(ic business.InternalContext, newUsers *[]User) (*[]User, error)
 		FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error)
 		FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 		FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *User, err error)
@@ -48,8 +49,12 @@ func (s *service) FindByEmail(ic business.InternalContext, email string) (select
 	return s.repository.FindByEmail(ic, email)
 }
 
-func (s *service) Save(ic business.InternalContext, user *User) (selectedUser *User, err error) {
-	return s.repository.Save(ic, user)
+func (s *service) Create(ic business.InternalContext, newUser *User) (selectedUser *User, err error) {
+	return s.repository.Create(ic, newUser)
+}
+
+func (s *service) CreatesBatch(ic business.InternalContext, newUsers *[]User) (*[]User, error) {
+	return s.repository.CreatesBatch(ic, newUsers)
 }
 
 func (s *service) FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error) {

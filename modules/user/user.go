@@ -69,14 +69,29 @@ func (repo *GormRepository) FindByEmail(ic business.InternalContext, email strin
 	return
 }
 
-// User: Save
-func (repo *GormRepository) Save(ic business.InternalContext, newUser *selectUser.User) (*selectUser.User, error) {
+// User: Create
+func (repo *GormRepository) Create(ic business.InternalContext, newUser *selectUser.User) (*selectUser.User, error) {
 	query := repo.DB.WithContext(ic.ToContext())
 	if err := query.Create(&newUser).Error; err != nil {
 		return nil, err
 	}
 
 	return newUser, nil
+}
+
+// User: CreatesBatch
+func (repo *GormRepository) CreatesBatch(ic business.InternalContext, newUsers *[]selectUser.User) (*[]selectUser.User, error) {
+	query := repo.DB.WithContext(ic.ToContext())
+
+	tx := query.Begin()
+	// if tx.Create(&newUsers).Error != nil {}
+	if err := tx.Create(&newUsers).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	tx.Commit()
+
+	return newUsers, nil
 }
 
 // User: FirstUserByID
@@ -195,13 +210,13 @@ func (repo *GormRepository) Delete(ic business.InternalContext, id int) (err err
 
 	tx := query.Begin()
 	var count int64
-	// if tx.Select("id").First(&user).Error != nil {}
+	// if tx.Select("id").First(&selectUser).Error != nil {}
 	if tx.Select("id").First(&selectedUser).Count(&count); count != 1 {
 		tx.Rollback()
 		return errors.New("User Not Found")
 	}
 
-	// if tx.Delete(&user, id).Error != nil {}
+	// if tx.Delete(&selectUser, id).Error != nil {}
 	if err := tx.Delete(&selectedUser, id).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -243,13 +258,13 @@ func (repo *GormRepository) Restore(ic business.InternalContext, id int) error {
 
 	tx := query.Begin()
 	var count int64
-	// if tx.Unscoped().Select("id").First(&user).Error != nil {}
+	// if tx.Unscoped().Select("id").First(&selectUser).Error != nil {}
 	if tx.Unscoped().Select("id").First(&selectedUser).Count(&count); count != 1 {
 		tx.Rollback()
 		return errors.New("User Not Found")
 	}
 
-	// if tx.Model(&user).Unscoped().Where("id = ?", id).Update(...).Error; err != nil {}
+	// if tx.Model(&selectUser).Unscoped().Where("id = ?", id).Update(...).Error; err != nil {}
 	if err := tx.Model(&selectedUser).Unscoped().Where("id = ?", id).Update("deleted_at", nil).First(&selectedUser).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -267,13 +282,13 @@ func (repo *GormRepository) DeletePermanently(ic business.InternalContext, id in
 
 	tx := query.Begin()
 	var count int64
-	// if tx.Unscoped().Select("id").First(&user).Error != nil {}
+	// if tx.Unscoped().Select("id").First(&selectUser).Error != nil {}
 	if tx.Unscoped().Select("id").First(&selectedUser).Count(&count); count != 1 {
 		tx.Rollback()
 		return errors.New("User Not Found")
 	}
 
-	// if tx.Unscoped().Delete(&user, id).Error != nil {}
+	// if tx.Unscoped().Delete(&selectUser, id).Error != nil {}
 	if err := tx.Unscoped().Delete(&selectedUser, id).Error; err != nil {
 		tx.Rollback()
 		return err
