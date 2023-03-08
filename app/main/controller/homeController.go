@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/business"
 )
@@ -26,7 +27,6 @@ func (ctrl *Controller) Home(c echo.Context) error {
 	// Please note the the second parameter "home.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
 	// ?
-	ic := business.NewInternalContext("home")
 
 	id, _ := c.Get("id").(int)
 	username, _ := c.Get("username").(string)
@@ -35,7 +35,7 @@ func (ctrl *Controller) Home(c echo.Context) error {
 
 	var message string
 	if id != -1 {
-		user, err := ctrl.userService.FindByID(ic, id)
+		user, err := ctrl.userService.FindByID(business.InternalContext{}, id)
 		if err != nil {
 			log.Warnf(`session values "username" error: %v`, err)
 		}
@@ -49,7 +49,7 @@ func (ctrl *Controller) Home(c echo.Context) error {
 		"nav":              "home", // (?)
 		"session_username": username,
 		"session_role":     role,
-		"flash_success":    []string{},
+		"flash_success":    middleware.GetFlashSuccess(c),
 		"message":          message,
 	})
 }
