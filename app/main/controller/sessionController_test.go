@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"testing"
 
+	methodTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
+	modelsTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/models"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,14 +30,14 @@ func TestLogin(t *testing.T) {
 		*/
 		{
 			name:   "users [admin] to GET login",
-			method: HTTP_REQUEST_GET,
+			method: methodTest.HTTP_REQUEST_GET,
 			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
 			name:   "users [admin] to POST login success",
-			method: HTTP_REQUEST_POST,
+			method: methodTest.HTTP_REQUEST_POST,
 			expect: ADMIN,
 			user: types.LoginForm{
 				Username: "admin",
@@ -46,7 +48,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:   "users [admin] to POST login failure",
-			method: HTTP_REQUEST_POST,
+			method: methodTest.HTTP_REQUEST_POST,
 			expect: ADMIN,
 			user: types.LoginForm{
 				Username: "admin",
@@ -65,14 +67,14 @@ func TestLogin(t *testing.T) {
 		*/
 		{
 			name:   "users [ockibagusp] to GET login",
-			method: HTTP_REQUEST_GET,
+			method: methodTest.HTTP_REQUEST_GET,
 			expect: OCKIBAGUSP,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
 		{
 			name:   "users [ockibagusp] to POST login success",
-			method: HTTP_REQUEST_POST,
+			method: methodTest.HTTP_REQUEST_POST,
 			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
@@ -83,7 +85,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:   "users [ockibagusp] to POST login failure",
-			method: HTTP_REQUEST_POST,
+			method: methodTest.HTTP_REQUEST_POST,
 			expect: OCKIBAGUSP,
 			user: types.LoginForm{
 				Username: "ockibagusp",
@@ -100,9 +102,9 @@ func TestLogin(t *testing.T) {
 
 	for _, test := range test_cases {
 		t.Run(test.name, func(t *testing.T) {
-			userSelectTest = test.expect // ADMIN and OCKIBAGUSP
+			modelsTest.UserSelectTest = test.expect // ADMIN and OCKIBAGUSP
 
-			if test.method == HTTP_REQUEST_GET {
+			if test.method == methodTest.HTTP_REQUEST_GET {
 				no_auth.GET("/login").
 					Expect().
 					Status(test.status)

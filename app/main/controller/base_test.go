@@ -22,12 +22,7 @@ const (
 	SUGRIWA           = "sugriwa"
 	SUBALI            = "subali"
 	OCKIBAGUSP        = "ockibagusp"
-)
-
-const (
-	HTTP_REQUEST_GET = 1 << iota
-	// POST int = 2
-	HTTP_REQUEST_POST
+	ANONYMOUS         = "anonymous"
 )
 
 // test flash message: struct
@@ -44,8 +39,6 @@ type regex struct {
 
 var conf *config.Config = config.GetAPPConfig()
 var db *gorm.DB = conf.GetDatabaseConnection()
-var setSession bool = false
-var userSelectTest string
 
 // truncate Users
 func truncateUsers() {
@@ -54,6 +47,7 @@ func truncateUsers() {
 	// database: just `users.username` varchar 15
 	users := []user.User{
 		{
+			Model:    business.Model{ID: 1},
 			Username: "admin",
 			Email:    "admin@website.com",
 			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
@@ -61,6 +55,7 @@ func truncateUsers() {
 			Role:     "admin",
 		},
 		{
+			Model:    business.Model{ID: 2},
 			Username: "sugriwa",
 			Email:    "sugriwa@wanara.com",
 			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
@@ -68,6 +63,7 @@ func truncateUsers() {
 			Role:     "user",
 		},
 		{
+			Model:    business.Model{ID: 3},
 			Username: "subali",
 			Email:    "subali@wanara.com",
 			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
@@ -75,6 +71,7 @@ func truncateUsers() {
 			Role:     "user",
 		},
 		{
+			Model:    business.Model{ID: 4},
 			Username: "ockibagusp",
 			Email:    "ocki.bagus.p@gmail.com",
 			Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",

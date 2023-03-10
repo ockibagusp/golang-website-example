@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
+	modelsTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/models"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
 )
@@ -27,7 +27,20 @@ func sessionNewCookieStore() *sessions.CookieStore {
 func SessionMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			session_gorilla, err := session.Get("session", c)
+			conf := config.GetAPPConfig()
+
+			var (
+				session_gorilla *sessions.Session
+				err             error
+			)
+
+			// Test: session_test = true
+			if conf.SetSessionToFalse() {
+				session_gorilla, err = modelsTest.GetAuthSession()
+			} else {
+				session_gorilla, err = session.Get("session", c)
+			}
+
 			if err != nil {
 				return c.HTML(http.StatusForbidden, "no session")
 			}
@@ -36,13 +49,6 @@ func SessionMiddleware() echo.MiddlewareFunc {
 			role := session_gorilla.Values["role"]
 			if role != "admin" && role != "user" {
 				role = "anonymous"
-			}
-
-			if strings.Contains(path, "/login") && role != "anonymous" && err == nil {
-				log.Info("START request method GET for login")
-				log.Warn("to [@route: /] session")
-				log.Warn("END request method GET for login: [-]failure")
-				return c.Redirect(http.StatusFound, "/")
 			}
 
 			// -> role = "anonymous"
