@@ -3,12 +3,15 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
-	"github.com/gorilla/sessions"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
+	"github.com/ockibagusp/golang-website-example/app/main/types"
 
 	"github.com/ockibagusp/golang-website-example/business"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
@@ -47,8 +50,6 @@ func (ctrl *Controller) Users(c echo.Context) error {
 	// is user?
 	if role != "admin" {
 		user, err := ctrl.userService.FirstUserByID(ic, id)
-		log.Print(user)
-		log.Print(err)
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for user: [-]failure")
@@ -108,34 +109,156 @@ func (ctrl *Controller) Users(c echo.Context) error {
  * @route: /users/add
  */
 func (ctrl *Controller) CreateUser(c echo.Context) error {
-	session := sessions.Session{}
-	ic := business.NewInternalContext("create user")
-
 	var (
-		users []selectUser.User
-		// err error
+		user *selectUser.User
+		err  error
 	)
 
-	if c.Request().Method == "POST" {
-		users = append(users, selectUser.User{
-			Model:    business.Model{ID: 1},
-			Role:     "user",
-			Username: "ockibagusp",
-			Name:     "Ocki Bagus Pratama",
-		})
+	id, _ := c.Get("id").(int)
+	username, _ := c.Get("username").(string)
+	role, _ := c.Get("role").(string)
 
+	// is user?
+	if role == "user" {
+		log.Info("START request method GET for create user")
+		user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+		if err != nil {
+			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
+			log.Warn("END request method GET for create user: [-]failure")
+			return err
+		}
+
+		middleware.SetFlashError(c, "403 Forbidden")
+		log.Infof("END request method GET for create user to users/read/%v: [-]failure", user.ID)
+		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
+	}
+
+	locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
+	if c.Request().Method == "POST" {
+		log.Info("START request method POST for create user")
+
+		var location uint
+		if c.FormValue("location") != "" {
+			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
+			if err != nil {
+				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
+				log.Warn("END request method POST for create user: [-]failure")
+				// HTTP response status: 400 Bad Request
+				return c.HTML(http.StatusBadRequest, err.Error())
+			}
+			// Location and District?
+			location = uint(location64)
+		}
+
+		// userForm: type of a user
+		userForm := types.UserForm{
+			Username:        c.FormValue("username"),
+			Email:           c.FormValue("email"),
+			Password:        c.FormValue("password"),
+			ConfirmPassword: c.FormValue("confirm_password"),
+			Name:            c.FormValue("name"),
+			Location:        location,
+			Photo:           c.FormValue("photo"),
+		}
+
+		// userForm: Validate of a validate user
+		err = validation.Errors{
+			"username": validation.Validate(
+				userForm.Username, validation.Required, validation.Length(4, 15),
+			),
+			"email": validation.Validate(userForm.Email, validation.Required, validation.Length(5, 30), is.EmailFormat),
+			"password": validation.Validate(
+				userForm.Password, validation.Required, validation.Length(6, 18),
+				validation.By(types.PasswordEquals(userForm.ConfirmPassword)),
+			),
+			"name":     validation.Validate(userForm.Name, validation.Required, validation.Length(3, 30)),
+			"location": validation.Validate(userForm.Location),
+			"photo":    validation.Validate(userForm.Photo),
+		}.Filter()
+		/* if err = validation.Errors{...}.Filter(); err != nil {
+			...
+		} why?
+		*/
+		if err != nil {
+			log.Warnf("for POST to create user without validation.Errors: `%v`", err)
+			middleware.SetFlashError(c, err.Error())
+
+			log.Warn("END request method POST for create user: [-]failure")
+			// HTTP response status: 400 Bad Request
+			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
+				"name":          "User Add",
+				"nav":           "user Add", // (?)
+				"flash_error 	": middleware.GetFlashError(c),
+				"csrf":          c.Get("csrf"),
+				"locations":     locations,
+				"is_new":        true,
+			})
+		}
+
+		// Password Hash
+		var hash string
+		hash, err = middleware.PasswordHash(userForm.Password)
+		if err != nil {
+			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
+			log.Warn("END request method POST for create user: [-]failure")
+			return err
+		}
+
+		user = &selectUser.User{
+			Role:     "user",
+			Username: userForm.Username,
+			Email:    userForm.Email,
+			Password: hash,
+			Name:     userForm.Name,
+			Location: userForm.Location,
+			Photo:    userForm.Photo,
+		}
+
+		if _, err := ctrl.userService.Create(business.InternalContext{}, user); err != nil {
+			log.Warn("for POST to create user without models.User: nil", "user_failure", user)
+			middleware.SetFlashError(c, err.Error())
+
+			log.Warn("END request method POST for create user: [-]failure")
+			// HTTP response status: 400 Bad Request
+			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
+				"name":        "User Add",
+				"nav":         "user Add", // (?)
+				"csrf":        c.Get("csrf"),
+				"flash_error": middleware.GetFlashError(c),
+				"locations":   locations,
+				"is_new":      true,
+			})
+		}
+
+		log.Info("models.User: [+]success", "user_success", user)
+		middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
+		// create user
+		if role == "anonymous" {
+			if _, err := middleware.SetSession(user, c); err != nil {
+				middleware.SetFlashError(c, err.Error())
+				log.Warn("to middleware.SetSession session not found for create user")
+				log.Warn("END request method POST for create user: [-]failure")
+				// err: session not found
+				return c.HTML(http.StatusForbidden, err.Error())
+			}
+			log.Info("END request method POST for create user: [+]success")
+			return c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		log.Info("END request method POST for create user: [+]success")
 		// create admin
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
-	locations, _ := locationModules.NewDB().FindAll(ic)
+	log.Info("START request method GET for create user")
+	log.Info("END request method GET for create user: [+]success")
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
-		"name":        "User Add",
-		"nav":         "user Add", // (?)
-		"session":     session,
-		"csrf":        c.Get("csrf"),
-		"flash_error": []string{},
-		"locations":   locations,
-		"is_new":      true,
+		"name":             "User Add",
+		"nav":              "user Add", // (?)
+		"session_username": username,
+		"session_role":     role,
+		"csrf":             c.Get("csrf"),
+		"flash_error":      middleware.GetFlashError(c),
+		"locations":        locations,
+		"is_new":           true,
 	})
 }

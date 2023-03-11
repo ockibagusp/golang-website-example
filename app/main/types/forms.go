@@ -15,14 +15,14 @@ import (
  * @route: /users/add
  */
 type UserForm struct {
+	Role            string `form:"role"`
 	Username        string `form:"username"`
 	Email           string `form:"email"`
 	Password        string `form:"password"`
 	ConfirmPassword string `form:"confirm_password"`
 	Name            string `form:"name"`
-	City            uint   `form:"city"`
+	Location        uint   `form:"location"`
 	Photo           string `form:"photo"`
-	IsAdmin         uint16 `form:"is_admin"`
 }
 
 /*
