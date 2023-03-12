@@ -28,13 +28,13 @@ func (ctrl *Controller) Home(c echo.Context) error {
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
 	// ?
 
-	id, _ := c.Get("id").(int)
+	id, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 	log.Info("START request method GET for home")
 
 	var message string
-	if id != -1 {
+	if id != 0 {
 		user, err := ctrl.userService.FindByID(business.InternalContext{}, id)
 		if err != nil {
 			log.Warnf(`session values "username" error: %v`, err)

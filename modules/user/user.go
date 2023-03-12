@@ -45,7 +45,7 @@ func (repo *GormRepository) FindAll(ic business.InternalContext, role ...string)
 }
 
 // User: FirstByID
-func (repo *GormRepository) FindByID(ic business.InternalContext, id int) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FindByID(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.First(&selectedUser, id).Error
@@ -95,7 +95,7 @@ func (repo *GormRepository) CreatesBatch(ic business.InternalContext, newUsers *
 }
 
 // User: FirstUserByID
-func (repo *GormRepository) FirstUserByID(ic business.InternalContext, id int) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstUserByID(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.First(&selectedUser, id).Error
@@ -134,7 +134,7 @@ func (repo *GormRepository) FirstUserByUsername(ic business.InternalContext, use
 // or,
 //
 // user, err := models.User{}.FirstByIDAndUsername(1, "ockibagusp", true)
-func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *selectUser.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	if len(too) == 0 {
@@ -157,7 +157,7 @@ func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id
 }
 
 // User: FirstByCityID
-func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id int) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.Select("users.*, cities.id as city_id, cities.city as city_massage").
@@ -173,7 +173,7 @@ func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id int) (
 }
 
 // User: Update
-func (repo *GormRepository) Update(ic business.InternalContext, id int) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) Update(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.Where("id = ?", id).Updates(&selectUser.User{
@@ -191,7 +191,7 @@ func (repo *GormRepository) Update(ic business.InternalContext, id int) (selecte
 }
 
 // User: Update By ID and Password
-func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, id int, password string) (err error) {
+func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := selectUser.User{}
@@ -203,7 +203,7 @@ func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, i
 }
 
 // User: Delete
-func (repo *GormRepository) Delete(ic business.InternalContext, id int) (err error) {
+func (repo *GormRepository) Delete(ic business.InternalContext, id uint) (err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := selectUser.User{}
@@ -251,7 +251,7 @@ func (repo *GormRepository) FindDeleteAll(ic business.InternalContext, role ...s
 }
 
 // User: Restore
-func (repo *GormRepository) Restore(ic business.InternalContext, id int) error {
+func (repo *GormRepository) Restore(ic business.InternalContext, id uint) error {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := selectUser.User{}
@@ -275,7 +275,7 @@ func (repo *GormRepository) Restore(ic business.InternalContext, id int) error {
 }
 
 // User: Delete Permanently
-func (repo *GormRepository) DeletePermanently(ic business.InternalContext, id int) error {
+func (repo *GormRepository) DeletePermanently(ic business.InternalContext, id uint) error {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := selectUser.User{}

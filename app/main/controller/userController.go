@@ -23,6 +23,7 @@ func init() {
 	templates := selectTemplate.AppendTemplates
 	templates["users/user-all.html"] = selectTemplate.ParseFilesBase("views/users/user-all.html")
 	templates["users/user-add.html"] = selectTemplate.ParseFilesBase("views/users/user-add.html", "views/users/user-form.html")
+	templates["users/user-read.html"] = selectTemplate.ParseFilesBase("views/users/user-read.html", "views/users/user-form.html")
 }
 
 /*
@@ -43,12 +44,12 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		typing string
 	)
 
-	id, _ := c.Get("id").(int)
+	id, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
 	// is user?
-	if role != "admin" {
+	if role == "user" {
 		user, err := ctrl.userService.FirstUserByID(ic, id)
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
@@ -114,7 +115,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		err  error
 	)
 
-	id, _ := c.Get("id").(int)
+	id, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
@@ -260,5 +261,52 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		"flash_error":      middleware.GetFlashError(c),
 		"locations":        locations,
 		"is_new":           true,
+	})
+}
+
+/*
+ * Read User ID
+ *
+ * @target: Users
+ * @method: GET
+ * @route: /users/read/:id
+ */
+func (ctrl *Controller) ReadUser(c echo.Context) error {
+	log.Info("START request method GET for read user")
+
+	idInt, _ := strconv.Atoi(c.Param("id"))
+	id := uint(idInt)
+	username, _ := c.Get("username").(string)
+	role, _ := c.Get("role").(string)
+
+	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+	if err != nil {
+		log.Warnf(
+			"for GET to read user without models.User{}.FirstByID() errors: `%v`", err,
+		)
+		log.Warn("END request method GET for read user: [-]failure")
+		// HTTP response status: 406 Method Not Acceptable
+		return c.HTML(http.StatusNotAcceptable, err.Error())
+	}
+
+	locations, err := locationModules.NewDB().FindAll(business.InternalContext{})
+	if err != nil {
+		log.Warnf("for GET to read user without models.City{}.FindAll() errors: `%v`", err)
+		log.Warn("END request method GET for read user: [-]failure")
+		// HTTP response status: 406 Not Acceptable
+		return c.HTML(http.StatusNotAcceptable, err.Error())
+	}
+
+	log.Info("END request method GET for read user: [+]success")
+	return c.Render(http.StatusOK, "users/user-read.html", echo.Map{
+		"name":             fmt.Sprintf("User: %s", user.Name),
+		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
+		"session_username": username,
+		"session_role":     role,
+		"flash_success":    middleware.GetFlashSuccess(c),
+		"flash_error":      middleware.GetFlashError(c),
+		"user":             user,
+		"locations":        locations,
+		"is_read":          true,
 	})
 }

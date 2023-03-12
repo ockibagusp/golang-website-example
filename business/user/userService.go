@@ -9,20 +9,20 @@ type (
 
 	Service interface {
 		FindAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)
-		FindByID(ic business.InternalContext, id int) (selectedUser *User, err error)
+		FindByID(ic business.InternalContext, id uint) (selectedUser *User, err error)
 		FindByEmail(ic business.InternalContext, email string) (selectedUser *User, err error)
 		Create(ic business.InternalContext, newUser *User) (*User, error)
 		CreatesBatch(ic business.InternalContext, newUsers *[]User) (*[]User, error)
-		FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error)
+		FirstUserByID(ic business.InternalContext, id uint) (selectedUser *User, err error)
 		FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
-		FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *User, err error)
-		FirstByCityID(ic business.InternalContext, id int) (selectedUser *User, err error)
-		Update(ic business.InternalContext, id int) (selectedUser *User, err error)
-		UpdateByIDandPassword(ic business.InternalContext, id int, password string) (err error)
-		Delete(ic business.InternalContext, id int) (err error)
+		FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *User, err error)
+		FirstByCityID(ic business.InternalContext, id uint) (selectedUser *User, err error)
+		Update(ic business.InternalContext, id uint) (selectedUser *User, err error)
+		UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error)
+		Delete(ic business.InternalContext, id uint) (err error)
 		FindDeleteAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)
-		Restore(ic business.InternalContext, id int) error
-		DeletePermanently(ic business.InternalContext, id int) error
+		Restore(ic business.InternalContext, id uint) error
+		DeletePermanently(ic business.InternalContext, id uint) error
 	}
 )
 
@@ -36,7 +36,7 @@ func (s *service) FindAll(ic business.InternalContext, role ...string) (selected
 	return s.repository.FindAll(ic, role...)
 }
 
-func (s *service) FindByID(ic business.InternalContext, id int) (selectedUser *User, err error) {
+func (s *service) FindByID(ic business.InternalContext, id uint) (selectedUser *User, err error) {
 	return s.repository.FindByID(ic, id)
 }
 
@@ -57,27 +57,27 @@ func (s *service) CreatesBatch(ic business.InternalContext, newUsers *[]User) (*
 	return s.repository.CreatesBatch(ic, newUsers)
 }
 
-func (s *service) FirstUserByID(ic business.InternalContext, id int) (selectedUser *User, err error) {
+func (s *service) FirstUserByID(ic business.InternalContext, id uint) (selectedUser *User, err error) {
 	return s.repository.FirstUserByID(ic, id)
 }
 
-func (s *service) FirstByIDAndUsername(ic business.InternalContext, id int, username string, too ...bool) (selectedUser *User, err error) {
+func (s *service) FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *User, err error) {
 	return s.repository.FirstByIDAndUsername(ic, id, username, too...)
 }
 
-func (s *service) FirstByCityID(ic business.InternalContext, id int) (selectedUser *User, err error) {
+func (s *service) FirstByCityID(ic business.InternalContext, id uint) (selectedUser *User, err error) {
 	return s.repository.FirstByCityID(ic, id)
 }
 
-func (s *service) Update(ic business.InternalContext, id int) (selectedUser *User, err error) {
+func (s *service) Update(ic business.InternalContext, id uint) (selectedUser *User, err error) {
 	return s.repository.Update(ic, id)
 }
 
-func (s *service) UpdateByIDandPassword(ic business.InternalContext, id int, password string) (err error) {
+func (s *service) UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error) {
 	return s.repository.UpdateByIDandPassword(ic, id, password)
 }
 
-func (s *service) Delete(ic business.InternalContext, id int) (err error) {
+func (s *service) Delete(ic business.InternalContext, id uint) (err error) {
 	return s.repository.Delete(ic, id)
 }
 
@@ -85,10 +85,10 @@ func (s *service) FindDeleteAll(ic business.InternalContext, role ...string) (se
 	return s.repository.FindDeleteAll(ic, role...)
 }
 
-func (s *service) Restore(ic business.InternalContext, id int) error {
+func (s *service) Restore(ic business.InternalContext, id uint) error {
 	return s.repository.Restore(ic, id)
 }
 
-func (s *service) DeletePermanently(ic business.InternalContext, id int) error {
+func (s *service) DeletePermanently(ic business.InternalContext, id uint) error {
 	return s.repository.DeletePermanently(ic, id)
 }
