@@ -58,11 +58,11 @@ func SessionMiddleware() echo.MiddlewareFunc {
 
 			id := session_gorilla.Values["id"]
 			if id == "" {
-				id = -1
+				id = 0
 			}
 
 			username := session_gorilla.Values["username"]
-			if username != "" {
+			if username == "" {
 				username = "anonymous"
 			}
 

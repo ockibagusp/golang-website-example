@@ -46,7 +46,7 @@ func GetAuthSession() (session_gorilla *sessions.Session, err error) {
 	if UserSelectTest == "anonymous" {
 		session_gorilla = &sessions.Session{
 			Values: map[interface{}]interface{}{
-				"id":       -1,
+				"id":       0,
 				"username": "anonymous",
 				"role":     "anonymous",
 			},
