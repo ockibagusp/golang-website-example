@@ -48,8 +48,15 @@ func (ctrl *Controller) Users(c echo.Context) error {
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
+	if role == "anonymous" {
+		log.Warn("for GET to users without no-session [@route: /login]")
+		middleware.SetFlashError(c, "login process failed!")
+		log.Warn("END request method GET for users: [-]failure")
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
 	// is user?
-	if role == "user" {
+	if role != "admin" {
 		user, err := ctrl.userService.FirstUserByID(ic, id)
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
