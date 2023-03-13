@@ -320,7 +320,7 @@ func TestCreateUserController(t *testing.T) {
 			// flash message error
 			html_flash_error: regex{
 				must_compile: `<strong>error:</strong> (.*)`,
-				actual:       `<strong>error:</strong> Error 1062: Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;email_UNIQUE&#39;!`,
+				actual:       `<strong>error:</strong> Error 1062 (23000): Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;email_UNIQUE&#39;!`,
 			},
 		},
 
