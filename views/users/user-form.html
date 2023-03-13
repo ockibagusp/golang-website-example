@@ -8,9 +8,11 @@
   <div class="form-row">
     <div class="form-group col-md-12">
       <label for="role">Role</label>
-      <select id="location" name="location" class="form-control" {{if.is_read}}disabled{{end}}>
+      <select id="role" name="role" class="form-control" {{if.is_read}}disabled{{end}}>
         <option value="user" selected>User</option>
-        <!-- <option value="admin">Admin</option> -->
+        {{if eq .session_role "admin"}}
+        <option value="admin">Admin</option>
+        {{end}}
       </select>
     </div>
     <div class="form-group col-md-12">
@@ -48,7 +50,6 @@
   <div class="form-row">
     <div class="form-group col-md-6">
       <label for="location">Location</label>
-      <!-- ? -->
       <select id="location" name="location" class="form-control" {{if.is_read}}disabled{{end}}>
         <option value="0">-----</option>
         {{range $key, $value := .locations}}
