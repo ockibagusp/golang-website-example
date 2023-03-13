@@ -154,12 +154,13 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 				// HTTP response status: 400 Bad Request
 				return c.HTML(http.StatusBadRequest, err.Error())
 			}
-			// Location and District?
+			// Location or District?
 			location = uint(location64)
 		}
 
 		// userForm: type of a user
 		userForm := types.UserForm{
+			Role:            c.FormValue("role"),
 			Username:        c.FormValue("username"),
 			Email:           c.FormValue("email"),
 			Password:        c.FormValue("password"),
@@ -194,12 +195,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			log.Warn("END request method POST for create user: [-]failure")
 			// HTTP response status: 400 Bad Request
 			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-				"name":          "User Add",
-				"nav":           "user Add", // (?)
-				"flash_error 	": middleware.GetFlashError(c),
-				"csrf":          c.Get("csrf"),
-				"locations":     locations,
-				"is_new":        true,
+				"name":             "User Add",
+				"nav":              "user Add", // (?)
+				"session_username": username,
+				"session_role":     role,
+				"flash_error 	":    middleware.GetFlashError(c),
+				"csrf":             c.Get("csrf"),
+				"locations":        locations,
+				"is_new":           true,
 			})
 		}
 
@@ -213,7 +216,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		}
 
 		user = &selectUser.User{
-			Role:     "user",
+			Role:     userForm.Role,
 			Username: userForm.Username,
 			Email:    userForm.Email,
 			Password: hash,
@@ -229,12 +232,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			log.Warn("END request method POST for create user: [-]failure")
 			// HTTP response status: 400 Bad Request
 			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-				"name":        "User Add",
-				"nav":         "user Add", // (?)
-				"csrf":        c.Get("csrf"),
-				"flash_error": middleware.GetFlashError(c),
-				"locations":   locations,
-				"is_new":      true,
+				"name":             "User Add",
+				"nav":              "user Add", // (?)
+				"session_username": username,
+				"session_role":     role,
+				"csrf":             c.Get("csrf"),
+				"flash_error":      middleware.GetFlashError(c),
+				"locations":        locations,
+				"is_new":           true,
 			})
 		}
 

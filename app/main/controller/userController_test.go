@@ -268,6 +268,7 @@ func TestCreateUserController(t *testing.T) {
 			expect: ADMIN,
 			method: method.HTTP_REQUEST_POST,
 			form: types.UserForm{
+				Role:            "user",
 				Username:        "unit-test",
 				Email:           "unit-test@exemple.com",
 				Name:            "Unit Test",
@@ -299,6 +300,7 @@ func TestCreateUserController(t *testing.T) {
 			expect: ADMIN,
 			method: method.HTTP_REQUEST_POST,
 			form: types.UserForm{
+				Role:            "user",
 				Username:        "unit-test",
 				Email:           "unit-test@exemple.com",
 				Name:            "Unit Test",
@@ -388,6 +390,7 @@ func TestCreateUserController(t *testing.T) {
 			expect: "anonymous",
 			method: method.HTTP_REQUEST_POST,
 			form: types.UserForm{
+				Role:            "user",
 				Username:        "example",
 				Email:           "example@example.com",
 				Name:            "Example",
