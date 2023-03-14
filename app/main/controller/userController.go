@@ -284,12 +284,19 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
  * @route: /users/read/:id
  */
 func (ctrl *Controller) ReadUser(c echo.Context) error {
-	log.Info("START request method GET for read user")
-
 	idInt, _ := strconv.Atoi(c.Param("id"))
 	id := uint(idInt)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
+
+	if role == "anonymous" {
+		log.Warn("for GET to read user without no-session [@route: /login]")
+		middleware.SetFlashError(c, "login process failed!")
+		log.Warn("END request method GET for read user: [-]failure")
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	log.Info("START request method GET for read user")
 
 	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, id)
 	if err != nil {
