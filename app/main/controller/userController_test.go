@@ -485,3 +485,177 @@ func TestCreateUserController(t *testing.T) {
 		})
 	}
 }
+
+func TestReadUserController(t *testing.T) {
+	assert := assert.New(t)
+
+	no_auth := setupTestServer(t)
+
+	// test for SetSession = false
+	method.SetSession = false
+	// test for db users
+	truncateUsers()
+
+	test_cases := []struct {
+		name         string
+		expect       string // auth or no-auth
+		method       int    // method: 1=GET or 2=POST
+		path         string
+		status       int
+		html_navbar  regex
+		html_heading regex
+		flash_error  regex
+	}{
+		/*
+			read it [admin]
+		*/
+		{
+			name:   "users [admin] to GET read it success",
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
+			path:   "1",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body navbar
+			html_navbar: regex{
+				must_compile: `<a class="btn">(.*)</a>`,
+				actual:       `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Admin</h2>`,
+			},
+		},
+		{
+			name:   "users [admin] to GET read it failure",
+			expect: ADMIN,
+			method: method.HTTP_REQUEST_GET,
+			path:   "-1",
+			// HTTP response status: 406 Not Acceptable
+			status: http.StatusNotAcceptable,
+		},
+
+		/*
+			read it [sugriwa]
+		*/
+		{
+			name:   "users [sugriwa] to GET read it success",
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
+			path:   "2",
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// body heading
+			html_heading: regex{
+				must_compile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			},
+		},
+		{
+			name:   "users [sugriwa] to GET read it failure",
+			expect: SUGRIWA,
+			method: method.HTTP_REQUEST_GET,
+			path:   "-1",
+			// HTTP response status: 406 Not Acceptable
+			status: http.StatusNotAcceptable,
+		},
+
+		/*
+			read it [no-auth]
+		*/
+		{
+			name:   "users [no-auth] to GET read it failure",
+			expect: ANONYMOUS,
+			method: method.HTTP_REQUEST_GET,
+			path:   "1",
+			// redirect @route: /login
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+			// flash message
+			flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+		{
+			name:   "users [no-auth] to GET read it failure: 4 session and no-id",
+			expect: ANONYMOUS,
+			method: method.HTTP_REQUEST_GET,
+			path:   "-1",
+			// redirect @route: /login
+			// HTTP response status: 200 OK: 3 session and id
+			status: http.StatusOK,
+			// flash message
+			flash_error: regex{
+				must_compile: `<p class="text-danger">*(.*)</p>`,
+				actual:       `<p class="text-danger">*login process failed!</p>`,
+			},
+		},
+	}
+
+	for _, test := range test_cases {
+		modelsTest.UserSelectTest = test.expect
+
+		var result *httpexpect.Response
+		t.Run(test.name, func(t *testing.T) {
+			if test.method == method.HTTP_REQUEST_GET {
+				// same:
+				//
+				// no_auth.GET("/users/read/{id}").
+				//	WithPath("id", test.path).
+				// ...
+				result = no_auth.GET("/users/read/{id}", test.path).
+					Expect().
+					Status(test.status)
+
+				result_body := result.Body().Raw()
+
+				var (
+					must_compile, actual, match string
+					regex                       *regexp.Regexp
+				)
+
+				if test.html_navbar.must_compile != "" {
+					must_compile = test.html_navbar.must_compile
+					actual = test.html_navbar.actual
+
+					regex = regexp.MustCompile(must_compile)
+					match = regex.FindString(result_body)
+
+					assert.Equal(match, actual)
+				}
+
+				if test.html_heading.must_compile != "" {
+					must_compile = test.html_heading.must_compile
+					actual = test.html_heading.actual
+
+					regex = regexp.MustCompile(must_compile)
+					match = regex.FindString(result_body)
+
+					assert.Equal(match, actual)
+				}
+
+				if test.flash_error.must_compile != "" {
+					must_compile = test.flash_error.must_compile
+					actual = test.flash_error.actual
+
+					regex = regexp.MustCompile(must_compile)
+					match = regex.FindString(result_body)
+
+					assert.Equal(match, actual)
+				}
+			} else {
+				panic("method: 1=GET")
+			}
+
+			statusCode := result.Raw().StatusCode
+			if test.status != statusCode {
+				t.Logf(
+					"got: %d but expect %d", test.status, statusCode,
+				)
+				t.Fail()
+			}
+		})
+	}
+}
