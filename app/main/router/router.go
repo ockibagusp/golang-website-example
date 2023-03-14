@@ -44,6 +44,8 @@ func RegisterPath(
 	user.GET("/add", controller.CreateUser).Name = "user/add get"
 	user.POST("/add", controller.CreateUser).Name = "user/add post"
 	user.GET("/read/:id", controller.ReadUser).Name = "user/read get"
+	user.GET("/users/view/:id", controller.UpdateUser).Name = "user/view get"
+	user.POST("/users/view/:id", controller.UpdateUser).Name = "user/view post"
 
 	return
 }

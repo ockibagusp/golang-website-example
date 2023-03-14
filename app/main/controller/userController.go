@@ -24,6 +24,7 @@ func init() {
 	templates["users/user-all.html"] = selectTemplate.ParseFilesBase("views/users/user-all.html")
 	templates["users/user-add.html"] = selectTemplate.ParseFilesBase("views/users/user-add.html", "views/users/user-form.html")
 	templates["users/user-read.html"] = selectTemplate.ParseFilesBase("views/users/user-read.html", "views/users/user-form.html")
+	templates["users/user-view.html"] = selectTemplate.ParseFilesBase("views/users/user-view.html", "views/users/user-form.html")
 }
 
 /*
@@ -327,5 +328,128 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		"user":             user,
 		"locations":        locations,
 		"is_read":          true,
+	})
+}
+
+/*
+ * Update User ID
+ *
+ * @target: Users
+ * @method: GET or POST
+ * @route: /users/view/:id
+ */
+func (ctrl *Controller) UpdateUser(c echo.Context) error {
+	idInt, _ := strconv.Atoi(c.Param("id"))
+	id := uint(idInt)
+	username, _ := c.Get("username").(string)
+	role, _ := c.Get("role").(string)
+
+	if role == "anonymous" {
+		log.Warn("for GET to update user without no-session [@route: /login]")
+		middleware.SetFlashError(c, "login process failed!")
+		log.Warn("END request method GET for update user: [-]failure")
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+	if err != nil {
+		log.Warnf(
+			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
+		)
+		log.Warn("END request method GET for update user: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.HTML(http.StatusNotFound, err.Error())
+	}
+
+	// admin: yes
+	// (role is "user" and (not user.Username)): 403 Forbidden
+	if role == "user" && (user.Username != username) {
+		log.Warnf(
+			`role is "user" (%v) and [not user.Username (%v)]: 403 Forbidden`,
+			role,
+			(user.Username != username),
+		)
+		log.Warn("END request method GET for update user: [-]failure")
+		return c.HTML(http.StatusForbidden, "403 Forbidden")
+	}
+
+	if c.Request().Method == "POST" {
+		log.Info("START request method POST for update user")
+
+		var location uint
+		if c.FormValue("city") != "" {
+			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
+			if err != nil {
+				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
+				log.Warn("END request method POST for create user: [-]failure")
+				// HTTP response status: 400 Bad Request
+				return c.HTML(http.StatusBadRequest, err.Error())
+			}
+			// Location or District?
+			location = uint(location64)
+		}
+
+		user = &selectUser.User{
+			Role:     c.FormValue("role"),
+			Username: c.FormValue("username"),
+			Email:    c.FormValue("email"),
+			Name:     c.FormValue("name"),
+			Location: location,
+			Photo:    "",
+		}
+
+		// _, err := ctrl.userService.Create(business.InternalContext{}, user): equal
+		if _, err := ctrl.userService.Create(business.InternalContext{}, user); err != nil {
+			log.Warnf(
+				"for POST to update user without models.User{}.Update() errors: `%v`", err,
+			)
+			middleware.SetFlashError(c, err.Error())
+			log.Warn("END request method POST for update user: [-]failure")
+			// HTTP response status: 405 Method Not Allowed
+			return c.Render(http.StatusNotAcceptable, "users/user-view.html", echo.Map{
+				"name":             fmt.Sprintf("User: %s", user.Name),
+				"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
+				"session_username": username,
+				"session_role":     role,
+				"flash_error":      middleware.GetFlashError(c),
+				"csrf":             c.Get("csrf"),
+				"user":             user,
+				"locations":        location,
+			})
+		}
+
+		log.Info("models.User: [+]success", "user_update", user)
+		middleware.SetFlashSuccess(c, fmt.Sprintf("success update user: %s!", user.Username))
+
+		if role == "user" {
+			log.Info("END [user] request method POST for update user: [+]success")
+			// update user
+			return c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		log.Info("END [admin] request method POST for update user: [+]success")
+		// update admin
+		return c.Redirect(http.StatusMovedPermanently, "/users")
+	}
+
+	log.Info("START request method GET for update user")
+
+	locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
+	if err != nil {
+		log.Warnf("for GET to update user without models.City{}.FindAll() errors: `%v`", err)
+		log.Warn("END request method GET for update user: [-]failure")
+		// HTTP response status: 405 Method Not Allowed
+		return c.HTML(http.StatusNotAcceptable, err.Error())
+	}
+
+	log.Info("END request method GET for update user: [+]success")
+	return c.Render(http.StatusOK, "users/user-view.html", echo.Map{
+		"name":             fmt.Sprintf("User: %s", user.Name),
+		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
+		"session_username": username,
+		"session_role":     role,
+		"flash_error":      middleware.GetFlashError(c),
+		"csrf":             c.Get("csrf"),
+		"user":             user,
+		"locations":        locations,
 	})
 }
