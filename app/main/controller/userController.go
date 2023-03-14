@@ -405,6 +405,8 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			)
 			middleware.SetFlashError(c, err.Error())
 			log.Warn("END request method POST for update user: [-]failure")
+
+			locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
 			// HTTP response status: 405 Method Not Allowed
 			return c.Render(http.StatusNotAcceptable, "users/user-view.html", echo.Map{
 				"name":             fmt.Sprintf("User: %s", user.Name),
@@ -414,7 +416,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 				"flash_error":      middleware.GetFlashError(c),
 				"csrf":             c.Get("csrf"),
 				"user":             user,
-				"locations":        location,
+				"locations":        locations,
 			})
 		}
 

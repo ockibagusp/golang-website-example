@@ -9,9 +9,9 @@
     <div class="form-group col-md-12">
       <label for="role">Role</label>
       <select id="role" name="role" class="form-control" {{if.is_read}}disabled{{end}}>
-        <option value="user" selected>User</option>
+        <option value="user" {{if eq .user.Role "user"}}selected{{end}}>User</option>
         {{if eq .session_role "admin"}}
-        <option value="admin">Admin</option>
+        <option value="admin" {{if eq .user.Role "admin"}}selected{{end}}>Admin</option>
         {{end}}
       </select>
     </div>
@@ -51,7 +51,7 @@
     <div class="form-group col-md-6">
       <label for="location">Location</label>
       <select id="location" name="location" class="form-control" {{if.is_read}}disabled{{end}}>
-        <option value="0">-----</option>
+        <option value="">-----</option>
         {{range $key, $value := .locations}}
         {{if not $.is_new}}
         <option value="{{$value.ID}}" {{if eq $value.ID $.user.Location}}selected{{end}}>{{$value.Location}}</option>
