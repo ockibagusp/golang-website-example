@@ -404,8 +404,8 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			Photo:    c.FormValue("photo"),
 		}
 
-		// user, err = ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil: equal
-		if user, err = ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil {
+		// newUser, err = ctrl.userService.Update(business.InternalContext{}, user, updateUser); err != nil: equal
+		if user, err = ctrl.userService.Update(business.InternalContext{}, user, updateUser); err != nil {
 			log.Warnf(
 				"for POST to update user without models.User{}.Update() errors: `%v`", err,
 			)

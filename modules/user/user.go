@@ -173,10 +173,10 @@ func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id uint) 
 }
 
 // User: Update
-func (repo *GormRepository) Update(ic business.InternalContext, uid uint, updateUser *user.User) (*user.User, error) {
+func (repo *GormRepository) Update(ic business.InternalContext, newUser *user.User, updateUser *user.User) (*user.User, error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	err := query.Model(&user.User{}).Where("id = ?", uid).Updates(&user.User{
+	err := query.Model(&newUser).Updates(&user.User{
 		Role:     updateUser.Role,
 		Username: updateUser.Username,
 		Email:    updateUser.Email,
@@ -188,12 +188,6 @@ func (repo *GormRepository) Update(ic business.InternalContext, uid uint, update
 		return nil, err
 	}
 
-	// This is the display the updated user
-	var newUser *user.User
-	err = query.Model(newUser).Where("id = ?", uid).Take(&newUser).Error
-	if err != nil {
-		return nil, err
-	}
 	return newUser, nil
 }
 

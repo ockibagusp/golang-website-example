@@ -12,7 +12,7 @@ type Repository interface {
 	FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 	FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *User, err error)
 	FirstByCityID(ic business.InternalContext, id uint) (selectedUser *User, err error)
-	Update(ic business.InternalContext, id uint, updateUser *User) (*User, error)
+	Update(ic business.InternalContext, oldUser *User, updateUser *User) (*User, error)
 	UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error)
 	Delete(ic business.InternalContext, id uint) (err error)
 	FindDeleteAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)
