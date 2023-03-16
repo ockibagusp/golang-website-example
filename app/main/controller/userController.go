@@ -357,6 +357,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 	)
 	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, id)
 	if err != nil {
+		log.Info("START request method GET/POST for update user")
 		log.Warnf(
 			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
 		)
@@ -368,6 +369,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 	// admin: yes
 	// (role is "user" and (not user.Username)): 403 Forbidden
 	if role == "user" && (user.Username != username) {
+		log.Info("START request method GET/POST for update user")
 		log.Warnf(
 			`role is "user" (%v) and [not user.Username (%v)]: 403 Forbidden`,
 			role,
@@ -402,8 +404,8 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			Photo:    c.FormValue("photo"),
 		}
 
-		// _, err := ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil: equal
-		if _, err := ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil {
+		// user, err = ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil: equal
+		if user, err = ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil {
 			log.Warnf(
 				"for POST to update user without models.User{}.Update() errors: `%v`", err,
 			)
