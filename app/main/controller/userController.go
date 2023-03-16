@@ -45,7 +45,7 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		typing string
 	)
 
-	id, _ := c.Get("id").(uint)
+	uid, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
@@ -58,7 +58,7 @@ func (ctrl *Controller) Users(c echo.Context) error {
 
 	// is user?
 	if role != "admin" {
-		user, err := ctrl.userService.FirstUserByID(ic, id)
+		user, err := ctrl.userService.FirstUserByID(ic, uid)
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for user: [-]failure")
@@ -123,14 +123,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		err  error
 	)
 
-	id, _ := c.Get("id").(uint)
+	uid, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
 	// is user?
 	if role == "user" {
 		log.Info("START request method GET for create user")
-		user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+		user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for create user: [-]failure")
@@ -285,8 +285,8 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
  * @route: /users/read/:id
  */
 func (ctrl *Controller) ReadUser(c echo.Context) error {
-	idInt, _ := strconv.Atoi(c.Param("id"))
-	id := uint(idInt)
+	id, _ := strconv.Atoi(c.Param("id"))
+	uid := uint(id)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
@@ -299,7 +299,7 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 
 	log.Info("START request method GET for read user")
 
-	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	if err != nil {
 		log.Warnf(
 			"for GET to read user without models.User{}.FirstByID() errors: `%v`", err,
@@ -339,8 +339,8 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
  * @route: /users/view/:id
  */
 func (ctrl *Controller) UpdateUser(c echo.Context) error {
-	idInt, _ := strconv.Atoi(c.Param("id"))
-	id := uint(idInt)
+	id, _ := strconv.Atoi(c.Param("id"))
+	uid := uint(id)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
@@ -355,7 +355,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		user *selectUser.User
 		err  error
 	)
-	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	if err != nil {
 		log.Info("START request method GET/POST for update user")
 		log.Warnf(

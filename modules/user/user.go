@@ -45,10 +45,10 @@ func (repo *GormRepository) FindAll(ic business.InternalContext, role ...string)
 }
 
 // User: FirstByID
-func (repo *GormRepository) FindByID(ic business.InternalContext, id uint) (selectedUser *user.User, err error) {
+func (repo *GormRepository) FindByID(ic business.InternalContext, uid uint) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	err = query.First(&selectedUser, id).Error
+	err = query.First(&selectedUser, uid).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = errors.New("User Not Found")
@@ -95,10 +95,10 @@ func (repo *GormRepository) CreatesBatch(ic business.InternalContext, newUsers *
 }
 
 // User: FirstUserByID
-func (repo *GormRepository) FirstUserByID(ic business.InternalContext, id uint) (selectedUser *user.User, err error) {
+func (repo *GormRepository) FirstUserByID(ic business.InternalContext, uid uint) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	err = query.First(&selectedUser, id).Error
+	err = query.First(&selectedUser, uid).Error
 	return isFirstUserByID(selectedUser, err)
 }
 
@@ -134,14 +134,14 @@ func (repo *GormRepository) FirstUserByUsername(ic business.InternalContext, use
 // or,
 //
 // user, err := models.User{}.FirstByIDAndUsername(1, "ockibagusp", true)
-func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *user.User, err error) {
+func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, uid uint, username string, too ...bool) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	if len(too) == 0 {
 		err = query.Select("id", "username", "password").
-			Where("username = ?", username).First(&selectedUser, id).Error
+			Where("username = ?", username).First(&selectedUser, uid).Error
 	} else if len(too) == 1 {
-		err = query.Where("username = ?", username).First(&selectedUser, id).Error
+		err = query.Where("username = ?", username).First(&selectedUser, uid).Error
 	} else { // too agrs [2,..]=bool
 		return selectedUser, errors.New("models.User{}.FirstByIDAndUsername: too agrs [0, 1]=bool")
 	}
@@ -157,11 +157,11 @@ func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id
 }
 
 // User: FirstByCityID
-func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id uint) (selectedUser *user.User, err error) {
+func (repo *GormRepository) FirstByCityID(ic business.InternalContext, uid uint) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.Select("users.*, cities.id as city_id, cities.city as city_massage").
-		Joins("left join cities on users.city = cities.id").First(&selectedUser, id).Error
+		Joins("left join cities on users.city = cities.id").First(&selectedUser, uid).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return selectedUser, errors.New("User Not Found")
@@ -191,12 +191,12 @@ func (repo *GormRepository) Update(ic business.InternalContext, newUser *user.Us
 	return newUser, nil
 }
 
-// User: Update By ID and Password
-func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error) {
+// User: Update By uID and Password
+func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, uid uint, password string) (err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := user.User{}
-	if err = query.Model(&selectedUser).Where("id = ?", id).Update("password", password).First(&selectedUser).Error; err != nil {
+	if err = query.Model(&selectedUser).Where("id = ?", uid).Update("password", password).First(&selectedUser).Error; err != nil {
 		return err
 	}
 
@@ -204,7 +204,7 @@ func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, i
 }
 
 // User: Delete
-func (repo *GormRepository) Delete(ic business.InternalContext, id uint) (err error) {
+func (repo *GormRepository) Delete(ic business.InternalContext, uid uint) (err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := user.User{}
@@ -217,8 +217,8 @@ func (repo *GormRepository) Delete(ic business.InternalContext, id uint) (err er
 		return errors.New("User Not Found")
 	}
 
-	// if tx.Delete(&selectUser, id).Error != nil {}
-	if err := tx.Delete(&selectedUser, id).Error; err != nil {
+	// if tx.Delete(&selectUser, uid).Error != nil {}
+	if err := tx.Delete(&selectedUser, uid).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -252,7 +252,7 @@ func (repo *GormRepository) FindDeleteAll(ic business.InternalContext, role ...s
 }
 
 // User: Restore
-func (repo *GormRepository) Restore(ic business.InternalContext, id uint) error {
+func (repo *GormRepository) Restore(ic business.InternalContext, uid uint) error {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := user.User{}
@@ -265,8 +265,8 @@ func (repo *GormRepository) Restore(ic business.InternalContext, id uint) error 
 		return errors.New("User Not Found")
 	}
 
-	// if tx.Model(&selectUser).Unscoped().Where("id = ?", id).Update(...).Error; err != nil {}
-	if err := tx.Model(&selectedUser).Unscoped().Where("id = ?", id).Update("deleted_at", nil).First(&selectedUser).Error; err != nil {
+	// if tx.Model(&selectUser).Unscoped().Where("id = ?", uid).Update(...).Error; err != nil {}
+	if err := tx.Model(&selectedUser).Unscoped().Where("id = ?", uid).Update("deleted_at", nil).First(&selectedUser).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -276,7 +276,7 @@ func (repo *GormRepository) Restore(ic business.InternalContext, id uint) error 
 }
 
 // User: Delete Permanently
-func (repo *GormRepository) DeletePermanently(ic business.InternalContext, id uint) error {
+func (repo *GormRepository) DeletePermanently(ic business.InternalContext, uid uint) error {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	selectedUser := user.User{}
@@ -289,8 +289,8 @@ func (repo *GormRepository) DeletePermanently(ic business.InternalContext, id ui
 		return errors.New("User Not Found")
 	}
 
-	// if tx.Unscoped().Delete(&selectUser, id).Error != nil {}
-	if err := tx.Unscoped().Delete(&selectedUser, id).Error; err != nil {
+	// if tx.Unscoped().Delete(&selectUser, uid).Error != nil {}
+	if err := tx.Unscoped().Delete(&selectedUser, uid).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
