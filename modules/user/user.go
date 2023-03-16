@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/ockibagusp/golang-website-example/business"
-	selectUser "github.com/ockibagusp/golang-website-example/business/user"
+	"github.com/ockibagusp/golang-website-example/business/user"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +21,7 @@ func NewGormRepository(db *gorm.DB) *GormRepository {
 }
 
 // User: FindAll(ic, role={admin, user})
-func (repo *GormRepository) FindAll(ic business.InternalContext, role ...string) (selectedUsers *[]selectUser.User, err error) {
+func (repo *GormRepository) FindAll(ic business.InternalContext, role ...string) (selectedUsers *[]user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	// equal,
@@ -45,7 +45,7 @@ func (repo *GormRepository) FindAll(ic business.InternalContext, role ...string)
 }
 
 // User: FirstByID
-func (repo *GormRepository) FindByID(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FindByID(ic business.InternalContext, id uint) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.First(&selectedUser, id).Error
@@ -60,7 +60,7 @@ func (repo *GormRepository) FindByID(ic business.InternalContext, id uint) (sele
 	return
 }
 
-func (repo *GormRepository) FindByEmail(ic business.InternalContext, email string) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FindByEmail(ic business.InternalContext, email string) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 	if err := query.Where("email = ?", email).Find(&selectedUser).Error; err != nil {
 		return selectedUser, err
@@ -70,7 +70,7 @@ func (repo *GormRepository) FindByEmail(ic business.InternalContext, email strin
 }
 
 // User: Create
-func (repo *GormRepository) Create(ic business.InternalContext, newUser *selectUser.User) (*selectUser.User, error) {
+func (repo *GormRepository) Create(ic business.InternalContext, newUser *user.User) (*user.User, error) {
 	query := repo.DB.WithContext(ic.ToContext())
 	if err := query.Create(&newUser).Error; err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (repo *GormRepository) Create(ic business.InternalContext, newUser *selectU
 }
 
 // User: CreatesBatch
-func (repo *GormRepository) CreatesBatch(ic business.InternalContext, newUsers *[]selectUser.User) (*[]selectUser.User, error) {
+func (repo *GormRepository) CreatesBatch(ic business.InternalContext, newUsers *[]user.User) (*[]user.User, error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	tx := query.Begin()
@@ -95,7 +95,7 @@ func (repo *GormRepository) CreatesBatch(ic business.InternalContext, newUsers *
 }
 
 // User: FirstUserByID
-func (repo *GormRepository) FirstUserByID(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstUserByID(ic business.InternalContext, id uint) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.First(&selectedUser, id).Error
@@ -103,7 +103,7 @@ func (repo *GormRepository) FirstUserByID(ic business.InternalContext, id uint) 
 }
 
 // User: isFirstUserByID
-func isFirstUserByID(user *selectUser.User, err error) (*selectUser.User, error) {
+func isFirstUserByID(user *user.User, err error) (*user.User, error) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return user, errors.New("User Not Found")
@@ -115,7 +115,7 @@ func isFirstUserByID(user *selectUser.User, err error) (*selectUser.User, error)
 }
 
 // User: FirstUserByUsername -> login
-func (repo *GormRepository) FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	if err = query.Where(
@@ -134,7 +134,7 @@ func (repo *GormRepository) FirstUserByUsername(ic business.InternalContext, use
 // or,
 //
 // user, err := models.User{}.FirstByIDAndUsername(1, "ockibagusp", true)
-func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	if len(too) == 0 {
@@ -157,7 +157,7 @@ func (repo *GormRepository) FirstByIDAndUsername(ic business.InternalContext, id
 }
 
 // User: FirstByCityID
-func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id uint) (selectedUser *user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	err = query.Select("users.*, cities.id as city_id, cities.city as city_massage").
@@ -173,28 +173,29 @@ func (repo *GormRepository) FirstByCityID(ic business.InternalContext, id uint) 
 }
 
 // User: Update
-func (repo *GormRepository) Update(ic business.InternalContext, id uint) (selectedUser *selectUser.User, err error) {
+func (repo *GormRepository) Update(ic business.InternalContext, id uint, updateUser *user.User) (*user.User, error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	err = query.Where("id = ?", id).Updates(&selectUser.User{
-		Username: selectedUser.Username,
-		Email:    selectedUser.Email,
-		Name:     selectedUser.Name,
-		Location: selectedUser.Location,
-		Photo:    selectedUser.Photo,
+	err := query.Where("id = ?", id).Updates(&user.User{
+		Role:     updateUser.Role,
+		Username: updateUser.Username,
+		Email:    updateUser.Email,
+		Name:     updateUser.Name,
+		Location: updateUser.Location,
+		Photo:    updateUser.Photo,
 	}).Error
 	if err != nil {
-		return selectedUser, err
+		return nil, err
 	}
 
-	return
+	return updateUser, err
 }
 
 // User: Update By ID and Password
 func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	selectedUser := selectUser.User{}
+	selectedUser := user.User{}
 	if err = query.Model(&selectedUser).Where("id = ?", id).Update("password", password).First(&selectedUser).Error; err != nil {
 		return err
 	}
@@ -206,7 +207,7 @@ func (repo *GormRepository) UpdateByIDandPassword(ic business.InternalContext, i
 func (repo *GormRepository) Delete(ic business.InternalContext, id uint) (err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	selectedUser := selectUser.User{}
+	selectedUser := user.User{}
 
 	tx := query.Begin()
 	var count int64
@@ -227,7 +228,7 @@ func (repo *GormRepository) Delete(ic business.InternalContext, id uint) (err er
 }
 
 // User: FindDeleteAll(db, role={admin, user})
-func (repo *GormRepository) FindDeleteAll(ic business.InternalContext, role ...string) (selectedUsers *[]selectUser.User, err error) {
+func (repo *GormRepository) FindDeleteAll(ic business.InternalContext, role ...string) (selectedUsers *[]user.User, err error) {
 	query := repo.DB.WithContext(ic.ToContext())
 
 	// equal,
@@ -254,7 +255,7 @@ func (repo *GormRepository) FindDeleteAll(ic business.InternalContext, role ...s
 func (repo *GormRepository) Restore(ic business.InternalContext, id uint) error {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	selectedUser := selectUser.User{}
+	selectedUser := user.User{}
 
 	tx := query.Begin()
 	var count int64
@@ -278,7 +279,7 @@ func (repo *GormRepository) Restore(ic business.InternalContext, id uint) error 
 func (repo *GormRepository) DeletePermanently(ic business.InternalContext, id uint) error {
 	query := repo.DB.WithContext(ic.ToContext())
 
-	selectedUser := selectUser.User{}
+	selectedUser := user.User{}
 
 	tx := query.Begin()
 	var count int64

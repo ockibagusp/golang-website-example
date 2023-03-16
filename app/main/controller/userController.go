@@ -311,7 +311,7 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 
 	locations, err := locationModules.NewDB().FindAll(business.InternalContext{})
 	if err != nil {
-		log.Warnf("for GET to read user without models.City{}.FindAll() errors: `%v`", err)
+		log.Warnf("for GET to read user without models.location{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Not Acceptable
 		return c.HTML(http.StatusNotAcceptable, err.Error())
@@ -351,7 +351,11 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
-	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, id)
+	var (
+		user *selectUser.User
+		err  error
+	)
+	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, id)
 	if err != nil {
 		log.Warnf(
 			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
@@ -377,7 +381,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		log.Info("START request method POST for update user")
 
 		var location uint
-		if c.FormValue("city") != "" {
+		if c.FormValue("location") != "" {
 			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
 			if err != nil {
 				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
@@ -389,17 +393,17 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			location = uint(location64)
 		}
 
-		user = &selectUser.User{
+		updateUser := &selectUser.User{
 			Role:     c.FormValue("role"),
 			Username: c.FormValue("username"),
 			Email:    c.FormValue("email"),
 			Name:     c.FormValue("name"),
 			Location: location,
-			Photo:    "",
+			Photo:    c.FormValue("photo"),
 		}
 
-		// _, err := ctrl.userService.Create(business.InternalContext{}, user): equal
-		if _, err := ctrl.userService.Create(business.InternalContext{}, user); err != nil {
+		// _, err := ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil: equal
+		if _, err := ctrl.userService.Update(business.InternalContext{}, id, updateUser); err != nil {
 			log.Warnf(
 				"for POST to update user without models.User{}.Update() errors: `%v`", err,
 			)
@@ -407,7 +411,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			log.Warn("END request method POST for update user: [-]failure")
 
 			locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
-			// HTTP response status: 405 Method Not Allowed
+			// HTTP response status: 406 Method Not Acceptable
 			return c.Render(http.StatusNotAcceptable, "users/user-view.html", echo.Map{
 				"name":             fmt.Sprintf("User: %s", user.Name),
 				"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
@@ -437,7 +441,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 
 	locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
 	if err != nil {
-		log.Warnf("for GET to update user without models.City{}.FindAll() errors: `%v`", err)
+		log.Warnf("for GET to update user without models.location{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 405 Method Not Allowed
 		return c.HTML(http.StatusNotAcceptable, err.Error())

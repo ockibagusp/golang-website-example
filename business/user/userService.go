@@ -17,7 +17,7 @@ type (
 		FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 		FirstByIDAndUsername(ic business.InternalContext, id uint, username string, too ...bool) (selectedUser *User, err error)
 		FirstByCityID(ic business.InternalContext, id uint) (selectedUser *User, err error)
-		Update(ic business.InternalContext, id uint) (selectedUser *User, err error)
+		Update(ic business.InternalContext, id uint, updateUser *User) (*User, error)
 		UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error)
 		Delete(ic business.InternalContext, id uint) (err error)
 		FindDeleteAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)
@@ -69,8 +69,8 @@ func (s *service) FirstByCityID(ic business.InternalContext, id uint) (selectedU
 	return s.repository.FirstByCityID(ic, id)
 }
 
-func (s *service) Update(ic business.InternalContext, id uint) (selectedUser *User, err error) {
-	return s.repository.Update(ic, id)
+func (s *service) Update(ic business.InternalContext, id uint, updateUser *User) (*User, error) {
+	return s.repository.Update(ic, id, updateUser)
 }
 
 func (s *service) UpdateByIDandPassword(ic business.InternalContext, id uint, password string) (err error) {
