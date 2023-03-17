@@ -615,3 +615,91 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		"is_html_only":     true,
 	})
 }
+
+/*
+ * Delete User ID
+ *
+ * @target: Users
+ * @method: GET
+ * @route: /users/delete/:id
+ */
+func (ctrl *Controller) DeleteUser(c echo.Context) error {
+	role, _ := c.Get("role").(string)
+	if role == "anonymous" {
+		log.Warn("for GET to delete user without no-session [@route: /login]")
+		middleware.SetFlashError(c, "login process failed!")
+		log.Warn("END request method GET for delete user: [-]failure")
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	log.Info("START request method GET for delete user")
+	id, _ := strconv.Atoi(c.Param("id"))
+	uid := uint(id)
+
+	// why?
+	// delete not for admin
+	if uid == 1 {
+		log.Warn("END request method GET for delete user [admin]: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, "403 Forbidden")
+	}
+
+	var (
+		user *selectUser.User
+		err  error
+	)
+	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
+	if err != nil {
+		log.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
+		log.Warn("END request method GET for delete user: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.HTML(http.StatusNotFound, err.Error())
+	}
+
+	username, _ := c.Get("username").(string)
+
+	/*
+		TODO:
+		for example:
+		username ockibagusp delete 'ockibagusp': ok
+		username ockibagusp delete 'sugriwa': no
+		insyaallah
+	*/
+	oldUsername := username
+	_, err = ctrl.userService.FirstByIDAndUsername(
+		business.InternalContext{}, uid, oldUsername,
+	)
+
+	if !(role == "admin") {
+		if err != nil {
+			log.Warnf(
+				"for GET to delete without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
+			)
+			log.Warn("END request method GET for delete user: [-]failure")
+			// HTTP response status: 403 Forbidden
+			return c.HTML(http.StatusForbidden, err.Error())
+		}
+	}
+
+	if err := ctrl.userService.Delete(business.InternalContext{}, uid); err != nil {
+		log.Warnf("for GET to delete user without models.User{}.Delete() errors: `%v`", err)
+		log.Warn("END request method GET for delete user: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, err.Error())
+	}
+
+	middleware.SetFlashSuccess(c, fmt.Sprintf("success delete user: %s!", user.Username))
+	if role == "user" {
+		log.Info("END [user] request method GET for delete user: [+]success")
+		if err := middleware.ClearSession(c); err != nil {
+			log.Warn("to middleware.ClearSession session not found")
+			// err: session not found
+			return c.HTML(http.StatusBadRequest, err.Error())
+		}
+		// delete user
+		return c.Redirect(http.StatusSeeOther, "/")
+	}
+	log.Info("END request method GET for delete user: [+]success")
+	// delete admin
+	return c.Redirect(http.StatusMovedPermanently, "/users")
+}
