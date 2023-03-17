@@ -4,8 +4,14 @@ dep:
 test:
 	go test ./...
 
+test-ctrl:
+	go test ./app/main/controller
+
 test-verbose:
 	go test -v ./...
+	
+test-verbose-ctrl:
+	go test -v ./app/main/controller
 
 cover:
 	go tool cover
