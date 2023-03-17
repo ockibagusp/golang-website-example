@@ -212,7 +212,7 @@ func (repo *GormRepository) Delete(ic business.InternalContext, uid uint) (err e
 	tx := query.Begin()
 	var count int64
 	// if tx.Select("id").First(&selectUser).Error != nil {}
-	if tx.Select("id").First(&selectedUser).Count(&count); count != 1 {
+	if tx.Select("id").First(&selectedUser, uid).Count(&count); count != 1 {
 		tx.Rollback()
 		return errors.New("User Not Found")
 	}

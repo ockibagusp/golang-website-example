@@ -657,8 +657,6 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		return c.HTML(http.StatusNotFound, err.Error())
 	}
 
-	username, _ := c.Get("username").(string)
-
 	/*
 		TODO:
 		for example:
@@ -666,7 +664,7 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		username ockibagusp delete 'sugriwa': no
 		insyaallah
 	*/
-	oldUsername := username
+	oldUsername := user.Username
 	_, err = ctrl.userService.FirstByIDAndUsername(
 		business.InternalContext{}, uid, oldUsername,
 	)
