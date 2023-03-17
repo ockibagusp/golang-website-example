@@ -25,6 +25,7 @@ func init() {
 	templates["users/user-add.html"] = selectTemplate.ParseFilesBase("views/users/user-add.html", "views/users/user-form.html")
 	templates["users/user-read.html"] = selectTemplate.ParseFilesBase("views/users/user-read.html", "views/users/user-form.html")
 	templates["users/user-view.html"] = selectTemplate.ParseFilesBase("views/users/user-view.html", "views/users/user-form.html")
+	templates["user-view-password.html"] = selectTemplate.ParseFileHTMLOnly("views/users/user-view-password.html")
 }
 
 /*
