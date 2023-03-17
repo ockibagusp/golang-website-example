@@ -209,7 +209,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 
 		// Password Hash
 		var hash string
-		hash, err = middleware.PasswordHash(userForm.Password)
+		hash, err = ctrl.authService.PasswordHash(userForm.Password)
 		if err != nil {
 			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
 			log.Warn("END request method POST for create user: [-]failure")
@@ -459,5 +459,159 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		"csrf":             c.Get("csrf"),
 		"user":             user,
 		"locations":        locations,
+	})
+}
+
+/*
+ * Update User ID by Password
+ *
+ * @target: Users
+ * @method: GET or POST
+ * @route: /users/view/:id/password
+ */
+func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
+	id, _ := strconv.Atoi(c.Param("id"))
+	uid := uint(id)
+	username, _ := c.Get("username").(string)
+	role, _ := c.Get("role").(string)
+
+	if role == "anonymous" {
+		log.Warn("for GET to update user by password without no-session [@route: /login]")
+		middleware.SetFlashError(c, "login process failed!")
+		log.Warn("END request method GET for update user by password: [-]failure")
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	log.Info("START request method GET or POST for update user by password")
+
+	var (
+		user *selectUser.User
+		err  error
+	)
+	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
+	if err != nil {
+		log.Warnf(
+			"for GET to update user by password without models.User{}.FirstByID() errors: `%v`", err,
+		)
+		log.Warn("END request method GET for update user by password: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.HTML(http.StatusNotFound, err.Error())
+	}
+
+	/*
+		for example:
+		username ockibagusp update by password 'ockibagusp': ok
+		username ockibagusp update by password 'sugriwa': no
+	*/
+	_, err = ctrl.userService.FirstByIDAndUsername(
+		business.InternalContext{}, uid, username,
+	)
+
+	if role == "user" && err != nil {
+		log.Warnf(
+			"for GET to update user by password without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
+		)
+		log.Warn("END request method GET for update user by password: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.HTML(http.StatusForbidden, err.Error())
+	}
+
+	if c.Request().Method == "POST" {
+		// newPasswordForm: type of a password user
+		_newPasswordForm := types.NewPasswordForm{
+			OldPassword:        c.FormValue("old_password"),
+			NewPassword:        c.FormValue("new_password"),
+			ConfirmNewPassword: c.FormValue("confirm_new_password"),
+		}
+
+		if !ctrl.authService.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
+			log.Warn("for POST to update user by password without not check hash password: 403 Forbidden")
+			middleware.SetFlashError(c, "check hash password is wrong!")
+			log.Warn("END request method POST for update user by password: [-]failure")
+			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
+				"name":             fmt.Sprintf("User: %s", user.Name),
+				"session_username": username,
+				"session_role":     role,
+				"flash_error":      middleware.GetFlashError(c),
+				"user":             user,
+				"is_html_only":     true,
+			})
+		}
+
+		// _newPasswordForm: Validate of a validate user
+		err := validation.Errors{
+			"password": validation.Validate(
+				_newPasswordForm.NewPassword, validation.Required, validation.Length(6, 18),
+				validation.By(types.PasswordEquals(_newPasswordForm.ConfirmNewPassword)),
+			),
+		}.Filter()
+		/* if err = validation.Errors{...}.Filter(); err != nil {
+			...
+		} why?
+		*/
+		if err != nil {
+			log.Warnf("for POST to update user by password without validation.Errors errors: `%v`", err)
+			middleware.SetFlashError(c, err.Error())
+			log.Warn("END request method POST for update user by password: [-]failure")
+			// return c.JSON(http.StatusBadRequest, echo.Map{
+			// 	"message": "Passwords Don't Match",
+			// })
+			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
+				"name":             fmt.Sprintf("User: %s", user.Name),
+				"session_username": username,
+				"session_role":     role,
+				"flash_error":      middleware.GetFlashError(c),
+				"user":             user,
+				"is_html_only":     true,
+			})
+		}
+
+		// Password Hash
+		hash, err := ctrl.authService.PasswordHash(_newPasswordForm.NewPassword)
+		if err != nil {
+			log.Warnf("for POST to update user by password without middleware.PasswordHash() errors: `%v`", err)
+			log.Warn("END request method POST for update user by password: [-]failure")
+			return err
+		}
+
+		// err := ctrl.userService.UpdateByIDandPassword(...): be able
+		if err := ctrl.userService.UpdateByIDandPassword(business.InternalContext{}, uid, hash); err != nil {
+			log.Warnf("for POST to update user by password without models.User{}.UpdateByIDandPassword() errors: `%v`", err)
+			log.Warn("END request method POST for update user by password: [-]failure")
+			// HTTP response status: 405 Method Not Allowed
+			return c.HTML(http.StatusNotAcceptable, err.Error())
+		}
+
+		log.Info("models.User: [+]success", "user_update_password", user)
+		middleware.SetFlashSuccess(c, fmt.Sprintf("success update user by password: %s!", user.Username))
+		if role == "user" {
+			log.Info("END [user] request method POST for update user by password: [+]success")
+			// update user by password
+			return c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		log.Info("END [admin] request method POST for update user by password: [+]success")
+		// update user by password [admin]
+		return c.Redirect(http.StatusMovedPermanently, "/users")
+	}
+
+	// admin
+	if user == nil {
+		user, _ = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
+	}
+
+	log.Info("END request method GET for update user by password: [+]success")
+	/*
+		name (string): "users/user-view-password.html" -> no
+			{..,"status":500,"error":"html/template: \"users/user-view-password.html\" is undefined",..}
+			why?
+		name (string): "user-view-password.html" -> yes
+	*/
+	return c.Render(http.StatusOK, "user-view-password.html", echo.Map{
+		"session_username": username,
+		"session_role":     role,
+		"csrf":             c.Get("csrf"),
+		"name":             fmt.Sprintf("User: %s", user.Name),
+		"user":             user,
+		"is_html_only":     true,
 	})
 }

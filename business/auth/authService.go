@@ -14,6 +14,7 @@ type (
 	Service interface {
 		VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool)
 		CheckHashPassword(hash, password string) bool
+		PasswordHash(password string) (string, error)
 	}
 )
 
@@ -46,6 +47,37 @@ func (s *service) VerifyLogin(ic business.InternalContext, email string, plainPa
 	validPassword = true
 
 	return
+}
+
+/*
+password is slow: yes
+----------------
+password := "..."
+hash, err := PasswordHash(password)
+if err != nil {
+	return err
+}
+// match = true
+// match = false
+if !CheckHashPassword(hash, password) {
+	return ...
+}
+then faster: no
+-----------
+password := "..."
+hash := sha256.New()
+hash.Write([]byte(password))
+sha_hash := hex.EncodeToString(hash.Sum(nil))
+
+fmt.Println("Password -> ", password)
+fmt.Println("Hash -> ", sha_hash)
+*/
+
+// PasswordHash: hash for password to string
+func (s *service) PasswordHash(password string) (string, error) {
+	// GenerateFromPassword(..., bcrypt.DefaultCost{=10})
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hash), err
 }
 
 // CheckHashPassword: hashes for passwords to bool
