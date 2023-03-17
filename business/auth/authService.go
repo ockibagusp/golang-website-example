@@ -31,6 +31,8 @@ func (s *service) VerifyLogin(ic business.InternalContext, email string, plainPa
 		return
 	}
 
+	// // or,
+	// passwordHash, err := s.PasswordHash(plainPassword)
 	passwordHash, err := func(plainPassword string) (string, error) {
 		// GenerateFromPassword(..., bcrypt.DefaultCost{=10})
 		hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
