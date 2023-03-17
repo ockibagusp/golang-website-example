@@ -63,7 +63,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
 		// check hash password:
 		// match = true
 		// match = false
-		if !middleware.CheckHashPassword(user.Password, passwordForm.Password) {
+		if !ctrl.authService.CheckHashPassword(user.Password, passwordForm.Password) {
 			// or, middleware.SetFlashError(c, "username or password not match")
 			middleware.SetFlash(c, "error", "username or password not match")
 
