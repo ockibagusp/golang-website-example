@@ -112,7 +112,7 @@ func ClearSession(c echo.Context) (err error) {
 		Secure:   true,
 	}
 
-	session_gorilla.Values["id"] = -1
+	session_gorilla.Values["id"] = 0
 	session_gorilla.Values["username"] = "anonymous"
 	session_gorilla.Values["role"] = "anonymous"
 	session_gorilla.Save(c.Request(), c.Response())
