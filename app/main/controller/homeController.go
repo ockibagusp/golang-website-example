@@ -5,11 +5,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/business"
-	logg "github.com/ockibagusp/golang-website-example/logger"
+	"github.com/ockibagusp/golang-website-example/logger"
 )
 
 func init() {
@@ -28,11 +27,7 @@ func (ctrl *Controller) Home(c echo.Context) error {
 	// Please note the the second parameter "home.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
 	// ?
-	l := logg.Logger
-	l.Info("info")
-	l.Warn("warn")
-	l.Error("error")
-	// l.Fatal("fatal")
+	log := logger.New()
 
 	id, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)

@@ -106,6 +106,16 @@ func (logger *logger) Warn(args ...interface{}) {
 	).Warn(args...)
 }
 
+func (logger *logger) Warnf(format string, args ...interface{}) {
+	caller, function := logger.fileNameAndfuncName()
+	logrus.WithFields(
+		logrus.Fields{
+			"caller":   caller,
+			"function": function,
+		},
+	).Warnf(format, args...)
+}
+
 func (logger *logger) Info(args ...interface{}) {
 	caller, function := logger.fileNameAndfuncName()
 	logrus.WithFields(
