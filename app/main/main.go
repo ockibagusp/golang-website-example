@@ -14,11 +14,8 @@ import (
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
 	userModule "github.com/ockibagusp/golang-website-example/modules/user"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
-
-var logger = log.New()
 
 func newUserService(db *gorm.DB) user.Service {
 	userRepo := userModule.NewGormRepository(db)
