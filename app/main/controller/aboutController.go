@@ -19,12 +19,14 @@ func init() {
  * @method: GET
  * @route: /about
  */
-func (Controller) About(c echo.Context) error {
+func (ctrl *Controller) About(c echo.Context) error {
 	// Please note the the second parameter "about.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
+	ctrl.logger.Info("START request method GET for about")
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
+	ctrl.logger.Info("END request method GET for about: [+]success")
 	return c.Render(http.StatusOK, "about.html", echo.Map{
 		"name":             "About",
 		"nav":              "about", // (?)

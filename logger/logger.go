@@ -9,39 +9,29 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/config"
 	"github.com/sirupsen/logrus"
 )
 
-var Logger = New()
-
 func init() {
-	// debugStr := config.GetAPPConfig().Debug
-	// log := logrus.New()
-	// log.SetFormatter(&logrus.JSONFormatter{
-	// 	TimestampFormat: "2006-01-02T15:04:05.9999999Z07:00",
-	// })
-	// log.SetLevel(logrus.InfoLevel)
-	// log.SetReportCaller(true)
-	// log.SetOutput(os.Stdout)
-	// log.SetFormatter(&logrus.JSONFormatter{
-	// 	DataKey: "caller",
-	// 	CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
-	// 		fileName := path.Base(frame.File) + ":" + strconv.Itoa(frame.Line)
-	// 		//return frame.Function, fileName
-	// 		return "", fileName
-	// 	},
-	// })
+	debugStr := config.GetAPPConfig().Debug
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetOutput(os.Stdout)
 
-	// if debugStr == "true" {
-	// 	logrus.SetLevel(logrus.DebugLevel)
-	// }
+	if debugStr == "true" {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 }
 
-type logger struct {
+type Logger struct {
+	trackerID string
 }
 
-func New() *logger {
-	return &logger{}
+func New() *Logger {
+	return &Logger{}
 }
 
 func LogEntry(c echo.Context) *logrus.Entry {
@@ -59,12 +49,7 @@ func LogEntry(c echo.Context) *logrus.Entry {
 	})
 }
 
-func (logger) fileNameAndfuncName() (string, string) {
-	logrus.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-	})
-	logrus.SetLevel(logrus.InfoLevel)
-	logrus.SetOutput(os.Stdout)
+func (Logger) fileNameAndfuncName() (string, string) {
 	pc, file, line, ok := runtime.Caller(2)
 	if !ok {
 		return "", ""
@@ -76,7 +61,11 @@ func (logger) fileNameAndfuncName() (string, string) {
 	return fileName, function
 }
 
-func (logger *logger) Error(args ...interface{}) {
+func (logger *Logger) SetTrackerID() {
+	logger.trackerID = "123"
+}
+
+func (logger *Logger) Error(args ...interface{}) {
 	caller, function := logger.fileNameAndfuncName()
 	logrus.WithFields(
 		logrus.Fields{
@@ -86,7 +75,17 @@ func (logger *logger) Error(args ...interface{}) {
 	).Error(args...)
 }
 
-func (logger *logger) Fatal(args ...interface{}) {
+func (logger *Logger) Errorf(format string, args ...interface{}) {
+	caller, function := logger.fileNameAndfuncName()
+	logrus.WithFields(
+		logrus.Fields{
+			"caller":   caller,
+			"function": function,
+		},
+	).Errorf(format, args...)
+}
+
+func (logger *Logger) Fatal(args ...interface{}) {
 	caller, function := logger.fileNameAndfuncName()
 	logrus.WithFields(
 		logrus.Fields{
@@ -96,7 +95,17 @@ func (logger *logger) Fatal(args ...interface{}) {
 	).Fatal(args...)
 }
 
-func (logger *logger) Warn(args ...interface{}) {
+func (logger *Logger) Fatalf(format string, args ...interface{}) {
+	caller, function := logger.fileNameAndfuncName()
+	logrus.WithFields(
+		logrus.Fields{
+			"caller":   caller,
+			"function": function,
+		},
+	).Fatalf(format, args...)
+}
+
+func (logger *Logger) Warn(args ...interface{}) {
 	caller, function := logger.fileNameAndfuncName()
 	logrus.WithFields(
 		logrus.Fields{
@@ -106,7 +115,7 @@ func (logger *logger) Warn(args ...interface{}) {
 	).Warn(args...)
 }
 
-func (logger *logger) Warnf(format string, args ...interface{}) {
+func (logger *Logger) Warnf(format string, args ...interface{}) {
 	caller, function := logger.fileNameAndfuncName()
 	logrus.WithFields(
 		logrus.Fields{
@@ -116,7 +125,7 @@ func (logger *logger) Warnf(format string, args ...interface{}) {
 	).Warnf(format, args...)
 }
 
-func (logger *logger) Info(args ...interface{}) {
+func (logger *Logger) Info(args ...interface{}) {
 	caller, function := logger.fileNameAndfuncName()
 	logrus.WithFields(
 		logrus.Fields{
@@ -124,4 +133,14 @@ func (logger *logger) Info(args ...interface{}) {
 			"function": function,
 		},
 	).Info(args...)
+}
+
+func (logger *Logger) Infof(format string, args ...interface{}) {
+	caller, function := logger.fileNameAndfuncName()
+	logrus.WithFields(
+		logrus.Fields{
+			"caller":   caller,
+			"function": function,
+		},
+	).Infof(format, args...)
 }

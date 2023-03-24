@@ -8,7 +8,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
@@ -51,9 +50,9 @@ func (ctrl *Controller) Users(c echo.Context) error {
 	role, _ := c.Get("role").(string)
 
 	if role == "anonymous" {
-		log.Warn("for GET to users without no-session [@route: /login]")
+		ctrl.logger.Warn("for GET to users without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for users: [-]failure")
+		ctrl.logger.Warn("END request method GET for users: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
@@ -61,36 +60,36 @@ func (ctrl *Controller) Users(c echo.Context) error {
 	if role != "admin" {
 		user, err := ctrl.userService.FirstUserByID(ic, uid)
 		if err != nil {
-			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
-			log.Warn("END request method GET for user: [-]failure")
+			ctrl.logger.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
+			ctrl.logger.Warn("END request method GET for user: [-]failure")
 			return err
 		}
-		log.Infof("END [user] request method GET for users to users/read/%v: [+]success", user.ID)
+		ctrl.logger.Infof("END [user] request method GET for users to users/read/%v: [+]success", user.ID)
 		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
 	}
 
 	if c.QueryParam("admin") == "all" {
-		log.Infof(`for GET to users admin ctrl.userService.FindAll(ic, "admin")`)
+		ctrl.logger.Infof(`for GET to users admin ctrl.userService.FindAll(ic, "admin")`)
 		typing = "Admin"
 		users, err = ctrl.userService.FindAll(ic, "admin")
 	} else if c.QueryParam("user") == "all" {
-		log.Infof(`for GET to users user ctrl.userService.FindAll(ic, "user")`)
+		ctrl.logger.Infof(`for GET to users user ctrl.userService.FindAll(ic, "user")`)
 		typing = "User"
 		users, err = ctrl.userService.FindAll(ic, "user")
 	} else {
-		log.Infof(`for GET to users ctrl.userService.FindAll(ic) or ctrl.userService.FindAll(ic, "all")`)
+		ctrl.logger.Infof(`for GET to users ctrl.userService.FindAll(ic) or ctrl.userService.FindAll(ic, "all")`)
 		typing = "All"
 		users, err = ctrl.userService.FindAll(ic)
 	}
 
 	if err != nil {
-		log.Warnf("for GET to users without ctrl.userService.FindAll errors: `%v`", err)
-		log.Warn("END request method GET for users: [-]failure")
+		ctrl.logger.Warnf("for GET to users without ctrl.userService.FindAll errors: `%v`", err)
+		ctrl.logger.Warn("END request method GET for users: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.HTML(http.StatusNotFound, err.Error())
 	}
 
-	log.Info("END request method GET for users: [+]success")
+	ctrl.logger.Info("END request method GET for users: [+]success")
 	return c.Render(http.StatusOK, "users/user-all.html", echo.Map{
 		"name":             fmt.Sprintf("Users: %v", typing),
 		"nav":              "users", // (?)
@@ -130,29 +129,29 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 
 	// is user?
 	if role == "user" {
-		log.Info("START request method GET for create user")
+		ctrl.logger.Info("START request method GET for create user")
 		user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 		if err != nil {
-			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
-			log.Warn("END request method GET for create user: [-]failure")
+			ctrl.logger.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
+			ctrl.logger.Warn("END request method GET for create user: [-]failure")
 			return err
 		}
 
 		middleware.SetFlashError(c, "403 Forbidden")
-		log.Infof("END request method GET for create user to users/read/%v: [-]failure", user.ID)
+		ctrl.logger.Infof("END request method GET for create user to users/read/%v: [-]failure", user.ID)
 		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
 	}
 
 	locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
 	if c.Request().Method == "POST" {
-		log.Info("START request method POST for create user")
+		ctrl.logger.Info("START request method POST for create user")
 
 		var location uint
 		if c.FormValue("location") != "" {
 			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
 			if err != nil {
-				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
-				log.Warn("END request method POST for create user: [-]failure")
+				ctrl.logger.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
+				ctrl.logger.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
 				return c.HTML(http.StatusBadRequest, err.Error())
 			}
@@ -191,10 +190,10 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		} why?
 		*/
 		if err != nil {
-			log.Warnf("for POST to create user without validation.Errors: `%v`", err)
+			ctrl.logger.Warnf("for POST to create user without validation.Errors: `%v`", err)
 			middleware.SetFlashError(c, err.Error())
 
-			log.Warn("END request method POST for create user: [-]failure")
+			ctrl.logger.Warn("END request method POST for create user: [-]failure")
 			// HTTP response status: 400 Bad Request
 			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
 				"name":             "User Add",
@@ -212,8 +211,8 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		var hash string
 		hash, err = ctrl.authService.PasswordHash(userForm.Password)
 		if err != nil {
-			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
-			log.Warn("END request method POST for create user: [-]failure")
+			ctrl.logger.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
+			ctrl.logger.Warn("END request method POST for create user: [-]failure")
 			return err
 		}
 
@@ -228,10 +227,10 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		}
 
 		if _, err := ctrl.userService.Create(business.InternalContext{}, user); err != nil {
-			log.Warn("for POST to create user without models.User: nil", "user_failure", user)
+			ctrl.logger.Warn("for POST to create user without models.User: nil", "user_failure", user)
 			middleware.SetFlashError(c, err.Error())
 
-			log.Warn("END request method POST for create user: [-]failure")
+			ctrl.logger.Warn("END request method POST for create user: [-]failure")
 			// HTTP response status: 400 Bad Request
 			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
 				"name":             "User Add",
@@ -245,27 +244,27 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			})
 		}
 
-		log.Info("models.User: [+]success", "user_success", user)
+		ctrl.logger.Info("models.User: [+]success", "user_success", user)
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
 		// create user
 		if role == "anonymous" {
 			if _, err := middleware.SetSession(user, c); err != nil {
 				middleware.SetFlashError(c, err.Error())
-				log.Warn("to middleware.SetSession session not found for create user")
-				log.Warn("END request method POST for create user: [-]failure")
+				ctrl.logger.Warn("to middleware.SetSession session not found for create user")
+				ctrl.logger.Warn("END request method POST for create user: [-]failure")
 				// err: session not found
 				return c.HTML(http.StatusForbidden, err.Error())
 			}
-			log.Info("END request method POST for create user: [+]success")
+			ctrl.logger.Info("END request method POST for create user: [+]success")
 			return c.Redirect(http.StatusMovedPermanently, "/")
 		}
-		log.Info("END request method POST for create user: [+]success")
+		ctrl.logger.Info("END request method POST for create user: [+]success")
 		// create admin
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
-	log.Info("START request method GET for create user")
-	log.Info("END request method GET for create user: [+]success")
+	ctrl.logger.Info("START request method GET for create user")
+	ctrl.logger.Info("END request method GET for create user: [+]success")
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
 		"name":             "User Add",
 		"nav":              "user Add", // (?)
@@ -292,33 +291,33 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 	role, _ := c.Get("role").(string)
 
 	if role == "anonymous" {
-		log.Warn("for GET to read user without no-session [@route: /login]")
+		ctrl.logger.Warn("for GET to read user without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for read user: [-]failure")
+		ctrl.logger.Warn("END request method GET for read user: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
-	log.Info("START request method GET for read user")
+	ctrl.logger.Info("START request method GET for read user")
 
 	user, err := ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	if err != nil {
-		log.Warnf(
+		ctrl.logger.Warnf(
 			"for GET to read user without models.User{}.FirstByID() errors: `%v`", err,
 		)
-		log.Warn("END request method GET for read user: [-]failure")
+		ctrl.logger.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Method Not Acceptable
 		return c.HTML(http.StatusNotAcceptable, err.Error())
 	}
 
 	locations, err := locationModules.NewDB().FindAll(business.InternalContext{})
 	if err != nil {
-		log.Warnf("for GET to read user without models.location{}.FindAll() errors: `%v`", err)
-		log.Warn("END request method GET for read user: [-]failure")
+		ctrl.logger.Warnf("for GET to read user without models.location{}.FindAll() errors: `%v`", err)
+		ctrl.logger.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Not Acceptable
 		return c.HTML(http.StatusNotAcceptable, err.Error())
 	}
 
-	log.Info("END request method GET for read user: [+]success")
+	ctrl.logger.Info("END request method GET for read user: [+]success")
 	return c.Render(http.StatusOK, "users/user-read.html", echo.Map{
 		"name":             fmt.Sprintf("User: %s", user.Name),
 		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
@@ -346,9 +345,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 	role, _ := c.Get("role").(string)
 
 	if role == "anonymous" {
-		log.Warn("for GET to update user without no-session [@route: /login]")
+		ctrl.logger.Warn("for GET to update user without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for update user: [-]failure")
+		ctrl.logger.Warn("END request method GET for update user: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
@@ -358,11 +357,11 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 	)
 	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	if err != nil {
-		log.Info("START request method GET/POST for update user")
-		log.Warnf(
+		ctrl.logger.Info("START request method GET/POST for update user")
+		ctrl.logger.Warnf(
 			"for GET to update user without models.User{}.FirstByID() errors: `%v`", err,
 		)
-		log.Warn("END request method GET for update user: [-]failure")
+		ctrl.logger.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.HTML(http.StatusNotFound, err.Error())
 	}
@@ -370,25 +369,25 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 	// admin: yes
 	// (role is "user" and (not user.Username)): 403 Forbidden
 	if role == "user" && (user.Username != username) {
-		log.Info("START request method GET/POST for update user")
-		log.Warnf(
+		ctrl.logger.Info("START request method GET/POST for update user")
+		ctrl.logger.Warnf(
 			`role is "user" (%v) and [not user.Username (%v)]: 403 Forbidden`,
 			role,
 			(user.Username != username),
 		)
-		log.Warn("END request method GET for update user: [-]failure")
+		ctrl.logger.Warn("END request method GET for update user: [-]failure")
 		return c.HTML(http.StatusForbidden, "403 Forbidden")
 	}
 
 	if c.Request().Method == "POST" {
-		log.Info("START request method POST for update user")
+		ctrl.logger.Info("START request method POST for update user")
 
 		var location uint
 		if c.FormValue("location") != "" {
 			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
 			if err != nil {
-				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
-				log.Warn("END request method POST for create user: [-]failure")
+				ctrl.logger.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
+				ctrl.logger.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
 				return c.HTML(http.StatusBadRequest, err.Error())
 			}
@@ -407,11 +406,11 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 
 		// newUser, err = ctrl.userService.Update(business.InternalContext{}, user, updateUser); err != nil: equal
 		if user, err = ctrl.userService.Update(business.InternalContext{}, user, updateUser); err != nil {
-			log.Warnf(
+			ctrl.logger.Warnf(
 				"for POST to update user without models.User{}.Update() errors: `%v`", err,
 			)
 			middleware.SetFlashError(c, err.Error())
-			log.Warn("END request method POST for update user: [-]failure")
+			ctrl.logger.Warn("END request method POST for update user: [-]failure")
 
 			locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
 			// HTTP response status: 406 Method Not Acceptable
@@ -427,30 +426,30 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			})
 		}
 
-		log.Info("models.User: [+]success", "user_update", user)
+		ctrl.logger.Info("models.User: [+]success", "user_update", user)
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success update user: %s!", user.Username))
 
 		if role == "user" {
-			log.Info("END [user] request method POST for update user: [+]success")
+			ctrl.logger.Info("END [user] request method POST for update user: [+]success")
 			// update user
 			return c.Redirect(http.StatusMovedPermanently, "/")
 		}
-		log.Info("END [admin] request method POST for update user: [+]success")
+		ctrl.logger.Info("END [admin] request method POST for update user: [+]success")
 		// update admin
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
-	log.Info("START request method GET for update user")
+	ctrl.logger.Info("START request method GET for update user")
 
 	locations, _ := locationModules.NewDB().FindAll(business.InternalContext{})
 	if err != nil {
-		log.Warnf("for GET to update user without models.location{}.FindAll() errors: `%v`", err)
-		log.Warn("END request method GET for update user: [-]failure")
+		ctrl.logger.Warnf("for GET to update user without models.location{}.FindAll() errors: `%v`", err)
+		ctrl.logger.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 405 Method Not Allowed
 		return c.HTML(http.StatusNotAcceptable, err.Error())
 	}
 
-	log.Info("END request method GET for update user: [+]success")
+	ctrl.logger.Info("END request method GET for update user: [+]success")
 	return c.Render(http.StatusOK, "users/user-view.html", echo.Map{
 		"name":             fmt.Sprintf("User: %s", user.Name),
 		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
@@ -477,13 +476,13 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 	role, _ := c.Get("role").(string)
 
 	if role == "anonymous" {
-		log.Warn("for GET to update user by password without no-session [@route: /login]")
+		ctrl.logger.Warn("for GET to update user by password without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for update user by password: [-]failure")
+		ctrl.logger.Warn("END request method GET for update user by password: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
-	log.Info("START request method GET or POST for update user by password")
+	ctrl.logger.Info("START request method GET or POST for update user by password")
 
 	var (
 		user *selectUser.User
@@ -491,10 +490,10 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 	)
 	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	if err != nil {
-		log.Warnf(
+		ctrl.logger.Warnf(
 			"for GET to update user by password without models.User{}.FirstByID() errors: `%v`", err,
 		)
-		log.Warn("END request method GET for update user by password: [-]failure")
+		ctrl.logger.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.HTML(http.StatusNotFound, err.Error())
 	}
@@ -509,10 +508,10 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 	)
 
 	if role == "user" && err != nil {
-		log.Warnf(
+		ctrl.logger.Warnf(
 			"for GET to update user by password without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
 		)
-		log.Warn("END request method GET for update user by password: [-]failure")
+		ctrl.logger.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.HTML(http.StatusForbidden, err.Error())
 	}
@@ -526,9 +525,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		}
 
 		if !ctrl.authService.CheckHashPassword(user.Password, _newPasswordForm.OldPassword) {
-			log.Warn("for POST to update user by password without not check hash password: 403 Forbidden")
+			ctrl.logger.Warn("for POST to update user by password without not check hash password: 403 Forbidden")
 			middleware.SetFlashError(c, "check hash password is wrong!")
-			log.Warn("END request method POST for update user by password: [-]failure")
+			ctrl.logger.Warn("END request method POST for update user by password: [-]failure")
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
 				"name":             fmt.Sprintf("User: %s", user.Name),
 				"session_username": username,
@@ -551,9 +550,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		} why?
 		*/
 		if err != nil {
-			log.Warnf("for POST to update user by password without validation.Errors errors: `%v`", err)
+			ctrl.logger.Warnf("for POST to update user by password without validation.Errors errors: `%v`", err)
 			middleware.SetFlashError(c, err.Error())
-			log.Warn("END request method POST for update user by password: [-]failure")
+			ctrl.logger.Warn("END request method POST for update user by password: [-]failure")
 			// return c.JSON(http.StatusBadRequest, echo.Map{
 			// 	"message": "Passwords Don't Match",
 			// })
@@ -570,27 +569,27 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		// Password Hash
 		hash, err := ctrl.authService.PasswordHash(_newPasswordForm.NewPassword)
 		if err != nil {
-			log.Warnf("for POST to update user by password without middleware.PasswordHash() errors: `%v`", err)
-			log.Warn("END request method POST for update user by password: [-]failure")
+			ctrl.logger.Warnf("for POST to update user by password without middleware.PasswordHash() errors: `%v`", err)
+			ctrl.logger.Warn("END request method POST for update user by password: [-]failure")
 			return err
 		}
 
 		// err := ctrl.userService.UpdateByIDandPassword(...): be able
 		if err := ctrl.userService.UpdateByIDandPassword(business.InternalContext{}, uid, hash); err != nil {
-			log.Warnf("for POST to update user by password without models.User{}.UpdateByIDandPassword() errors: `%v`", err)
-			log.Warn("END request method POST for update user by password: [-]failure")
+			ctrl.logger.Warnf("for POST to update user by password without models.User{}.UpdateByIDandPassword() errors: `%v`", err)
+			ctrl.logger.Warn("END request method POST for update user by password: [-]failure")
 			// HTTP response status: 405 Method Not Allowed
 			return c.HTML(http.StatusNotAcceptable, err.Error())
 		}
 
-		log.Info("models.User: [+]success", "user_update_password", user)
+		ctrl.logger.Info("models.User: [+]success", "user_update_password", user)
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success update user by password: %s!", user.Username))
 		if role == "user" {
-			log.Info("END [user] request method POST for update user by password: [+]success")
+			ctrl.logger.Info("END [user] request method POST for update user by password: [+]success")
 			// update user by password
 			return c.Redirect(http.StatusMovedPermanently, "/")
 		}
-		log.Info("END [admin] request method POST for update user by password: [+]success")
+		ctrl.logger.Info("END [admin] request method POST for update user by password: [+]success")
 		// update user by password [admin]
 		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
@@ -600,7 +599,7 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		user, _ = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	}
 
-	log.Info("END request method GET for update user by password: [+]success")
+	ctrl.logger.Info("END request method GET for update user by password: [+]success")
 	/*
 		name (string): "users/user-view-password.html" -> no
 			{..,"status":500,"error":"html/template: \"users/user-view-password.html\" is undefined",..}
@@ -627,20 +626,20 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 func (ctrl *Controller) DeleteUser(c echo.Context) error {
 	role, _ := c.Get("role").(string)
 	if role == "anonymous" {
-		log.Warn("for GET to delete user without no-session [@route: /login]")
+		ctrl.logger.Warn("for GET to delete user without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for delete user: [-]failure")
+		ctrl.logger.Warn("END request method GET for delete user: [-]failure")
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
-	log.Info("START request method GET for delete user")
+	ctrl.logger.Info("START request method GET for delete user")
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
 
 	// why?
 	// delete not for admin
 	if uid == 1 {
-		log.Warn("END request method GET for delete user [admin]: [-]failure")
+		ctrl.logger.Warn("END request method GET for delete user [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.HTML(http.StatusForbidden, "403 Forbidden")
 	}
@@ -651,8 +650,8 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 	)
 	user, err = ctrl.userService.FirstUserByID(business.InternalContext{}, uid)
 	if err != nil {
-		log.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
-		log.Warn("END request method GET for delete user: [-]failure")
+		ctrl.logger.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
+		ctrl.logger.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.HTML(http.StatusNotFound, err.Error())
 	}
@@ -671,34 +670,34 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 
 	if !(role == "admin") {
 		if err != nil {
-			log.Warnf(
+			ctrl.logger.Warnf(
 				"for GET to delete without models.User{}.FirstByIDAndUsername() errors: `%v`", err,
 			)
-			log.Warn("END request method GET for delete user: [-]failure")
+			ctrl.logger.Warn("END request method GET for delete user: [-]failure")
 			// HTTP response status: 403 Forbidden
 			return c.HTML(http.StatusForbidden, err.Error())
 		}
 	}
 
 	if err := ctrl.userService.Delete(business.InternalContext{}, uid); err != nil {
-		log.Warnf("for GET to delete user without models.User{}.Delete() errors: `%v`", err)
-		log.Warn("END request method GET for delete user: [-]failure")
+		ctrl.logger.Warnf("for GET to delete user without models.User{}.Delete() errors: `%v`", err)
+		ctrl.logger.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.HTML(http.StatusForbidden, err.Error())
 	}
 
 	middleware.SetFlashSuccess(c, fmt.Sprintf("success delete user: %s!", user.Username))
 	if role == "user" {
-		log.Info("END [user] request method GET for delete user: [+]success")
+		ctrl.logger.Info("END [user] request method GET for delete user: [+]success")
 		if err := middleware.ClearSession(c); err != nil {
-			log.Warn("to middleware.ClearSession session not found")
+			ctrl.logger.Warn("to middleware.ClearSession session not found")
 			// err: session not found
 			return c.HTML(http.StatusBadRequest, err.Error())
 		}
 		// delete user
 		return c.Redirect(http.StatusSeeOther, "/")
 	}
-	log.Info("END request method GET for delete user: [+]success")
+	ctrl.logger.Info("END request method GET for delete user: [+]success")
 	// delete admin
 	return c.Redirect(http.StatusMovedPermanently, "/users")
 }
