@@ -11,7 +11,7 @@ type Controller struct {
 	appConfig   *config.Config
 	authService auth.Service
 	userService user.Service
-	logger      *logger.Logger
+	logger      *logger.StandardLogger
 }
 
 func NewController(
@@ -19,7 +19,7 @@ func NewController(
 	authService auth.Service,
 	userService user.Service,
 ) *Controller {
-	logger := logger.New()
+	logger := logger.NewLogger()
 	return &Controller{
 		appConfig,
 		authService,
