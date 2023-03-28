@@ -22,6 +22,7 @@ func init() {
 func (ctrl *Controller) About(c echo.Context) error {
 	// Please note the the second parameter "about.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
+	ctrl.logger.SetContext(c)
 	ctrl.logger.Info("START request method GET for about")
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)

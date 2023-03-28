@@ -26,12 +26,12 @@ func (ctrl *Controller) Home(c echo.Context) error {
 	// Please note the the second parameter "home.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
 	// ?
+	ctrl.logger.SetContext(c)
 	ctrl.logger.Info("START request method GET for home")
 
 	id, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
-	ctrl.logger.Info("START request method GET for home")
 
 	var message string
 	if id != 0 {

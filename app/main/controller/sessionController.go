@@ -24,6 +24,8 @@ func init() {
  * @route: /login
  */
 func (ctrl *Controller) Login(c echo.Context) error {
+	ctrl.logger.SetContext(c)
+
 	if c.Request().Method == "POST" {
 		ctrl.logger.Info("START request method POST for login")
 		passwordForm := &types.LoginForm{
@@ -104,6 +106,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
  * @route: /logout
  */
 func (ctrl *Controller) Logout(c echo.Context) error {
+	ctrl.logger.SetContext(c)
 	ctrl.logger.Info("START request method GET for logout")
 
 	if err := middleware.ClearSession(c); err != nil {

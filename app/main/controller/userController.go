@@ -49,6 +49,8 @@ func (ctrl *Controller) Users(c echo.Context) error {
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
+	ctrl.logger.SetContext(c)
+
 	if role == "anonymous" {
 		ctrl.logger.Warn("for GET to users without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
@@ -122,6 +124,8 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		user *selectUser.User
 		err  error
 	)
+
+	ctrl.logger.SetContext(c)
 
 	uid, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
@@ -285,6 +289,8 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
  * @route: /users/read/:id
  */
 func (ctrl *Controller) ReadUser(c echo.Context) error {
+	ctrl.logger.SetContext(c)
+
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
 	username, _ := c.Get("username").(string)
@@ -339,6 +345,8 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
  * @route: /users/view/:id
  */
 func (ctrl *Controller) UpdateUser(c echo.Context) error {
+	ctrl.logger.SetContext(c)
+
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
 	username, _ := c.Get("username").(string)
@@ -470,6 +478,8 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
  * @route: /users/view/:id/password
  */
 func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
+	ctrl.logger.SetContext(c)
+
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
 	username, _ := c.Get("username").(string)
@@ -624,6 +634,8 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
  * @route: /users/delete/:id
  */
 func (ctrl *Controller) DeleteUser(c echo.Context) error {
+	ctrl.logger.SetContext(c)
+
 	role, _ := c.Get("role").(string)
 	if role == "anonymous" {
 		ctrl.logger.Warn("for GET to delete user without no-session [@route: /login]")
