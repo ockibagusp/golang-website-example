@@ -13,7 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var logger = NewLogger()
+
 func init() {
+	// ?
 	debugStr := config.GetAPPConfig().Debug
 	logrus.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -35,9 +38,9 @@ type Event struct {
 // StandardLogger enforces specific log message formats
 type StandardLogger struct {
 	logger    *logrus.Logger
-	tag       string
-	trackerID string
+	Package   string
 	method    string
+	trackerID string
 	username  string
 	route     string
 }
@@ -55,6 +58,14 @@ func NewLogger() *StandardLogger {
 	return standardLogger
 }
 
+// NewPackage initializes the standard logger package
+func NewPackage(Package string) *StandardLogger {
+	standardLogger := NewLogger()
+	standardLogger.Package = Package
+
+	return standardLogger
+}
+
 // Declare variables to store log messages as new Events
 var (
 	successArgMessage      = Event{1, "Success argument: %s"}
@@ -64,47 +75,64 @@ var (
 	missingArgMessage      = Event{5, "Missing argument: %s"}
 )
 
-// SetContext is a standard SetContext
-func (logger *StandardLogger) SetContext(c echo.Context) {
-	logger.method = c.Request().Method
-	logger.username, _ = c.Get("username").(string)
-	logger.route = c.Path()
+// Start is a standard start
+func (logger *StandardLogger) Start(c echo.Context) *StandardLogger {
+	if c != nil {
+		logger.method = c.Request().Method
+		logger.username, _ = c.Get("username").(string)
+		logger.route = c.Path()
+	}
+
+	return logger
 }
 
-func (logger *StandardLogger) SetTrackerID() {
-	logger.trackerID = uuid.NewString()
+// StartTrackerID is a standard Start Tracker ID
+func (logger *StandardLogger) StartTrackerID(c echo.Context) (string, *StandardLogger) {
+	logger.Start(c)
+	trackerID := uuid.NewString()
+	logger.trackerID = trackerID
+
+	return trackerID, logger
+}
+
+// End is a standard end
+func (logger *StandardLogger) End() {
+	logger.method = ""
+	logger.trackerID = ""
+	logger.username = ""
+	logger.route = ""
 }
 
 func (logger *StandardLogger) withFields() *logrus.Entry {
 	var fields logrus.Fields = logrus.Fields{}
 
-	caller, function := fileNameAndfuncName()
-	fields["caller"] = caller
-	fields["function"] = function
+	if logger.Package != "" {
+		fields["package"] = logger.Package
+	}
 
 	if logger.method != "" {
 		fields["method"] = logger.method
+	}
+
+	if logger.trackerID != "" {
+		fields["tracker_id"] = logger.trackerID
 	}
 
 	if logger.username != "" {
 		fields["username"] = logger.username
 	}
 
-	if logger.trackerID != "" {
-		fields["trackerID"] = logger.trackerID
-	}
-
 	if logger.route != "" {
 		fields["route"] = logger.route
 	}
 
+	caller, function := fileNameAndfuncName()
+	fields["caller"] = caller
+	fields["function"] = function
+
 	return logger.logger.WithFields(
 		fields,
 	)
-}
-
-func (logger *StandardLogger) GetUsername() string {
-	return logger.username
 }
 
 func fileNameAndfuncName() (string, string) {
@@ -144,52 +172,20 @@ func (logger *StandardLogger) MissingArg(argumentName string) {
 	logger.withFields().Errorf(missingArgMessage.message, argumentName)
 }
 
-// logrus.Info: is a standard info message level
-func (logger *StandardLogger) Info(args ...interface{}) {
-	logger.withFields().Info(args...)
+//
+
+func (logger *StandardLogger) Info(argumentName ...interface{}) {
+	logger.withFields().Info(argumentName)
 }
 
-// logrus.Warn: is a standard warn message level
-func (logger *StandardLogger) Warn(args ...interface{}) {
-	logger.withFields().Warn(args...)
+func (logger *StandardLogger) Infof(format string, argumentName ...interface{}) {
+	logger.withFields().Infof(format, argumentName)
 }
 
-// logrus.Error: is a standard error message level
-func (logger *StandardLogger) Error(args ...interface{}) {
-	logger.withFields().Error(args...)
+func (logger *StandardLogger) Warn(argumentName ...interface{}) {
+	logger.withFields().Warn(argumentName)
 }
 
-// logrus.Fatal: is a standard fatal message level
-func (logger *StandardLogger) Fatal(args ...interface{}) {
-	logger.withFields().Fatal(args...)
-}
-
-// logrus.Panic: is a standard panic message level
-func (logger *StandardLogger) Panic(args ...interface{}) {
-	logger.withFields().Panic(args...)
-}
-
-// logrus.Infof: is a standard info format message level
-func (logger *StandardLogger) Infof(format string, args ...interface{}) {
-	logger.withFields().Infof(format, args...)
-}
-
-// logrus.Warnf: is a standard warn format message level
-func (logger *StandardLogger) Warnf(format string, args ...interface{}) {
-	logger.withFields().Warnf(format, args...)
-}
-
-// logrus.Errorf: is a standard error format message level
-func (logger *StandardLogger) Errorf(format string, args ...interface{}) {
-	logger.withFields().Errorf(format, args...)
-}
-
-// logrus.Fatalf: is a standard fatal format message level
-func (logger *StandardLogger) Fatalf(format string, args ...interface{}) {
-	logger.withFields().Fatalf(format, args...)
-}
-
-// logrus.Panicf: is a standard panic message level
-func (logger *StandardLogger) Panicf(format string, args ...interface{}) {
-	logger.withFields().Panicf(format, args...)
+func (logger *StandardLogger) Warnf(format string, argumentName ...interface{}) {
+	logger.withFields().Warnf(format, argumentName)
 }
