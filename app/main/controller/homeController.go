@@ -8,7 +8,10 @@ import (
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/business"
+	log "github.com/ockibagusp/golang-website-example/logger"
 )
+
+var hlogger = log.NewPackage("session_controller")
 
 func init() {
 	// Templates: homeController
@@ -26,8 +29,10 @@ func (ctrl *Controller) Home(c echo.Context) error {
 	// Please note the the second parameter "home.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
 	// ?
-	ctrl.logger.SetContext(c)
-	ctrl.logger.Info("START request method GET for home")
+	log := hlogger.Start(c)
+	defer log.End()
+
+	log.Info("START request method GET for home")
 
 	id, _ := c.Get("id").(uint)
 	username, _ := c.Get("username").(string)
@@ -37,13 +42,13 @@ func (ctrl *Controller) Home(c echo.Context) error {
 	if id != 0 {
 		user, err := ctrl.userService.FindByID(business.InternalContext{}, id)
 		if err != nil {
-			ctrl.logger.Warnf(`session values "username" error: %v`, err)
+			log.Warnf(`session values "username" error: %v`, err)
 		}
 
 		message = fmt.Sprintf("%v!", user.Name)
 	}
 
-	ctrl.logger.Info("END request method GET for home: [+]success")
+	log.Info("END request method GET for home: [+]success")
 	return c.Render(http.StatusOK, "home.html", echo.Map{
 		"name":             "Home",
 		"nav":              "home", // (?)
