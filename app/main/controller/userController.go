@@ -74,15 +74,15 @@ func (ctrl *Controller) Users(c echo.Context) error {
 	}
 
 	if c.QueryParam("admin") == "all" {
-		log.Infof(`for GET to users admin ctrl.userService.FindAll(ic, "admin")`)
+		log.Info(`for GET to users admin ctrl.userService.FindAll(ic, "admin")`)
 		typing = "Admin"
 		users, err = ctrl.userService.FindAll(ic, "admin")
 	} else if c.QueryParam("user") == "all" {
-		log.Infof(`for GET to users user ctrl.userService.FindAll(ic, "user")`)
+		log.Info(`for GET to users user ctrl.userService.FindAll(ic, "user")`)
 		typing = "User"
 		users, err = ctrl.userService.FindAll(ic, "user")
 	} else {
-		log.Infof(`for GET to users ctrl.userService.FindAll(ic) or ctrl.userService.FindAll(ic, "all")`)
+		log.Info(`for GET to users ctrl.userService.FindAll(ic) or ctrl.userService.FindAll(ic, "all")`)
 		typing = "All"
 		users, err = ctrl.userService.FindAll(ic)
 	}
