@@ -60,7 +60,9 @@ func NewLogger() *StandardLogger {
 // NewPackage initializes the standard logger package
 func NewPackage(Package string) (StandardLogger *StandardLogger) {
 	StandardLogger = logger
-	StandardLogger.Package = Package
+	if Package != "" {
+		StandardLogger.Package = Package
+	}
 
 	return
 }
