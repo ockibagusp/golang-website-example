@@ -8,7 +8,7 @@ import (
 	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
-var alogger = log.NewPackage("about_controller")
+var alogger = log.NewLogger()
 
 func init() {
 	// Templates: aboutController

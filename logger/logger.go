@@ -13,21 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var logger = NewLogger()
-
-func init() {
-	// ?
-	debugStr := config.GetAPPConfig().Debug
-	logrus.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-	})
-	logrus.SetLevel(logrus.InfoLevel)
-	logrus.SetOutput(os.Stdout)
-
-	if debugStr == "true" {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-}
+var (
+	logger   = new()
+	debugStr = config.GetAPPConfig().Debug
+)
 
 // Event stores messages to log later, from our standard interface
 type Event struct {
@@ -45,8 +34,7 @@ type StandardLogger struct {
 	route     string
 }
 
-// NewLogger initializes the standard logger
-func NewLogger() *StandardLogger {
+func new() *StandardLogger {
 	var baseLogger *logrus.Logger = logrus.New()
 	standardLogger := &StandardLogger{
 		logger: baseLogger,
@@ -54,16 +42,27 @@ func NewLogger() *StandardLogger {
 	standardLogger.logger.Formatter = &logrus.JSONFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
 	}
+	standardLogger.logger.SetLevel(logrus.InfoLevel)
+	standardLogger.logger.SetOutput(os.Stdout)
+	fmt.Println(debugStr)
+	if debugStr == "true" {
+		standardLogger.logger.SetLevel(logrus.DebugLevel)
+	}
 
 	return standardLogger
 }
 
-// NewPackage initializes the standard logger package
-func NewPackage(Package string) *StandardLogger {
-	standardLogger := NewLogger()
-	standardLogger.Package = Package
+// NewLogger initializes the standard logger
+func NewLogger() *StandardLogger {
+	return logger
+}
 
-	return standardLogger
+// NewPackage initializes the standard logger package
+func NewPackage(Package string) (StandardLogger *StandardLogger) {
+	StandardLogger = logger
+	StandardLogger.Package = Package
+
+	return
 }
 
 // Declare variables to store log messages as new Events
@@ -75,7 +74,7 @@ var (
 	missingArgMessage      = Event{5, "Missing argument: %s"}
 )
 
-// Start is a standard start
+// Start is a standard logger start
 func (logger *StandardLogger) Start(c echo.Context) *StandardLogger {
 	if c != nil {
 		logger.method = c.Request().Method
@@ -86,7 +85,7 @@ func (logger *StandardLogger) Start(c echo.Context) *StandardLogger {
 	return logger
 }
 
-// StartTrackerID is a standard Start Tracker ID
+// StartTrackerID is a standard logger start tracker id
 func (logger *StandardLogger) StartTrackerID(c echo.Context) (string, *StandardLogger) {
 	logger.Start(c)
 	trackerID := uuid.NewString()
@@ -95,7 +94,7 @@ func (logger *StandardLogger) StartTrackerID(c echo.Context) (string, *StandardL
 	return trackerID, logger
 }
 
-// End is a standard end
+// End is a standard logger end
 func (logger *StandardLogger) End() {
 	logger.method = ""
 	logger.trackerID = ""
@@ -147,33 +146,32 @@ func fileNameAndfuncName() (string, string) {
 	return fileName, function
 }
 
-// SuccessArg is a standard success message
+// SuccessArg is a standard logger success message
 func (logger *StandardLogger) SuccessArg(argumentName string) {
 	logger.withFields().Infof(successArgMessage.message, argumentName)
 }
 
-// WarningArg is a standard warning message
+// WarningArg is a standard logger warning message
 func (logger *StandardLogger) WarningArg(argumentName string) {
 	logger.withFields().Warnf(warningArgMessage.message, argumentName)
 }
 
-// InvalidArg is a standard error message
+// InvalidArg is a standard logger error message
 func (logger *StandardLogger) InvalidArg(argumentName string) {
 	logger.withFields().Errorf(invalidArgMessage.message, argumentName)
 }
 
-// InvalidArgValue is a standard error message
+// InvalidArgValue is a standard logger error message
 func (logger *StandardLogger) InvalidArgValue(argumentName string, argumentValue string) {
 	logger.withFields().Errorf(invalidArgValueMessage.message, argumentName, argumentValue)
 }
 
-// MissingArg is a standard error message
+// MissingArg is a standard logger error message
 func (logger *StandardLogger) MissingArg(argumentName string) {
 	logger.withFields().Errorf(missingArgMessage.message, argumentName)
 }
 
-//
-
+// logrus
 func (logger *StandardLogger) Info(argumentName ...interface{}) {
 	logger.withFields().Info(argumentName)
 }

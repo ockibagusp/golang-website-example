@@ -11,7 +11,7 @@ import (
 	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
-var hlogger = log.NewPackage("session_controller")
+var hlogger = log.NewLogger()
 
 func init() {
 	// Templates: homeController
