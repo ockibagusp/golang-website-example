@@ -174,7 +174,7 @@ func (logger *StandardLogger) MissingArg(argumentName string) {
 }
 
 // logrus
-func (logger *StandardLogger) Info(argumentName ...interface{}) {
+func (logger *StandardLogger) Info(argumentName string) {
 	logger.withFields().Info(argumentName)
 }
 
@@ -182,10 +182,24 @@ func (logger *StandardLogger) Infof(format string, argumentName ...interface{}) 
 	logger.withFields().Infof(format, argumentName)
 }
 
-func (logger *StandardLogger) Warn(argumentName ...interface{}) {
+func (logger *StandardLogger) Warn(argumentName string) {
 	logger.withFields().Warn(argumentName)
 }
 
 func (logger *StandardLogger) Warnf(format string, argumentName ...interface{}) {
 	logger.withFields().Warnf(format, argumentName)
+}
+
+// WithField allocates a new entry and adds a field to it.
+// Debug, Print, Info, Warn, Error, Fatal or Panic must be then applied to
+// this new returned entry.
+// If you want multiple fields, use `WithFields`.
+func (logger *StandardLogger) WithField(key string, value interface{}) *logrus.Entry {
+	return logger.logger.WithField(key, value)
+}
+
+// Adds a struct of fields to the log entry. All it does is call `WithField` for
+// each `Field`.
+func (logger *StandardLogger) WithFields(fields logrus.Fields) *logrus.Entry {
+	return logger.logger.WithFields(fields)
 }

@@ -235,7 +235,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		}
 
 		if _, err := ctrl.userService.Create(ic, user); err != nil {
-			log.Warn("for POST to create user without models.User: nil", "user_failure", user)
+			log.WithField("user_failure", user).Warn("for POST to create user without models.User: nil")
 			middleware.SetFlashError(c, err.Error())
 
 			log.Warn("END request method POST for create user: [-]failure")
@@ -252,7 +252,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			})
 		}
 
-		log.Info("models.User: [+]success", "user_success", user)
+		log.WithField("user_success", user).Info("models.User: [+]success")
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
 		// create user
 		if role == "anonymous" {
@@ -442,7 +442,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			})
 		}
 
-		log.Info("models.User: [+]success", "user_update", user)
+		log.WithField("user_update", user).Info("models.User: [+]success", "user_update", user)
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success update user: %s!", user.Username))
 
 		if role == "user" {
@@ -602,7 +602,7 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			return c.HTML(http.StatusNotAcceptable, err.Error())
 		}
 
-		log.Info("models.User: [+]success", "user_update_password", user)
+		log.WithField("user_update_password", user).Info("models.User: [+]success")
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success update user by password: %s!", user.Username))
 		if role == "user" {
 			log.Info("END [user] request method POST for update user by password: [+]success")
