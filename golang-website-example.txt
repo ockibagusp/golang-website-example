@@ -5,22 +5,6 @@
 # Insyaallah, New tasks:
 [] new mock
 
-[] coverage tests
-
-➜  golang-website-example git:(master) ✗ go test -cover               
-?       github.com/ockibagusp/golang-website-example    [no test files]
-
-➜  golang-website-example git:(master) ✗ go test ./tests -cover               
-ok      github.com/ockibagusp/golang-website-example/tests      2.827s  coverage: [no statements]
-
-➜  golang-website-example git:(master) ✗ go test ./tests -coverpkg=./...      
-ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of statements in ./...
-                                                                    --------
-
-move to new package...
-
-[] ...
-
 # Completed task:
 1. [-] testing session
     [x] Set-Cookie headers there isn't any: session
@@ -81,7 +65,23 @@ time="2022-12-30T14:54:47+07:00" level=warning msg="for GET to delete user witho
 
 4. [v] test without csrf
 
-5. [v] out of the package template, example: t["login.html"] = parseFileHTMLOnly("views/login.html")
+5. [v] coverage tests
+
+➜  golang-website-example git:(master) ✗ go test -cover               
+?       github.com/ockibagusp/golang-website-example    [no test files]
+
+➜  golang-website-example git:(master) ✗ go test ./tests -cover               
+ok      github.com/ockibagusp/golang-website-example/tests      2.827s  coverage: [no statements]
+
+➜  golang-website-example git:(master) ✗ go test ./tests -coverpkg=./...      
+ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of statements in ./...
+                                                                    --------
+
+move to new package...
+
+[] ...
+
+6. [v] out of the package template, example: t["login.html"] = parseFileHTMLOnly("views/login.html")
 app/main/template/template.go
 
 x map[string]*template.Template
@@ -110,7 +110,7 @@ func info(format string, args ...interface{}) {
     }
 }
 
-7. [v] no debug for create models.User
+8. [v] no debug for create models.User
 
 example,
 [6.075ms] [rows:0] INSERT INTO `users` ... VALUES (...'unit-test','unit-test@exemple.com','$2a$10$wyzBl/d31ahlHVU52kgkT.cH1lXI9b0cmdiM9Gw2ciyY9C69bTLh6','Unit Test',0,'',0)
