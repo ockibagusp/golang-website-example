@@ -19,14 +19,6 @@ ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of st
 
 move to new package...
 
-[] no debug for create models.User
-
-example,
-[6.075ms] [rows:0] INSERT INTO `users` ... VALUES (...'unit-test','unit-test@exemple.com','$2a$10$wyzBl/d31ahlHVU52kgkT.cH1lXI9b0cmdiM9Gw2ciyY9C69bTLh6','Unit Test',0,'',0)
-...
-time="2023-01-14T15:14:14+07:00" level=info msg="START request method POST for create user" route=/users/add username=
-time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=/users/add user_success="{{... example example@example.com $2a$10$1cbJNsJNOXk4hwYYVtlUT.B0MwNwp4sRmI2pS9frCuC.0IBLyRsSO Example 0  0}" username=}}
-
 [] ...
 
 # Completed task:
@@ -117,3 +109,13 @@ func info(format string, args ...interface{}) {
         logger.Printf(prefix+format+"\n", args...)
     }
 }
+
+7. [v] no debug for create models.User
+
+example,
+[6.075ms] [rows:0] INSERT INTO `users` ... VALUES (...'unit-test','unit-test@exemple.com','$2a$10$wyzBl/d31ahlHVU52kgkT.cH1lXI9b0cmdiM9Gw2ciyY9C69bTLh6','Unit Test',0,'',0)
+...
+time="2023-01-14T15:14:14+07:00" level=info msg="START request method POST for create user" route=/users/add username=
+time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=/users/add user_success="{{... example example@example.com $2a$10$1cbJNsJNOXk4hwYYVtlUT.B0MwNwp4sRmI2pS9frCuC.0IBLyRsSO Example 0  0}" username=}}
+
+https://medium.com/hackernoon/keep-passwords-and-secrets-out-of-your-logs-with-go-a2294a9546ce
