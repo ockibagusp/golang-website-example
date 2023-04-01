@@ -13,10 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	logger   = new()
-	debugStr = config.GetAPPConfig().Debug
-)
+var debugStr = config.GetAPPConfig().Debug
 
 // Event stores messages to log later, from our standard interface
 type Event struct {
@@ -53,15 +50,13 @@ func new() *StandardLogger {
 
 // NewLogger initializes the standard logger
 func NewLogger() *StandardLogger {
-	return logger
+	return new()
 }
 
 // NewPackage initializes the standard logger package
 func NewPackage(Package string) (StandardLogger *StandardLogger) {
-	StandardLogger = logger
-	if Package != "" {
-		StandardLogger.Package = Package
-	}
+	StandardLogger = new()
+	StandardLogger.Package = Package
 
 	return
 }
