@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -25,6 +26,14 @@ type UserForm struct {
 	Photo           string `form:"photo"`
 }
 
+func (userForm UserForm) MarshalJSON() ([]byte, error) {
+	type oldUF UserForm
+	redactUF := oldUF(userForm)
+	redactUF.Password = "[REDACTED]"
+
+	return json.Marshal((*oldUF)(&redactUF))
+}
+
 /*
  * type LoginForm: of a username and password
  *
@@ -36,6 +45,14 @@ type UserForm struct {
 type LoginForm struct {
 	Username string `form:"username"`
 	Password string `form:"password"`
+}
+
+func (lf LoginForm) MarshalJSON() ([]byte, error) {
+	type oldLF LoginForm
+	redactLF := oldLF(lf)
+	redactLF.Password = "[REDACTED]"
+
+	return json.Marshal((*oldLF)(&redactLF))
 }
 
 // (type PasswordForm) Validate: of a validate username and password
@@ -58,6 +75,15 @@ type NewPasswordForm struct {
 	OldPassword        string `form:"old_password"`
 	NewPassword        string `form:"new_password"`
 	ConfirmNewPassword string `form:"confirm_new_password"`
+}
+
+func (npf NewPasswordForm) MarshalJSON() ([]byte, error) {
+	type oldNPF NewPasswordForm
+	redactNPF := oldNPF(npf)
+	redactNPF.OldPassword = "[REDACTED]"
+	redactNPF.NewPassword = "[REDACTED]"
+
+	return json.Marshal((*oldNPF)(&redactNPF))
 }
 
 /*

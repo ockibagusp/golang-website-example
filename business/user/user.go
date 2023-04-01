@@ -1,6 +1,8 @@
 package user
 
 import (
+	"encoding/json"
+
 	"github.com/ockibagusp/golang-website-example/business"
 )
 
@@ -20,3 +22,11 @@ type (
 		business.ObjectMetadata
 	}
 )
+
+func (user User) MarshalJSON() ([]byte, error) {
+	type oldUser User
+	redactUser := oldUser(user)
+	redactUser.Password = "[REDACTED]"
+
+	return json.Marshal((*oldUser)(&redactUser))
+}
