@@ -44,7 +44,6 @@ func new() *StandardLogger {
 	}
 	standardLogger.logger.SetLevel(logrus.InfoLevel)
 	standardLogger.logger.SetOutput(os.Stdout)
-	fmt.Println(debugStr)
 	if debugStr == "true" {
 		standardLogger.logger.SetLevel(logrus.DebugLevel)
 	}
@@ -182,20 +181,94 @@ func (logger *StandardLogger) MissingArg(argumentName string) {
 }
 
 // logrus
-func (logger *StandardLogger) Info(argumentName string) {
-	logger.withFields().Info(argumentName)
+func (logger *StandardLogger) Print(argumentName string) {
+	logger.withFields().Print(argumentName)
 }
 
-func (logger *StandardLogger) Infof(format string, argumentName ...interface{}) {
-	logger.withFields().Infof(format, argumentName)
+func (logger *StandardLogger) Info(argumentName string) {
+	logger.withFields().Info(argumentName)
 }
 
 func (logger *StandardLogger) Warn(argumentName string) {
 	logger.withFields().Warn(argumentName)
 }
 
+func (logger *StandardLogger) Error(argumentName string) {
+	logger.withFields().Error(argumentName)
+}
+
+func (logger *StandardLogger) Fatal(argumentName string) {
+	logger.withFields().Fatal(argumentName)
+}
+
+func (logger *StandardLogger) Panic(argumentName string) {
+	logger.withFields().Panic(argumentName)
+}
+
+// Entry Println family functions
+func (logger *StandardLogger) Traceln(format string, argumentName ...interface{}) {
+	logger.withFields().Traceln(format, argumentName)
+}
+
+func (logger *StandardLogger) Debugln(format string, argumentName ...interface{}) {
+	logger.withFields().Debugln(format, argumentName)
+}
+
+func (logger *StandardLogger) Infoln(format string, argumentName ...interface{}) {
+	logger.withFields().Infoln(format, argumentName)
+}
+
+func (logger *StandardLogger) Println(format string, argumentName ...interface{}) {
+	logger.withFields().Infoln(format, argumentName)
+}
+
+func (logger *StandardLogger) Warnln(format string, argumentName ...interface{}) {
+	logger.withFields().Warnln(format, argumentName)
+}
+
+func (logger *StandardLogger) Errorln(format string, argumentName ...interface{}) {
+	logger.withFields().Errorln(format, argumentName)
+}
+
+func (logger *StandardLogger) Fatalln(format string, argumentName ...interface{}) {
+	logger.withFields().Fatalln(format, argumentName)
+}
+
+func (logger *StandardLogger) Panicln(format string, argumentName ...interface{}) {
+	logger.withFields().Panicln(format, argumentName)
+}
+
+// Entry Printf family functions
+func (logger *StandardLogger) Tracef(format string, argumentName ...interface{}) {
+	logger.withFields().Tracef(format, argumentName)
+}
+
+func (logger *StandardLogger) Debugf(format string, argumentName ...interface{}) {
+	logger.withFields().Debugf(format, argumentName)
+}
+
+func (logger *StandardLogger) Infof(format string, argumentName ...interface{}) {
+	logger.withFields().Infof(format, argumentName)
+}
+
+func (logger *StandardLogger) Printf(format string, argumentName ...interface{}) {
+	logger.withFields().Infof(format, argumentName)
+}
+
 func (logger *StandardLogger) Warnf(format string, argumentName ...interface{}) {
 	logger.withFields().Warnf(format, argumentName)
+}
+
+func (logger *StandardLogger) Errorf(format string, argumentName ...interface{}) {
+	logger.withFields().Errorf(format, argumentName)
+}
+
+func (logger *StandardLogger) Fatalf(format string, argumentName ...interface{}) {
+	logger.withFields().Fatalf(format, argumentName)
+}
+
+func (logger *StandardLogger) Panicf(format string, argumentName ...interface{}) {
+	logger.withFields().Panicf(format, argumentName)
 }
 
 // WithField allocates a new entry and adds a field to it.
