@@ -96,6 +96,14 @@ func (logger *StandardLogger) StartTrackerID(c echo.Context) (string, *StandardL
 	return trackerID, logger
 }
 
+// SetTrackerID is a standard logger set tracker id
+func (logger *StandardLogger) SetTrackerID() (trackerID string) {
+	trackerID = uuid.NewString()
+	logger.trackerID = trackerID
+
+	return trackerID
+}
+
 // End is a standard logger end
 func (logger *StandardLogger) End() {
 	logger.method = ""
