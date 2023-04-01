@@ -27,14 +27,14 @@ const (
 
 // test flash message: struct
 type flash struct {
-	success_message string
-	error_message   string
+	successMessage string
+	errorMessage   string
 }
 
 // test regex: struct
 type regex struct {
-	must_compile string
-	actual       string
+	mustCompile string
+	actual      string
 }
 
 var conf *config.Config = config.GetAPPConfig()

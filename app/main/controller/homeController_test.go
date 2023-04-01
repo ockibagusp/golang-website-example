@@ -22,45 +22,45 @@ func TestHomeController(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name           string
-		expect         string // admin, sugriwa
-		html_navbar    regex
-		html_jumbotron regex
+		name          string
+		expect        string // admin, sugriwa
+		htmlNavbar    regex
+		htmlJumbotron regex
 	}{
 		{
 			name:   "home [no-auth] success",
 			expect: ANONYMOUS,
-			html_navbar: regex{
-				must_compile: `<a href="/login" (.*)</a>`,
-				actual:       `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a href="/login" (.*)</a>`,
+				actual:      `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
 			},
-			html_jumbotron: regex{
-				must_compile: `<p class="lead">(.*)</p>`,
-				actual:       `<p class="lead">Test.</p>`,
+			htmlJumbotron: regex{
+				mustCompile: `<p class="lead">(.*)</p>`,
+				actual:      `<p class="lead">Test.</p>`,
 			},
 		},
 		{
 			name:   "home [admin] success",
 			expect: ADMIN,
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
-			html_jumbotron: regex{
-				must_compile: `<p class="lead">(.*)</p>`,
-				actual:       `<p class="lead">Admin.</p>`,
+			htmlJumbotron: regex{
+				mustCompile: `<p class="lead">(.*)</p>`,
+				actual:      `<p class="lead">Admin.</p>`,
 			},
 		},
 		{
 			name:   "home [user] success",
 			expect: SUGRIWA,
-			html_navbar: regex{
-				must_compile: `<a href="/users" (.*)</a>`,
-				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a href="/users" (.*)</a>`,
+				actual:      `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
 			},
-			html_jumbotron: regex{
-				must_compile: `<p class="lead">(.*)</p>`,
-				actual:       `<p class="lead">User.</p>`,
+			htmlJumbotron: regex{
+				mustCompile: `<p class="lead">(.*)</p>`,
+				actual:      `<p class="lead">User.</p>`,
 			},
 		},
 	}
@@ -73,25 +73,25 @@ func TestHomeController(t *testing.T) {
 			result = noAuth.GET("/").
 				Expect().
 				Status(http.StatusOK)
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			// why?
 			var regex *regexp.Regexp
 			var match string
-			if test.html_navbar.must_compile != "" {
+			if test.htmlNavbar.mustCompile != "" {
 				// navbar nav
-				regex = regexp.MustCompile(test.html_navbar.must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(test.htmlNavbar.mustCompile)
+				match = regex.FindString(resultBody)
 
-				assert.Equal(match, test.html_navbar.actual)
+				assert.Equal(match, test.htmlNavbar.actual)
 			}
 
-			if test.html_jumbotron.must_compile != "" {
+			if test.htmlJumbotron.mustCompile != "" {
 				// main: jumbotron
-				regex = regexp.MustCompile(test.html_jumbotron.must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(test.htmlJumbotron.mustCompile)
+				match = regex.FindString(resultBody)
 
-				assert.Equal(match, test.html_jumbotron.actual)
+				assert.Equal(match, test.htmlJumbotron.actual)
 			}
 		})
 	}

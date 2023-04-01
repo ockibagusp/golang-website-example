@@ -55,8 +55,8 @@ func TestLogin(t *testing.T) {
 				Password: "<bad password>",
 			},
 			flash: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*username or password not match</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*username or password not match</p>`,
 			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
@@ -92,8 +92,8 @@ func TestLogin(t *testing.T) {
 				Password: "<bad password>",
 			},
 			flash: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*username or password not match</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*username or password not match</p>`,
 			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
@@ -117,11 +117,11 @@ func TestLogin(t *testing.T) {
 				Status(test.status)
 
 			// flash message: "username or password not match"
-			if (test.flash.must_compile == "") && (test.flash.actual == "") {
-				result_body := result.Body().Raw()
+			if (test.flash.mustCompile == "") && (test.flash.actual == "") {
+				resultBody := result.Body().Raw()
 
-				regex := regexp.MustCompile(test.flash.must_compile)
-				match := regex.FindString(result_body)
+				regex := regexp.MustCompile(test.flash.mustCompile)
+				match := regex.FindString(resultBody)
 
 				assert.Equal(t, match, test.flash.actual)
 			}

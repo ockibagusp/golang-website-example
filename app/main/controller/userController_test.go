@@ -23,13 +23,13 @@ func TestUsersController(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name         string
-		expect       string // expect: admin, sugriwa
-		url_query    string // @route: exemple /users?admin=all
-		status       int
-		html_navbar  regex
-		html_heading regex
-		html_table   regex
+		name        string
+		expect      string // expect: admin, sugriwa
+		url_query   string // @route: exemple /users?admin=all
+		status      int
+		htmlNavbar  regex
+		htmlHeading regex
+		htmlTable   regex
 	}{
 		/*
 			users [admin]
@@ -40,16 +40,16 @@ func TestUsersController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
-			html_table: regex{
+			htmlTable: regex{
 				/*
 					<tr>
 						...
@@ -68,14 +68,14 @@ func TestUsersController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: Admin</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: Admin</h2>`,
 			},
 		},
 		{
@@ -85,14 +85,14 @@ func TestUsersController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: User</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: User</h2>`,
 			},
 		},
 		{
@@ -101,9 +101,9 @@ func TestUsersController(t *testing.T) {
 			url_query: "false",
 			status:    http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 		},
 
@@ -117,9 +117,9 @@ func TestUsersController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
 		{
@@ -130,9 +130,9 @@ func TestUsersController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
 
@@ -145,9 +145,9 @@ func TestUsersController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<p class="text-danger">*(.*)!</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+			htmlNavbar: regex{
+				mustCompile: `<p class="text-danger">*(.*)!</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 	}
@@ -178,9 +178,9 @@ func TestUsersController(t *testing.T) {
 				regex                       *regexp.Regexp
 			)
 
-			if test.html_navbar.must_compile != "" {
-				must_compile = test.html_navbar.must_compile
-				actual = test.html_navbar.actual
+			if test.htmlNavbar.mustCompile != "" {
+				must_compile = test.htmlNavbar.mustCompile
+				actual = test.htmlNavbar.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -195,9 +195,9 @@ func TestUsersController(t *testing.T) {
 				assert.Equal(match, actual)
 			}
 
-			if test.html_heading.must_compile != "" {
-				must_compile = test.html_heading.must_compile
-				actual = test.html_heading.actual
+			if test.htmlHeading.mustCompile != "" {
+				must_compile = test.htmlHeading.mustCompile
+				actual = test.htmlHeading.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -234,9 +234,9 @@ func TestCreateUserController(t *testing.T) {
 		status int
 
 		// body navbar
-		html_navbar regex
+		htmlNavbar regex
 		// body heading
-		html_heading regex
+		htmlHeading regex
 		// flash message
 		html_flash_success regex
 		html_flash_error   regex
@@ -252,14 +252,14 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">New User</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">New User</h2>`,
 			},
 		},
 		// POST
@@ -278,19 +278,19 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success new user: unit-test!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success new user: unit-test!`,
 			},
 		},
 		// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'email_UNIQUE' " v
@@ -310,19 +310,19 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 400 Bad Request
 			status: http.StatusBadRequest,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">New User</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">New User</h2>`,
 			},
 			// flash message error
 			html_flash_error: regex{
-				must_compile: `<strong>error:</strong> (.*)`,
-				actual:       `<strong>error:</strong> Error 1062 (23000): Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;email_UNIQUE&#39;!`,
+				mustCompile: `<strong>error:</strong> (.*)`,
+				actual:      `<strong>error:</strong> Error 1062 (23000): Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;email_UNIQUE&#39;!`,
 			},
 		},
 
@@ -338,9 +338,9 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
 		// POST
@@ -352,14 +352,14 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 			// flash message error
 			html_flash_error: regex{
-				must_compile: `<strong>error:</strong> (.*)`,
-				actual:       `<strong>error:</strong> 403 Forbidden!`,
+				mustCompile: `<strong>error:</strong> (.*)`,
+				actual:      `<strong>error:</strong> 403 Forbidden!`,
 			},
 		},
 
@@ -374,14 +374,14 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a href="/login" (.*)>Login</a>`,
-				actual:       `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a href="/login" (.*)>Login</a>`,
+				actual:      `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">New User</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">New User</h2>`,
 			},
 		},
 		// POST
@@ -401,10 +401,10 @@ func TestCreateUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success new user: example!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success new user: example!`,
 			},
-			// TODO: difficult html_navbar and html_heading, insyaallah
+			// TODO: difficult htmlNavbar and htmlHeading, insyaallah
 		},
 	}
 
@@ -434,8 +434,8 @@ func TestCreateUserController(t *testing.T) {
 				regex                       *regexp.Regexp
 			)
 
-			if test.html_flash_success.must_compile != "" {
-				must_compile = test.html_flash_success.must_compile
+			if test.html_flash_success.mustCompile != "" {
+				must_compile = test.html_flash_success.mustCompile
 				actual = test.html_flash_success.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -444,8 +444,8 @@ func TestCreateUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.must_compile != "" {
-				must_compile = test.html_flash_error.must_compile
+			if test.html_flash_error.mustCompile != "" {
+				must_compile = test.html_flash_error.mustCompile
 				actual = test.html_flash_error.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -455,9 +455,9 @@ func TestCreateUserController(t *testing.T) {
 			}
 
 			assert := assert.New(t)
-			if test.html_navbar.must_compile != "" {
-				must_compile = test.html_navbar.must_compile
-				actual = test.html_navbar.actual
+			if test.htmlNavbar.mustCompile != "" {
+				must_compile = test.htmlNavbar.mustCompile
+				actual = test.htmlNavbar.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -465,9 +465,9 @@ func TestCreateUserController(t *testing.T) {
 				assert.Equal(match, actual)
 			}
 
-			if test.html_heading.must_compile != "" {
-				must_compile = test.html_heading.must_compile
-				actual = test.html_heading.actual
+			if test.htmlHeading.mustCompile != "" {
+				must_compile = test.htmlHeading.mustCompile
+				actual = test.htmlHeading.actual
 
 				regex := regexp.MustCompile(must_compile)
 				match := regex.FindString(result_body)
@@ -497,14 +497,14 @@ func TestReadUserController(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name         string
-		expect       string // auth or no-auth
-		method       int    // method: 1=GET or 2=POST
-		path         string
-		status       int
-		html_navbar  regex
-		html_heading regex
-		flash_error  regex
+		name        string
+		expect      string // auth or no-auth
+		method      int    // method: 1=GET or 2=POST
+		path        string
+		status      int
+		htmlNavbar  regex
+		htmlHeading regex
+		flash_error regex
 	}{
 		/*
 			read it [admin]
@@ -517,14 +517,14 @@ func TestReadUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Admin</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Admin</h2>`,
 			},
 		},
 		{
@@ -547,9 +547,9 @@ func TestReadUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
 		{
@@ -574,8 +574,8 @@ func TestReadUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		{
@@ -588,8 +588,8 @@ func TestReadUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 	}
@@ -616,9 +616,9 @@ func TestReadUserController(t *testing.T) {
 					regex                       *regexp.Regexp
 				)
 
-				if test.html_navbar.must_compile != "" {
-					must_compile = test.html_navbar.must_compile
-					actual = test.html_navbar.actual
+				if test.htmlNavbar.mustCompile != "" {
+					must_compile = test.htmlNavbar.mustCompile
+					actual = test.htmlNavbar.actual
 
 					regex = regexp.MustCompile(must_compile)
 					match = regex.FindString(result_body)
@@ -626,9 +626,9 @@ func TestReadUserController(t *testing.T) {
 					assert.Equal(match, actual)
 				}
 
-				if test.html_heading.must_compile != "" {
-					must_compile = test.html_heading.must_compile
-					actual = test.html_heading.actual
+				if test.htmlHeading.mustCompile != "" {
+					must_compile = test.htmlHeading.mustCompile
+					actual = test.htmlHeading.actual
 
 					regex = regexp.MustCompile(must_compile)
 					match = regex.FindString(result_body)
@@ -636,8 +636,8 @@ func TestReadUserController(t *testing.T) {
 					assert.Equal(match, actual)
 				}
 
-				if test.flash_error.must_compile != "" {
-					must_compile = test.flash_error.must_compile
+				if test.flash_error.mustCompile != "" {
+					must_compile = test.flash_error.mustCompile
 					actual = test.flash_error.actual
 
 					regex = regexp.MustCompile(must_compile)
@@ -676,8 +676,8 @@ func TestUpdateUserController(t *testing.T) {
 		form   types.UserForm
 		status int
 
-		html_navbar  regex
-		html_heading regex
+		htmlNavbar  regex
+		htmlHeading regex
 		// flash message
 		html_flash_success regex
 		html_flash_error   regex
@@ -694,14 +694,14 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Admin</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Admin</h2>`,
 			},
 		},
 		{
@@ -712,14 +712,14 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 		},
 		{
@@ -744,19 +744,19 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success update user: admin-success!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success update user: admin-success!`,
 			},
 		},
 		{
@@ -774,18 +774,18 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
+				mustCompile: `<strong>success:</strong> (.*)`,
 				// [admin] id=2 username: sugriwa
 				actual: `<strong>success:</strong> success update user: sugriwa!`,
 			},
@@ -812,9 +812,9 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">User: Sugriwa Success</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">User: Sugriwa Success</h2>`,
 			},
 		},
 		{
@@ -848,14 +848,14 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h1 class="display-4">(.*)</h1>`,
-				actual:       `<h1 class="display-4">Hello Sugriwa!</h1>`,
+			htmlHeading: regex{
+				mustCompile: `<h1 class="display-4">(.*)</h1>`,
+				actual:      `<h1 class="display-4">Hello Sugriwa!</h1>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success update user: sugriwa!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success update user: sugriwa!`,
 			},
 		},
 		{
@@ -884,8 +884,8 @@ func TestUpdateUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		{
@@ -956,9 +956,9 @@ func TestUpdateUserController(t *testing.T) {
 				regex                       *regexp.Regexp
 			)
 
-			if test.html_navbar.must_compile != "" {
-				must_compile = test.html_navbar.must_compile
-				actual = test.html_navbar.actual
+			if test.htmlNavbar.mustCompile != "" {
+				must_compile = test.htmlNavbar.mustCompile
+				actual = test.htmlNavbar.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -973,9 +973,9 @@ func TestUpdateUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_heading.must_compile != "" {
-				must_compile = test.html_heading.must_compile
-				actual = test.html_heading.actual
+			if test.htmlHeading.mustCompile != "" {
+				must_compile = test.htmlHeading.mustCompile
+				actual = test.htmlHeading.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -983,8 +983,8 @@ func TestUpdateUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.must_compile != "" {
-				must_compile = test.html_flash_success.must_compile
+			if test.html_flash_success.mustCompile != "" {
+				must_compile = test.html_flash_success.mustCompile
 				actual = test.html_flash_success.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -993,8 +993,8 @@ func TestUpdateUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.must_compile != "" {
-				must_compile = test.html_flash_error.must_compile
+			if test.html_flash_error.mustCompile != "" {
+				must_compile = test.html_flash_error.mustCompile
 				actual = test.html_flash_error.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -1033,7 +1033,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		form   types.NewPasswordForm
 		status int
 
-		html_heading regex
+		htmlHeading regex
 		// flash message
 		html_flash_success regex
 		html_flash_error   regex
@@ -1050,9 +1050,9 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h3 class="mt-4">(.*)</h3>`,
-				actual:       `<h3 class="mt-4">User: Admin</h3>`,
+			htmlHeading: regex{
+				mustCompile: `<h3 class="mt-4">(.*)</h3>`,
+				actual:      `<h3 class="mt-4">User: Admin</h3>`,
 			},
 		},
 		{
@@ -1063,9 +1063,9 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h3 class="mt-4">(.*)</h3>`,
-				actual:       `<h3 class="mt-4">User: Sugriwa</h3>`,
+			htmlHeading: regex{
+				mustCompile: `<h3 class="mt-4">(.*)</h3>`,
+				actual:      `<h3 class="mt-4">User: Sugriwa</h3>`,
 			},
 		},
 		{
@@ -1091,14 +1091,14 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success update user by password: admin!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success update user by password: admin!`,
 			},
 		},
 		{
@@ -1114,14 +1114,14 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success update user by password: sugriwa!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success update user by password: sugriwa!`,
 			},
 		},
 		{
@@ -1174,9 +1174,9 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h3 class="mt-4">(.*)</h3>`,
-				actual:       `<h3 class="mt-4">User: Sugriwa</h3>`,
+			htmlHeading: regex{
+				mustCompile: `<h3 class="mt-4">(.*)</h3>`,
+				actual:      `<h3 class="mt-4">User: Sugriwa</h3>`,
 			},
 		},
 		{
@@ -1218,8 +1218,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success update user by password: sugriwa!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success update user by password: sugriwa!`,
 			},
 		},
 		{
@@ -1264,8 +1264,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		{
@@ -1278,8 +1278,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		// POST
@@ -1294,8 +1294,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			form:   types.NewPasswordForm{},
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		{
@@ -1309,8 +1309,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			form:   types.NewPasswordForm{},
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 	}
@@ -1370,9 +1370,9 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				regex                       *regexp.Regexp
 			)
 
-			if test.html_heading.must_compile != "" {
-				must_compile = test.html_heading.must_compile
-				actual = test.html_heading.actual
+			if test.htmlHeading.mustCompile != "" {
+				must_compile = test.htmlHeading.mustCompile
+				actual = test.htmlHeading.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -1380,8 +1380,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.must_compile != "" {
-				must_compile = test.html_flash_success.must_compile
+			if test.html_flash_success.mustCompile != "" {
+				must_compile = test.html_flash_success.mustCompile
 				actual = test.html_flash_success.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -1390,8 +1390,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.must_compile != "" {
-				must_compile = test.html_flash_error.must_compile
+			if test.html_flash_error.mustCompile != "" {
+				must_compile = test.html_flash_error.mustCompile
 				actual = test.html_flash_error.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -1430,7 +1430,7 @@ func TestDeleteUserController(t *testing.T) {
 		set_session_true bool
 		status           int
 
-		html_heading regex
+		htmlHeading regex
 		// flash message
 		html_flash_success regex
 		html_flash_error   regex
@@ -1454,14 +1454,14 @@ func TestDeleteUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			html_heading: regex{
-				must_compile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:       `<h2 class="mt-4">Users: All</h2>`,
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
 			html_flash_success: regex{
-				must_compile: `<strong>success:</strong> (.*)`,
-				actual:       `<strong>success:</strong> success delete user: sugriwa!`,
+				mustCompile: `<strong>success:</strong> (.*)`,
+				actual:      `<strong>success:</strong> success delete user: sugriwa!`,
 			},
 		},
 		{
@@ -1505,7 +1505,7 @@ func TestDeleteUserController(t *testing.T) {
 		// 	// HTTP response status: 200 OK
 		// 	status: http.StatusOK,
 		// 	// body heading
-		// 	html_heading: regex{
+		// 	htmlHeading: regex{
 		// 		must_compile: `<p class="lead">(.*)</p>`,
 		// 		actual:       `<p class="lead">Test.</p>`,
 		// 	},
@@ -1528,8 +1528,8 @@ func TestDeleteUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		{
@@ -1541,8 +1541,8 @@ func TestDeleteUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 		{
@@ -1554,8 +1554,8 @@ func TestDeleteUserController(t *testing.T) {
 			status: http.StatusOK,
 			// flash message
 			html_flash_error: regex{
-				must_compile: `<p class="text-danger">*(.*)</p>`,
-				actual:       `<p class="text-danger">*login process failed!</p>`,
+				mustCompile: `<p class="text-danger">*(.*)</p>`,
+				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
 		},
 	}
@@ -1581,9 +1581,9 @@ func TestDeleteUserController(t *testing.T) {
 				regex                       *regexp.Regexp
 			)
 
-			if test.html_heading.must_compile != "" {
-				must_compile = test.html_heading.must_compile
-				actual = test.html_heading.actual
+			if test.htmlHeading.mustCompile != "" {
+				must_compile = test.htmlHeading.mustCompile
+				actual = test.htmlHeading.actual
 
 				regex = regexp.MustCompile(must_compile)
 				match = regex.FindString(result_body)
@@ -1591,8 +1591,8 @@ func TestDeleteUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.must_compile != "" {
-				must_compile = test.html_flash_success.must_compile
+			if test.html_flash_success.mustCompile != "" {
+				must_compile = test.html_flash_success.mustCompile
 				actual = test.html_flash_success.actual
 
 				regex = regexp.MustCompile(must_compile)
@@ -1601,8 +1601,8 @@ func TestDeleteUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.must_compile != "" {
-				must_compile = test.html_flash_error.must_compile
+			if test.html_flash_error.mustCompile != "" {
+				must_compile = test.html_flash_error.mustCompile
 				actual = test.html_flash_error.actual
 
 				regex = regexp.MustCompile(must_compile)

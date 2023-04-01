@@ -22,32 +22,32 @@ func TestAboutSuccess(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name        string
-		expect      string // admin, sugriwa
-		html_navbar regex
+		name       string
+		expect     string // admin, sugriwa
+		htmlNavbar regex
 	}{
 		{
 			name:   "about [no-auth] success",
 			expect: ANONYMOUS,
-			html_navbar: regex{
-				must_compile: `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">(.*)</a>`,
-				actual:       `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">(.*)</a>`,
+				actual:      `<a href="/login" class="btn btn-outline-success my-2 my-sm-0">Login</a>`,
 			},
 		},
 		{
 			name:   "about [admin] success",
 			expect: ADMIN,
-			html_navbar: regex{
-				must_compile: `<a class="btn">(.*)</a>`,
-				actual:       `<a class="btn">ADMIN</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
 			},
 		},
 		{
 			name:   "home [user] success",
 			expect: SUGRIWA,
-			html_navbar: regex{
-				must_compile: `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">(.*)</a>`,
-				actual:       `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
+			htmlNavbar: regex{
+				mustCompile: `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">(.*)</a>`,
+				actual:      `<a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>`,
 			},
 		},
 	}
@@ -61,13 +61,13 @@ func TestAboutSuccess(t *testing.T) {
 				Expect().
 				Status(http.StatusOK)
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			// navbar nav
-			regex := regexp.MustCompile(test.html_navbar.must_compile)
-			match := regex.FindString(result_body)
+			regex := regexp.MustCompile(test.htmlNavbar.mustCompile)
+			match := regex.FindString(resultBody)
 
-			assert.Equal(match, test.html_navbar.actual)
+			assert.Equal(match, test.htmlNavbar.actual)
 		})
 	}
 }
