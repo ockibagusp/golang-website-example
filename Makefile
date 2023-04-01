@@ -16,11 +16,14 @@ test-verbose-ctrl:
 cover:
 	go tool cover
 
-cover-html:
-	go tool cover -html=coverage.out -o cover.html
-
 cover-show:
 	go tool cover -html=coverage.out
+
+cover-func:
+	go tool cover -func=coverage.out
+
+cover-html:
+	go tool cover -html=coverage.out -o cover.html
 
 run:
 	go run app/main/main.go
