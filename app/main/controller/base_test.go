@@ -134,7 +134,7 @@ repository: .env
 2. function conf.GetDebug()
 @DEBUG: {true} or {false}
 */
-func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
+func setupTestServer(t *testing.T, debug ...bool) (noAuth *httpexpect.Expect) {
 	conf.GetSessionTest()
 	conf.GetDebug()
 
@@ -143,7 +143,7 @@ func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	new_config := httpexpect.Config{
+	newConfig := httpexpect.Config{
 		BaseURL: server.URL,
 		Client: &http.Client{
 			Transport: httpexpect.NewBinder(handler),
@@ -156,11 +156,11 @@ func setupTestServer(t *testing.T, debug ...bool) (no_auth *httpexpect.Expect) {
 	}
 
 	if conf.GetDebugAsTrue(debug) {
-		new_config.Printers = []httpexpect.Printer{
+		newConfig.Printers = []httpexpect.Printer{
 			httpexpect.NewDebugPrinter(t, true),
 		}
 	}
 
-	no_auth = httpexpect.WithConfig(new_config)
+	noAuth = httpexpect.WithConfig(newConfig)
 	return
 }

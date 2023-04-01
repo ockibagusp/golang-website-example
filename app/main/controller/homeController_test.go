@@ -14,14 +14,14 @@ import (
 func TestHomeController(t *testing.T) {
 	assert := assert.New(t)
 
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	methodTest.SetSession = false
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name           string
 		expect         string // admin, sugriwa
 		html_navbar    regex
@@ -65,12 +65,12 @@ func TestHomeController(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		var result *httpexpect.Response
 		modelsTest.UserSelectTest = test.expect // auth_admin, auth_sugriwa or no-auth
 
 		t.Run(test.name, func(t *testing.T) {
-			result = no_auth.GET("/").
+			result = noAuth.GET("/").
 				Expect().
 				Status(http.StatusOK)
 			result_body := result.Body().Raw()

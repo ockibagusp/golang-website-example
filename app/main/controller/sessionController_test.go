@@ -12,12 +12,12 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name   string
 		method int
 		expect string
@@ -100,18 +100,18 @@ func TestLogin(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			modelsTest.UserSelectTest = test.expect // ADMIN and OCKIBAGUSP
 
 			if test.method == methodTest.HTTP_REQUEST_GET {
-				no_auth.GET("/login").
+				noAuth.GET("/login").
 					Expect().
 					Status(test.status)
 				return
 			}
 			// tc.method == POST
-			result := no_auth.POST("/login").
+			result := noAuth.POST("/login").
 				WithForm(test.user).
 				Expect().
 				Status(test.status)

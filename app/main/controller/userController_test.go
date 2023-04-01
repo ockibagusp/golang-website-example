@@ -15,14 +15,14 @@ import (
 func TestUsersController(t *testing.T) {
 	assert := assert.New(t)
 
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	method.SetSession = false
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name         string
 		expect       string // expect: admin, sugriwa
 		url_query    string // @route: exemple /users?admin=all
@@ -152,7 +152,7 @@ func TestUsersController(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		var result *httpexpect.Response
 
 		t.Run(test.name, func(t *testing.T) {
@@ -160,13 +160,13 @@ func TestUsersController(t *testing.T) {
 
 			// @route: exemple "/users?admin=all"
 			if test.url_query != "" {
-				result = no_auth.GET("/users").
+				result = noAuth.GET("/users").
 					WithQuery(test.url_query, "all").
 					Expect().
 					Status(test.status)
 			} else {
 				// @route: "/users"
-				result = no_auth.GET("/users").
+				result = noAuth.GET("/users").
 					Expect().
 					Status(test.status)
 			}
@@ -217,7 +217,7 @@ func TestUsersController(t *testing.T) {
 }
 
 func TestCreateUserController(t *testing.T) {
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	method.SetSession = false
@@ -226,7 +226,7 @@ func TestCreateUserController(t *testing.T) {
 
 	// TODO: flash with redirect on failure, insyaallah
 
-	test_cases := []struct {
+	testCases := []struct {
 		name   string
 		method int    // method: 1=GET or 2=POST
 		expect string // auth or no-auth
@@ -408,18 +408,18 @@ func TestCreateUserController(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		modelsTest.UserSelectTest = test.expect
 
 		t.Run(test.name, func(t *testing.T) {
 			var result *httpexpect.Response
 			if test.method == method.HTTP_REQUEST_GET {
-				result = no_auth.GET("/users/add").
+				result = noAuth.GET("/users/add").
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
 			} else if test.method == method.HTTP_REQUEST_POST {
-				result = no_auth.POST("/users/add").
+				result = noAuth.POST("/users/add").
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
@@ -489,14 +489,14 @@ func TestCreateUserController(t *testing.T) {
 func TestReadUserController(t *testing.T) {
 	assert := assert.New(t)
 
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	method.SetSession = false
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name         string
 		expect       string // auth or no-auth
 		method       int    // method: 1=GET or 2=POST
@@ -594,7 +594,7 @@ func TestReadUserController(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		modelsTest.UserSelectTest = test.expect
 
 		var result *httpexpect.Response
@@ -602,10 +602,10 @@ func TestReadUserController(t *testing.T) {
 			if test.method == method.HTTP_REQUEST_GET {
 				// same:
 				//
-				// no_auth.GET("/users/read/{id}").
+				// noAuth.GET("/users/read/{id}").
 				//	WithPath("id", test.path).
 				// ...
-				result = no_auth.GET("/users/read/{id}", test.path).
+				result = noAuth.GET("/users/read/{id}", test.path).
 					Expect().
 					Status(test.status)
 
@@ -661,14 +661,14 @@ func TestReadUserController(t *testing.T) {
 }
 
 func TestUpdateUserController(t *testing.T) {
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	method.SetSession = false
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name   string
 		expect string // auth or no-auth
 		method int    // method: 1=GET or 2=POST
@@ -924,7 +924,7 @@ func TestUpdateUserController(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		modelsTest.UserSelectTest = test.expect // ADMIN and SUGRIWA
 
 		t.Run(test.name, func(t *testing.T) {
@@ -932,15 +932,15 @@ func TestUpdateUserController(t *testing.T) {
 			if test.method == method.HTTP_REQUEST_GET {
 				// same:
 				//
-				// no_auth.GET("/users/view/{id}").
+				// noAuth.GET("/users/view/{id}").
 				//	WithPath("id", test.path).
 				// ...
-				result = no_auth.GET("/users/view/{id}", test.path).
+				result = noAuth.GET("/users/view/{id}", test.path).
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
 			} else if test.method == method.HTTP_REQUEST_POST {
-				result = no_auth.POST("/users/view/{id}").
+				result = noAuth.POST("/users/view/{id}").
 					WithPath("id", test.path).
 					WithForm(test.form).
 					Expect().
@@ -1018,14 +1018,14 @@ func TestUpdateUserController(t *testing.T) {
 }
 
 func TestUpdateUserByPasswordUserController(t *testing.T) {
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	method.SetSession = false
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name   string
 		expect string // ADMIN and SUGRIWA
 		method int    // method: 1=GET or 2=POST
@@ -1338,7 +1338,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 	// 		// HTTP response status: 200 OK
 	// 		Status(http.StatusOK)
 	// })
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		modelsTest.UserSelectTest = test.expect // ADMIN and SUGRIWA
 
 		var result *httpexpect.Response
@@ -1346,15 +1346,15 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			if test.method == method.HTTP_REQUEST_GET {
 				// equal:
 				//
-				// no_auth.POST("/users/view/{id}/password").
+				// noAuth.POST("/users/view/{id}/password").
 				//	WithPath("id", test.path).
 				// ...
-				result = no_auth.GET("/users/view/{id}/password", test.path).
+				result = noAuth.GET("/users/view/{id}/password", test.path).
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
 			} else if test.method == method.HTTP_REQUEST_POST {
-				result = no_auth.POST("/users/view/{id}/password").
+				result = noAuth.POST("/users/view/{id}/password").
 					WithPath("id", test.path).
 					WithForm(test.form).
 					Expect().
@@ -1416,14 +1416,14 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 
 // TODO: Test Delete User Controller, insyaallah
 func TestDeleteUserController(t *testing.T) {
-	no_auth := setupTestServer(t)
+	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
 	method.SetSession = false
 	// test for db users
 	truncateUsers()
 
-	test_cases := []struct {
+	testCases := []struct {
 		name             string
 		expect           string // ADMIN and SUBALI
 		path             string // id=string. Exemple, id="1"
@@ -1560,7 +1560,7 @@ func TestDeleteUserController(t *testing.T) {
 		},
 	}
 
-	for _, test := range test_cases {
+	for _, test := range testCases {
 		var result *httpexpect.Response
 
 		if test.set_session_true {
@@ -1570,7 +1570,7 @@ func TestDeleteUserController(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			modelsTest.UserSelectTest = test.expect // ADMIN and SUBALI
 
-			result = no_auth.GET("/users/delete/{id}", test.path).
+			result = noAuth.GET("/users/delete/{id}", test.path).
 				Expect().
 				Status(test.status)
 
