@@ -30,6 +30,8 @@ func (ctrl *Controller) Login(c echo.Context) error {
 	log := slogger.Start(c)
 	defer log.End()
 
+	trackerID := slogger.SetTrackerID()
+	ic := business.NewInternalContext(trackerID)
 	if c.Request().Method == "POST" {
 		log.Info("START request method POST for login")
 		passwordForm := &types.LoginForm{
@@ -51,7 +53,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
 		}
 
 		user, err := ctrl.userService.FirstUserByUsername(
-			business.InternalContext{}, passwordForm.Username,
+			ic, passwordForm.Username,
 		)
 		if err != nil {
 			middleware.SetFlashError(c, err.Error())
