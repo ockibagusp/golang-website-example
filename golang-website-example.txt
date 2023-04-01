@@ -3,6 +3,8 @@
 [-] load
 
 # Insyaallah, New tasks:
+[] new mock
+
 [] coverage tests
 
 ➜  golang-website-example git:(master) ✗ go test -cover               
