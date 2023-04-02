@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"time"
 
 	"github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
 
@@ -83,7 +82,9 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 			config.DBMySQLName,
 		)
 
-		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: newDBLogger()})
+		db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		})
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,18 +94,6 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 
 	log.Fatal("unsupported driver")
 	return nil
-}
-
-func newDBLogger() logger.Interface {
-	return logger.New(
-		log.Default(),
-		logger.Config{
-			SlowThreshold:             30 * time.Second, // Slow SQL threshold
-			LogLevel:                  logger.Silent,    // Log level
-			IgnoreRecordNotFoundError: false,            // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,            // Enable Color
-		},
-	)
 }
 
 func (config *Config) GetSessionTest() {
