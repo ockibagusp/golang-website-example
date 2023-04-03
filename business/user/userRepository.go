@@ -12,6 +12,7 @@ type Repository interface {
 	FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 	FirstByIDAndUsername(ic business.InternalContext, uid uint, username string, too ...bool) (selectedUser *User, err error)
 	FirstByCityID(ic business.InternalContext, uid uint) (selectedUser *User, err error)
+	UnscopedFirstUserByID(ic business.InternalContext, uid uint) (selectedUser *User, err error)
 	Update(ic business.InternalContext, oldUser *User, updateUser *User) (*User, error)
 	UpdateByIDandPassword(ic business.InternalContext, uid uint, password string) (err error)
 	Delete(ic business.InternalContext, uid uint) (err error)

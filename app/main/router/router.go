@@ -52,5 +52,16 @@ func RegisterPath(
 		Name = "user/view/:id/password post"
 	user.GET("/delete/:id", controller.DeleteUser).Name = "user/delete get"
 
+	// admin
+	admin := router.Group("/admin", sessionMiddleware)
+	admin.GET("/delete-permanently", controller.DeletePermanently).
+		Name = "/admin/delete-permanently get"
+	admin.GET("/admin/restore/:id", controller.RestoreUser).
+		Name = "/admin/restore/:id get"
+	// "/admin/delete-permanently/:id" unable
+	// "/admin/delete/permanently/:id" can
+	admin.GET("/admin/delete/permanently/:id", controller.DeletePermanentlyByID).
+		Name = "/admin/delete/permanently/:id get"
+
 	return
 }

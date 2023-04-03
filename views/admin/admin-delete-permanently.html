@@ -1,0 +1,116 @@
+{{define "title"}}
+  Delete Permanently?
+{{end}} 
+
+{{define "body"}}
+<main role="main">
+  <div class="container">
+    <div class="content body">
+      <div class="col-md-12">
+        <h2 class="mt-4">Delete Permanently?</h2>
+
+        <!-- TODO: flash.html, insyaallah -->
+        {{ if gt (len .flash.success) 0 }}
+          {{ range $index, $value := .flash.success }}
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>success:</strong> {{ $value }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {{ end }}
+        {{ end }}
+        
+        {{ if gt (len .flash.error) 0 }}
+          {{ range $index, $value := .flash.error }}
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>error:</strong> {{ $value }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {{ end }}
+        {{ end }}
+
+        <div class="row justify-content-end">
+          <a href="/users" class="btn btn-outline-dark btn-sm btn-flat">
+            &lt;-- Users
+          </a>
+          <a href="/users/add" class="btn btn-info btn-sm btn-flat">
+            Add New
+          </a>
+        </div>
+        <div class="row justify-content-end">
+            <a href="/admin/delete-permanently" class="btn btn-link btn-flat">
+              All
+            </a>
+            <a href="/admin/delete-permanently?admin=all" class="btn btn-link btn-flat">
+              Admin
+            </a>
+            <a href="/admin/delete-permanently?user=all" class="btn btn-link btn-flat">
+              User
+            </a>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped no-margin">
+            <tbody>
+              <tr>
+                <th style="width: 30px">ID</th>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Is Admin</th>
+                <th>Action</th>
+              </tr>
+              {{range $user := .users}}
+              <tr>
+                <td>
+                  {{$user.Model.ID}}
+                </td>
+                <td>
+                  {{$user.Username}}
+                </td>
+                <td>
+                  {{$user.Name}}
+                </td>
+                <td>
+                  {{if eq $user.Role "admin"}}
+                    yes
+                  {{else}}
+                    no
+                  {{end}}
+                </td>
+                <td style="width: 240px">
+                  <!-- ? -->
+                  {{if eq $user.Model.ID 1}}
+                  <button
+                    class="btn btn-sm btn-warning"
+                    disabled
+                    >Restore</button
+                  >
+                  <button                  
+                    class="btn btn-sm btn-danger"
+                    disabled
+                    >Delete Permanently</button
+                  >
+                  {{else}}
+                  <a href="/admin/restore/{{$user.Model.ID}}"
+                    class="btn btn-sm btn-warning"
+                    >Restore</a
+                  >
+                  <a href="/admin/delete/permanently/{{$user.Model.ID}}"                  
+                    class="btn btn-sm btn-danger"
+                    >Delete Permanently</a
+                  >
+                  {{end}}
+                </td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{{end}}

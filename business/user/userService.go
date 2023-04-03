@@ -17,6 +17,7 @@ type (
 		FirstUserByUsername(ic business.InternalContext, username string) (selectedUser *User, err error)
 		FirstByIDAndUsername(ic business.InternalContext, uid uint, username string, too ...bool) (selectedUser *User, err error)
 		FirstByCityID(ic business.InternalContext, uid uint) (selectedUser *User, err error)
+		UnscopedFirstUserByID(ic business.InternalContext, uid uint) (selectedUser *User, err error)
 		Update(ic business.InternalContext, oldUser *User, updateUser *User) (*User, error)
 		UpdateByIDandPassword(ic business.InternalContext, uid uint, password string) (err error)
 		Delete(ic business.InternalContext, uid uint) (err error)
@@ -38,6 +39,10 @@ func (s *service) FindAll(ic business.InternalContext, role ...string) (selected
 
 func (s *service) FindByID(ic business.InternalContext, uid uint) (selectedUser *User, err error) {
 	return s.repository.FindByID(ic, uid)
+}
+
+func (s *service) UnscopedFirstUserByID(ic business.InternalContext, uid uint) (*User, error) {
+	return s.repository.UnscopedFirstUserByID(ic, uid)
 }
 
 // login

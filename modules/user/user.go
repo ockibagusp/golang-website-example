@@ -102,6 +102,15 @@ func (repo *GormRepository) FirstUserByID(ic business.InternalContext, uid uint)
 	return isFirstUserByID(selectedUser, err)
 }
 
+// User: UnscopedFirstUserByID
+func (repo *GormRepository) UnscopedFirstUserByID(ic business.InternalContext, uid uint) (selectedUser *user.User, err error) {
+	query := repo.DB.WithContext(ic.ToContext())
+
+	err = query.Unscoped().First(&selectedUser, uid).Error
+
+	return isFirstUserByID(selectedUser, err)
+}
+
 // User: isFirstUserByID
 func isFirstUserByID(user *user.User, err error) (*user.User, error) {
 	if err != nil {
@@ -237,9 +246,9 @@ func (repo *GormRepository) FindDeleteAll(ic business.InternalContext, role ...s
 		// Limit: 50 ?
 		err = query.Limit(50).Unscoped().Where("deleted_at is not null").Find(&selectedUsers).Error
 	} else if isAdmin(&role) {
-		err = query.Limit(50).Unscoped().Where("is_admin = 1 AND deleted_at is not null").Find(&selectedUsers).Error
+		err = query.Limit(50).Unscoped().Where(`role = "admin" AND deleted_at is not null`).Find(&selectedUsers).Error
 	} else if isUser(&role) {
-		err = query.Limit(50).Unscoped().Where("is_admin = 0 AND deleted_at is not null").Find(&selectedUsers).Error
+		err = query.Limit(50).Unscoped().Where(`role = "user" AND deleted_at is not null`).Find(&selectedUsers).Error
 	} else { // role agrs [2,..]=string
 		return nil, errors.New(`models.User{}.FindDeleteAll: role agrs [2]{"admin", "user"}=string`)
 	}
