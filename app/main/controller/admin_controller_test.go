@@ -43,15 +43,15 @@ func TestAdminDeletePermanently(t *testing.T) {
 			status: http.StatusNotFound,
 		},
 
-		// /*
-		// 	No Auth
-		// */
-		// {
-		// 	name:   "delete permanently [no-auth] to GET it failure",
-		// 	expect: ANONYMOUS,
-		// 	// HTTP response status: 404 Not Found
-		// 	status: http.StatusNotFound,
-		// },
+		/*
+			No Auth
+		*/
+		{
+			name:   "delete permanently [no-auth] to GET it failure",
+			expect: ANONYMOUS,
+			// HTTP response status: 404 Not Found
+			status: http.StatusNotFound,
+		},
 	}
 
 	for _, test := range testCases {

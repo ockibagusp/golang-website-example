@@ -36,10 +36,11 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 	role, _ := c.Get("role").(string)
 	log.Info("START request method GET for admin delete permanently")
 	if role == "anonymous" {
-		log.Warn("for GET to admin delete permanently without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for admin delete permanently: [-]failure")
-		return c.Redirect(http.StatusFound, "/login")
+		log.Warn("for GET to admin delete permanently by id without no-session [@route: /login]")
+		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": "Not Found",
+		})
 	}
 
 	if role != "admin" {
@@ -119,18 +120,21 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
  * @route: /admin/delete/permanently/:id
  */
 func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
-	trackerID, log := uclogger.StartTrackerID(c)
+	log := uclogger.Start(c)
 	defer log.End()
 	log.Info("START request method GET for admin delete permanently by id")
 
-	ic := business.NewInternalContext(trackerID)
 	role, _ := c.Get("role").(string)
 	if role == "anonymous" {
 		log.Warn("for GET to admin delete permanently by id without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login process failed!")
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
-		return c.Redirect(http.StatusFound, "/login")
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": "Not Found",
+		})
 	}
+
+	trackerID := log.SetTrackerID()
+	ic := business.NewInternalContext(trackerID)
 
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
@@ -176,10 +180,9 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
  * @route: /admin/restore/:id
  */
 func (ctrl *Controller) RestoreUser(c echo.Context) error {
-	trackerID, log := uclogger.StartTrackerID(c)
+	log := uclogger.Start(c)
 	defer log.End()
 
-	ic := business.NewInternalContext(trackerID)
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
 	role, _ := c.Get("role").(string)
@@ -188,8 +191,13 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warn("for GET to admin restore without no-session [@route: /login]")
 		middleware.SetFlashError(c, "login process failed!")
 		log.Warn("END request method GET for admin restore: [-]failure")
-		return c.Redirect(http.StatusFound, "/login")
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": "Not Found",
+		})
 	}
+
+	trackerID := log.SetTrackerID()
+	ic := business.NewInternalContext(trackerID)
 
 	// why?
 	// delete permanently not for admin
