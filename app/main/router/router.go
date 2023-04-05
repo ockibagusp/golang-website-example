@@ -56,11 +56,11 @@ func RegisterPath(
 	admin := router.Group("/admin", sessionMiddleware)
 	admin.GET("/delete-permanently", controller.DeletePermanently).
 		Name = "/admin/delete-permanently get"
-	admin.GET("/admin/restore/:id", controller.RestoreUser).
+	admin.GET("/restore/:id", controller.RestoreUser).
 		Name = "/admin/restore/:id get"
 	// "/admin/delete-permanently/:id" unable
 	// "/admin/delete/permanently/:id" can
-	admin.GET("/admin/delete/permanently/:id", controller.DeletePermanentlyByID).
+	admin.GET("/delete/permanently/:id", controller.DeletePermanentlyByID).
 		Name = "/admin/delete/permanently/:id get"
 
 	return
