@@ -75,7 +75,7 @@ func (logger *StandardLogger) Start(c echo.Context) *StandardLogger {
 	if c != nil {
 		logger.method = c.Request().Method
 		logger.username, _ = c.Get("username").(string)
-		logger.route = c.Path()
+		logger.route = c.Request().URL.String()
 	}
 
 	return logger
