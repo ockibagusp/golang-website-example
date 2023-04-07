@@ -29,36 +29,18 @@ func init() {
  * @route: /admin/delete-permanently
  */
 func (ctrl *Controller) DeletePermanently(c echo.Context) error {
-	log := uclogger.Start(c)
+	log := aclogger.Start(c)
 	defer log.End()
-
-	ic := business.InternalContext{}
-	role, _ := c.Get("role").(string)
 	log.Info("START request method GET for admin delete permanently")
-	if role == "anonymous" {
-		log.Warn("for GET to admin delete permanently by id without no-session [@route: /login]")
-		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
+
+	role, _ := c.Get("role").(string)
+	if role != "admin" {
+		log.Warn("for GET to admin delete permanently by id without no-session or user no admin [@route: /admin/delete/permanently/:id]")
+		log.Warn("END request method GET for admin delete permanently: [-]failure")
+		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, echo.Map{
 			"message": "Not Found",
 		})
-	}
-
-	if role != "admin" {
-		log.Warn("END request method GET for admin delete permanently: [-]failure")
-		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, "404 Not Found")
-	}
-
-	id, _ := strconv.Atoi(c.Param("id"))
-	uid := uint(id)
-	username, _ := c.Get("username").(string)
-
-	// why?
-	// delete not for admin
-	if uid == 1 {
-		log.Warn("END request method GET for delete user [admin]: [-]failure")
-		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, "403 Forbidden")
 	}
 
 	var (
@@ -69,6 +51,7 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 		typing string
 	)
 
+	ic := business.InternalContext{}
 	if c.QueryParam("admin") == "all" {
 		log.Infof(`for GET to admin delete permanently: admin ctrl.userService.FindDeleteAll(db, "admin")`)
 		typing = "Admin"
@@ -88,9 +71,12 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 		log.Warnf("for GET to admin delete permanently without ctrl.userService.FindDeleteAll() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
+	username, _ := c.Get("username").(string)
 	log.Info("END request method GET to admin delete permanently: [+]success")
 	return c.Render(http.StatusOK, "admin/admin-delete-permanently.html", echo.Map{
 		"name":             fmt.Sprintf("Users: %v", typing),
@@ -120,21 +106,19 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
  * @route: /admin/delete/permanently/:id
  */
 func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
-	log := uclogger.Start(c)
+	log := aclogger.Start(c)
 	defer log.End()
 	log.Info("START request method GET for admin delete permanently by id")
 
 	role, _ := c.Get("role").(string)
-	if role == "anonymous" {
-		log.Warn("for GET to admin delete permanently by id without no-session [@route: /login]")
+	if role != "admin" {
+		log.Warn("for GET to admin delete permanently by id without no-session or user no admin [@route: /admin/delete/permanently/:id]")
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
+		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, echo.Map{
 			"message": "Not Found",
 		})
 	}
-
-	trackerID := log.SetTrackerID()
-	ic := business.NewInternalContext(trackerID)
 
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
@@ -143,28 +127,30 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 	if uid == 1 {
 		log.Warn("END request method GET for admin delete permanently by id [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, "403 Forbidden")
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": "403 Forbidden",
+		})
 	}
 
-	if role != "admin" {
-		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
-		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, "404 Not Found")
-	}
-
+	trackerID := log.SetTrackerID()
+	ic := business.NewInternalContext(trackerID)
 	_, err := ctrl.userService.UnscopedFirstUserByID(ic, uid)
 	if err != nil {
 		log.Warnf("for GET to admin delete permanently by id without ctrl.userService.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	if err = ctrl.userService.DeletePermanently(ic, uid); err != nil {
 		log.Warnf("for GET to admin delete permanently by id without ctrl.userService.Delete() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, err.Error())
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	// delete permanently admin
@@ -180,52 +166,54 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
  * @route: /admin/restore/:id
  */
 func (ctrl *Controller) RestoreUser(c echo.Context) error {
-	log := uclogger.Start(c)
+	log := aclogger.Start(c)
 	defer log.End()
+	log.Info("START request method GET for admin restore user")
+
+	role, _ := c.Get("role").(string)
+	if role != "admin" {
+		log.Warn("for GET to admin restore user without no-session or user no admin [@route: /admin/delete/permanently/:id]")
+		log.Warn("END request method GET for admin restore user: [-]failure")
+		// HTTP response status: 404 Not Found
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": "Not Found",
+		})
+	}
+
+	// ?
 
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
-	role, _ := c.Get("role").(string)
-
-	if role == "anonymous" {
-		log.Warn("for GET to admin restore without no-session [@route: /login]")
-		middleware.SetFlashError(c, "login process failed!")
-		log.Warn("END request method GET for admin restore: [-]failure")
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": "Not Found",
+	// why?
+	// delete permanently not for admin
+	if uid == 1 {
+		log.Warn("END request method GET for admin restore [admin]: [-]failure")
+		// HTTP response status: 403 Forbidden
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": "403 Forbidden",
 		})
 	}
 
 	trackerID := log.SetTrackerID()
 	ic := business.NewInternalContext(trackerID)
 
-	// why?
-	// delete permanently not for admin
-	if uid == 1 {
-		log.Warn("END request method GET for admin restore [admin]: [-]failure")
-		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, "403 Forbidden")
-	}
-
-	if role != "admin" {
-		log.Warn("END request method GET for admin restore: [-]failure")
-		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, "404 Not Found")
-	}
-
 	user, err := ctrl.userService.UnscopedFirstUserByID(ic, uid)
 	if err != nil {
 		log.Warnf("for GET to admin restore without ctrl.userService.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for admin restore: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	if err := ctrl.userService.Restore(ic, uid); err != nil {
 		log.Warnf("for GET to admin restore without ctrl.userService.Restore() errors: `%v`", err)
 		log.Warn("END request method GET for admin restore: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, err.Error())
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	middleware.SetFlashSuccess(c, fmt.Sprintf("success restore user: %s!", user.Username))
