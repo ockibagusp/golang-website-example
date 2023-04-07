@@ -180,8 +180,6 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		})
 	}
 
-	// ?
-
 	id, _ := strconv.Atoi(c.Param("id"))
 	uid := uint(id)
 	// why?
