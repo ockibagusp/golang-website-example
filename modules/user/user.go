@@ -269,6 +269,11 @@ func (repo *GormRepository) Restore(ic business.InternalContext, uid uint) error
 
 	tx := query.Begin()
 	var count int64
+	if tx.Model(&selectedUser).Unscoped().Select("deleted_at").Where("id = ?", uid).First(&selectedUser).Count(&count); count != 1 {
+		tx.Rollback()
+		return errors.New("Recover Undeleted User")
+	}
+
 	// if tx.Model(&selectUser).Unscoped().Where("id = ?", uid).Update(...).Count; count != 1 {}
 	if tx.Model(&selectedUser).Unscoped().Where("id = ?", uid).Update("deleted_at", nil).First(&selectedUser).Count(&count); count != 1 {
 		tx.Rollback()
