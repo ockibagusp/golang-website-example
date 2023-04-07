@@ -188,7 +188,7 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warn("END request method GET for admin restore [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "403 Forbidden",
+			"message": "Forbidden",
 		})
 	}
 

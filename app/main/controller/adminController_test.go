@@ -101,20 +101,21 @@ func TestAdminRestoreByID(t *testing.T) {
 	// test for db users
 	truncateUsers()
 
-	// user sugriwa (id=2)
+	// delete user sugriwa (id=2)
 	err := newUserService(db).Delete(business.InternalContext{}, 2)
 	if err != nil {
 		panic("sugriwa: username not already: " + err.Error())
 	}
 
 	testCases := []struct {
-		name               string
-		expect             string // auth or no-auth
-		path               string
-		status             int
-		htmlNavbar         regex
-		htmlHeading        regex
-		html_flash_success regex
+		name             string
+		expect           string // auth or no-auth
+		path             string
+		status           int
+		htmlNavbar       regex
+		htmlHeading      regex
+		htmlFlashSuccess regex
+		jsonMessageError regex
 	}{
 		/*
 			delete restore by id [admin]
@@ -125,6 +126,10 @@ func TestAdminRestoreByID(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Forbidden"}`,
+			},
 		},
 		{
 			name:   "delete restore by id [admin] to GET it success: id=2",
@@ -143,7 +148,7 @@ func TestAdminRestoreByID(t *testing.T) {
 				actual:      `<h2 class="mt-4">Delete Permanently?</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success restore user: sugriwa!`,
 			},
@@ -154,6 +159,10 @@ func TestAdminRestoreByID(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -165,6 +174,10 @@ func TestAdminRestoreByID(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Not Found"}`,
+			},
 		},
 
 		/*
@@ -175,6 +188,10 @@ func TestAdminRestoreByID(t *testing.T) {
 			expect: ANONYMOUS,
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Not Found"}`,
+			},
 		},
 	}
 
@@ -195,19 +212,19 @@ func TestAdminRestoreByID(t *testing.T) {
 				Expect().
 				Status(test.status)
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
 			)
 
 			if test.htmlNavbar.mustCompile != "" {
-				must_compile = test.htmlNavbar.mustCompile
+				mustCompile = test.htmlNavbar.mustCompile
 				actual = test.htmlNavbar.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				// assert.Equal(t, match, actual)
 				//
@@ -220,21 +237,31 @@ func TestAdminRestoreByID(t *testing.T) {
 			}
 
 			if test.htmlHeading.mustCompile != "" {
-				must_compile = test.htmlHeading.mustCompile
+				mustCompile = test.htmlHeading.mustCompile
 				actual = test.htmlHeading.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.mustCompile != "" {
-				must_compile = test.html_flash_success.mustCompile
-				actual = test.html_flash_success.actual
+			if test.htmlFlashSuccess.mustCompile != "" {
+				mustCompile = test.htmlFlashSuccess.mustCompile
+				actual = test.htmlFlashSuccess.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.jsonMessageError.mustCompile != "" {
+				mustCompile = test.jsonMessageError.mustCompile
+				actual = test.jsonMessageError.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
