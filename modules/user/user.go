@@ -5,6 +5,7 @@ import (
 
 	"github.com/ockibagusp/golang-website-example/business"
 	"github.com/ockibagusp/golang-website-example/business/user"
+
 	"gorm.io/gorm"
 )
 
@@ -268,16 +269,10 @@ func (repo *GormRepository) Restore(ic business.InternalContext, uid uint) error
 
 	tx := query.Begin()
 	var count int64
-	// if tx.Unscoped().Select("id").First(&selectUser).Error != nil {}
-	if tx.Unscoped().Select("id").First(&selectedUser).Count(&count); count != 1 {
+	// if tx.Model(&selectUser).Unscoped().Where("id = ?", uid).Update(...).Count; count != 1 {}
+	if tx.Model(&selectedUser).Unscoped().Where("id = ?", uid).Update("deleted_at", nil).First(&selectedUser).Count(&count); count != 1 {
 		tx.Rollback()
-		return errors.New("User Not Found")
-	}
-
-	// if tx.Model(&selectUser).Unscoped().Where("id = ?", uid).Update(...).Error; err != nil {}
-	if err := tx.Model(&selectedUser).Unscoped().Where("id = ?", uid).Update("deleted_at", nil).First(&selectedUser).Error; err != nil {
-		tx.Rollback()
-		return err
+		return errors.New("Restore User Update Not deleted_at")
 	}
 	tx.Commit()
 
