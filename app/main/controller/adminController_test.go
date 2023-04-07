@@ -21,10 +21,13 @@ func TestAdminDeletePermanently(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name     string
-		expect   string // auth or no-auth
-		urlQuery string
-		status   int
+		name             string
+		expect           string // auth or no-auth
+		urlQuery         string
+		htmlNavbar       regex
+		htmlHeading      regex
+		jsonMessageError regex
+		status           int
 	}{
 		/*
 			delete permanently [admin]
@@ -34,6 +37,16 @@ func TestAdminDeletePermanently(t *testing.T) {
 			expect: ADMIN,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
+			// body navbar
+			htmlNavbar: regex{
+				mustCompile: `<a class="btn">(.*)</a>`,
+				actual:      `<a class="btn">ADMIN</a>`,
+			},
+			// body heading
+			htmlHeading: regex{
+				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+				actual:      `<h2 class="mt-4">Delete Permanently?</h2>`,
+			},
 		},
 
 		/*
@@ -44,6 +57,10 @@ func TestAdminDeletePermanently(t *testing.T) {
 			expect: SUGRIWA,
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Not Found"}`,
+			},
 		},
 
 		/*
@@ -54,6 +71,10 @@ func TestAdminDeletePermanently(t *testing.T) {
 			expect: ANONYMOUS,
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Not Found"}`,
+			},
 		},
 	}
 
@@ -80,6 +101,49 @@ func TestAdminDeletePermanently(t *testing.T) {
 				result = noAuth.GET("/admin/delete-permanently").
 					Expect().
 					Status(test.status)
+			}
+
+			var (
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
+			)
+			resultBody := result.Body().Raw()
+
+			if test.htmlNavbar.mustCompile != "" {
+				mustCompile = test.htmlNavbar.mustCompile
+				actual = test.htmlNavbar.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				// assert.Equal(t, match, actual)
+				//
+				// or,
+				//
+				// assert := assert.New(t)
+				// ...
+				// assert.Equal(match, actual)
+				assert.Equal(t, match, actual)
+			}
+
+			if test.htmlHeading.mustCompile != "" {
+				mustCompile = test.htmlHeading.mustCompile
+				actual = test.htmlHeading.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.jsonMessageError.mustCompile != "" {
+				mustCompile = test.jsonMessageError.mustCompile
+				actual = test.jsonMessageError.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				assert.Equal(t, match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode

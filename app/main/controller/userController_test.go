@@ -25,7 +25,7 @@ func TestUsersController(t *testing.T) {
 	testCases := []struct {
 		name        string
 		expect      string // expect: admin, sugriwa
-		url_query   string // @route: exemple /users?admin=all
+		urlQuery    string // @route: exemple /users?admin=all
 		status      int
 		htmlNavbar  regex
 		htmlHeading regex
@@ -62,9 +62,9 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:      "users [admin] to GET it success: admin",
-			expect:    ADMIN,
-			url_query: "admin",
+			name:     "users [admin] to GET it success: admin",
+			expect:   ADMIN,
+			urlQuery: "admin",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -79,9 +79,9 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:      "users [admin] to GET it success: user",
-			expect:    ADMIN,
-			url_query: "user",
+			name:     "users [admin] to GET it success: user",
+			expect:   ADMIN,
+			urlQuery: "user",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -96,10 +96,10 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:      "users [admin] to GET it failed: all",
-			expect:    ADMIN,
-			url_query: "false",
-			status:    http.StatusOK,
+			name:     "users [admin] to GET it failed: all",
+			expect:   ADMIN,
+			urlQuery: "false",
+			status:   http.StatusOK,
 			// body heading
 			htmlHeading: regex{
 				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
@@ -123,9 +123,9 @@ func TestUsersController(t *testing.T) {
 			},
 		},
 		{
-			name:      "users [user] to GET it redirect success: admin failed",
-			expect:    SUGRIWA,
-			url_query: "admin",
+			name:     "users [user] to GET it redirect success: admin failed",
+			expect:   SUGRIWA,
+			urlQuery: "admin",
 			// redirect @route: /user/read/2 [sugriwa: 2]
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -159,9 +159,9 @@ func TestUsersController(t *testing.T) {
 			modelsTest.UserSelectTest = test.expect // admin, sugriwa
 
 			// @route: exemple "/users?admin=all"
-			if test.url_query != "" {
+			if test.urlQuery != "" {
 				result = noAuth.GET("/users").
-					WithQuery(test.url_query, "all").
+					WithQuery(test.urlQuery, "all").
 					Expect().
 					Status(test.status)
 			} else {
@@ -171,19 +171,19 @@ func TestUsersController(t *testing.T) {
 					Status(test.status)
 			}
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
 			)
 
 			if test.htmlNavbar.mustCompile != "" {
-				must_compile = test.htmlNavbar.mustCompile
+				mustCompile = test.htmlNavbar.mustCompile
 				actual = test.htmlNavbar.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				// assert.Equal(t, match, actual)
 				//
@@ -196,11 +196,11 @@ func TestUsersController(t *testing.T) {
 			}
 
 			if test.htmlHeading.mustCompile != "" {
-				must_compile = test.htmlHeading.mustCompile
+				mustCompile = test.htmlHeading.mustCompile
 				actual = test.htmlHeading.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(match, actual)
 			}
@@ -238,8 +238,8 @@ func TestCreateUserController(t *testing.T) {
 		// body heading
 		htmlHeading regex
 		// flash message
-		html_flash_success regex
-		html_flash_error   regex
+		htmlFlashSuccess regex
+		htmlFlashError   regex
 	}{
 		/*
 			create it [admin]
@@ -288,7 +288,7 @@ func TestCreateUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success new user: unit-test!`,
 			},
@@ -320,7 +320,7 @@ func TestCreateUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">New User</h2>`,
 			},
 			// flash message error
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<strong>error:</strong> (.*)`,
 				actual:      `<strong>error:</strong> Error 1062 (23000): Duplicate entry &#39;unit-test@exemple.com&#39; for key &#39;email_UNIQUE&#39;!`,
 			},
@@ -357,7 +357,7 @@ func TestCreateUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
 			},
 			// flash message error
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<strong>error:</strong> (.*)`,
 				actual:      `<strong>error:</strong> 403 Forbidden!`,
 			},
@@ -400,7 +400,7 @@ func TestCreateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success new user: example!`,
 			},
@@ -427,50 +427,50 @@ func TestCreateUserController(t *testing.T) {
 				panic("method: 1=GET or 2=POST")
 			}
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
 			)
 
-			if test.html_flash_success.mustCompile != "" {
-				must_compile = test.html_flash_success.mustCompile
-				actual = test.html_flash_success.actual
+			if test.htmlFlashSuccess.mustCompile != "" {
+				mustCompile = test.htmlFlashSuccess.mustCompile
+				actual = test.htmlFlashSuccess.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.mustCompile != "" {
-				must_compile = test.html_flash_error.mustCompile
-				actual = test.html_flash_error.actual
+			if test.htmlFlashError.mustCompile != "" {
+				mustCompile = test.htmlFlashError.mustCompile
+				actual = test.htmlFlashError.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
 			assert := assert.New(t)
 			if test.htmlNavbar.mustCompile != "" {
-				must_compile = test.htmlNavbar.mustCompile
+				mustCompile = test.htmlNavbar.mustCompile
 				actual = test.htmlNavbar.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(match, actual)
 			}
 
 			if test.htmlHeading.mustCompile != "" {
-				must_compile = test.htmlHeading.mustCompile
+				mustCompile = test.htmlHeading.mustCompile
 				actual = test.htmlHeading.actual
 
-				regex := regexp.MustCompile(must_compile)
-				match := regex.FindString(result_body)
+				regex := regexp.MustCompile(mustCompile)
+				match := regex.FindString(resultBody)
 
 				assert.Equal(match, actual)
 			}
@@ -504,7 +504,7 @@ func TestReadUserController(t *testing.T) {
 		status      int
 		htmlNavbar  regex
 		htmlHeading regex
-		flash_error regex
+		flashError  regex
 	}{
 		/*
 			read it [admin]
@@ -573,7 +573,7 @@ func TestReadUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			flash_error: regex{
+			flashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -587,7 +587,7 @@ func TestReadUserController(t *testing.T) {
 			// HTTP response status: 200 OK: 3 session and id
 			status: http.StatusOK,
 			// flash message
-			flash_error: regex{
+			flashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -609,39 +609,39 @@ func TestReadUserController(t *testing.T) {
 					Expect().
 					Status(test.status)
 
-				result_body := result.Body().Raw()
+				resultBody := result.Body().Raw()
 
 				var (
-					must_compile, actual, match string
-					regex                       *regexp.Regexp
+					mustCompile, actual, match string
+					regex                      *regexp.Regexp
 				)
 
 				if test.htmlNavbar.mustCompile != "" {
-					must_compile = test.htmlNavbar.mustCompile
+					mustCompile = test.htmlNavbar.mustCompile
 					actual = test.htmlNavbar.actual
 
-					regex = regexp.MustCompile(must_compile)
-					match = regex.FindString(result_body)
+					regex = regexp.MustCompile(mustCompile)
+					match = regex.FindString(resultBody)
 
 					assert.Equal(match, actual)
 				}
 
 				if test.htmlHeading.mustCompile != "" {
-					must_compile = test.htmlHeading.mustCompile
+					mustCompile = test.htmlHeading.mustCompile
 					actual = test.htmlHeading.actual
 
-					regex = regexp.MustCompile(must_compile)
-					match = regex.FindString(result_body)
+					regex = regexp.MustCompile(mustCompile)
+					match = regex.FindString(resultBody)
 
 					assert.Equal(match, actual)
 				}
 
-				if test.flash_error.mustCompile != "" {
-					must_compile = test.flash_error.mustCompile
-					actual = test.flash_error.actual
+				if test.flashError.mustCompile != "" {
+					mustCompile = test.flashError.mustCompile
+					actual = test.flashError.actual
 
-					regex = regexp.MustCompile(must_compile)
-					match = regex.FindString(result_body)
+					regex = regexp.MustCompile(mustCompile)
+					match = regex.FindString(resultBody)
 
 					assert.Equal(match, actual)
 				}
@@ -679,8 +679,8 @@ func TestUpdateUserController(t *testing.T) {
 		htmlNavbar  regex
 		htmlHeading regex
 		// flash message
-		html_flash_success regex
-		html_flash_error   regex
+		htmlFlashSuccess regex
+		htmlFlashError   regex
 	}{
 		/*
 			update it [admin]
@@ -754,7 +754,7 @@ func TestUpdateUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success update user: admin-success!`,
 			},
@@ -784,7 +784,7 @@ func TestUpdateUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				// [admin] id=2 username: sugriwa
 				actual: `<strong>success:</strong> success update user: sugriwa!`,
@@ -853,7 +853,7 @@ func TestUpdateUserController(t *testing.T) {
 				actual:      `<h1 class="display-4">Hello Sugriwa!</h1>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success update user: sugriwa!`,
 			},
@@ -883,7 +883,7 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -949,19 +949,19 @@ func TestUpdateUserController(t *testing.T) {
 				panic("method: 1=GET or 2=POST")
 			}
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
 			)
 
 			if test.htmlNavbar.mustCompile != "" {
-				must_compile = test.htmlNavbar.mustCompile
+				mustCompile = test.htmlNavbar.mustCompile
 				actual = test.htmlNavbar.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				// assert.Equal(t, match, actual)
 				//
@@ -974,31 +974,31 @@ func TestUpdateUserController(t *testing.T) {
 			}
 
 			if test.htmlHeading.mustCompile != "" {
-				must_compile = test.htmlHeading.mustCompile
+				mustCompile = test.htmlHeading.mustCompile
 				actual = test.htmlHeading.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.mustCompile != "" {
-				must_compile = test.html_flash_success.mustCompile
-				actual = test.html_flash_success.actual
+			if test.htmlFlashSuccess.mustCompile != "" {
+				mustCompile = test.htmlFlashSuccess.mustCompile
+				actual = test.htmlFlashSuccess.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.mustCompile != "" {
-				must_compile = test.html_flash_error.mustCompile
-				actual = test.html_flash_error.actual
+			if test.htmlFlashError.mustCompile != "" {
+				mustCompile = test.htmlFlashError.mustCompile
+				actual = test.htmlFlashError.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
@@ -1035,8 +1035,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 
 		htmlHeading regex
 		// flash message
-		html_flash_success regex
-		html_flash_error   regex
+		htmlFlashSuccess regex
+		htmlFlashError   regex
 	}{
 		/*
 			update by password it [admin]
@@ -1096,7 +1096,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success update user by password: admin!`,
 			},
@@ -1119,7 +1119,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success update user by password: sugriwa!`,
 			},
@@ -1217,7 +1217,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success update user by password: sugriwa!`,
 			},
@@ -1263,7 +1263,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1277,7 +1277,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1293,7 +1293,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusOK,
 			form:   types.NewPasswordForm{},
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1308,7 +1308,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			status: http.StatusOK,
 			form:   types.NewPasswordForm{},
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1363,39 +1363,39 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				panic("method: 1=GET or 2=POST")
 			}
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
 			)
 
 			if test.htmlHeading.mustCompile != "" {
-				must_compile = test.htmlHeading.mustCompile
+				mustCompile = test.htmlHeading.mustCompile
 				actual = test.htmlHeading.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.mustCompile != "" {
-				must_compile = test.html_flash_success.mustCompile
-				actual = test.html_flash_success.actual
+			if test.htmlFlashSuccess.mustCompile != "" {
+				mustCompile = test.htmlFlashSuccess.mustCompile
+				actual = test.htmlFlashSuccess.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.mustCompile != "" {
-				must_compile = test.html_flash_error.mustCompile
-				actual = test.html_flash_error.actual
+			if test.htmlFlashError.mustCompile != "" {
+				mustCompile = test.htmlFlashError.mustCompile
+				actual = test.htmlFlashError.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
@@ -1424,16 +1424,17 @@ func TestDeleteUserController(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name             string
-		expect           string // ADMIN and SUBALI
-		path             string // id=string. Exemple, id="1"
-		set_session_true bool
-		status           int
+		name           string
+		expect         string // ADMIN and SUBALI
+		path           string // id=string. Exemple, id="1"
+		setSessionTrue bool
+		status         int
 
 		htmlHeading regex
 		// flash message
-		html_flash_success regex
-		html_flash_error   regex
+		htmlFlashSuccess regex
+		htmlFlashError   regex
+		jsonMessageError regex
 	}{
 		// GET all
 		/*
@@ -1445,6 +1446,10 @@ func TestDeleteUserController(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Forbidden"}`,
+			},
 		},
 		{
 			name:   "users [admin] to [sugriwa] DELETE it success: id=2",
@@ -1459,7 +1464,7 @@ func TestDeleteUserController(t *testing.T) {
 				actual:      `<h2 class="mt-4">Users: All</h2>`,
 			},
 			// flash message success
-			html_flash_success: regex{
+			htmlFlashSuccess: regex{
 				mustCompile: `<strong>success:</strong> (.*)`,
 				actual:      `<strong>success:</strong> success delete user: sugriwa!`,
 			},
@@ -1470,6 +1475,10 @@ func TestDeleteUserController(t *testing.T) {
 			path:   "2",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		{
 			name:   "users [admin] to DELETE it failure: 2 (id=-1)",
@@ -1477,6 +1486,10 @@ func TestDeleteUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -1488,6 +1501,10 @@ func TestDeleteUserController(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Forbidden"}`,
+			},
 		},
 		{
 			name:   "users [subali] to DELETE it failure: id=-1",
@@ -1495,6 +1512,10 @@ func TestDeleteUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		// {
 		// 	name:             "users [subali] to [subali] DELETE it success: id=3",
@@ -1527,7 +1548,7 @@ func TestDeleteUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1540,7 +1561,7 @@ func TestDeleteUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1553,7 +1574,7 @@ func TestDeleteUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			html_flash_error: regex{
+			htmlFlashError: regex{
 				mustCompile: `<p class="text-danger">*(.*)</p>`,
 				actual:      `<p class="text-danger">*login process failed!</p>`,
 			},
@@ -1563,7 +1584,7 @@ func TestDeleteUserController(t *testing.T) {
 	for _, test := range testCases {
 		var result *httpexpect.Response
 
-		if test.set_session_true {
+		if test.setSessionTrue {
 			method.SetSession = true
 		}
 
@@ -1574,39 +1595,49 @@ func TestDeleteUserController(t *testing.T) {
 				Expect().
 				Status(test.status)
 
-			result_body := result.Body().Raw()
+			resultBody := result.Body().Raw()
 
 			var (
-				must_compile, actual, match string
-				regex                       *regexp.Regexp
+				mustCompile, actual, match string
+				regex                      *regexp.Regexp
 			)
 
 			if test.htmlHeading.mustCompile != "" {
-				must_compile = test.htmlHeading.mustCompile
+				mustCompile = test.htmlHeading.mustCompile
 				actual = test.htmlHeading.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_success.mustCompile != "" {
-				must_compile = test.html_flash_success.mustCompile
-				actual = test.html_flash_success.actual
+			if test.htmlFlashSuccess.mustCompile != "" {
+				mustCompile = test.htmlFlashSuccess.mustCompile
+				actual = test.htmlFlashSuccess.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}
 
-			if test.html_flash_error.mustCompile != "" {
-				must_compile = test.html_flash_error.mustCompile
-				actual = test.html_flash_error.actual
+			if test.htmlFlashError.mustCompile != "" {
+				mustCompile = test.htmlFlashError.mustCompile
+				actual = test.htmlFlashError.actual
 
-				regex = regexp.MustCompile(must_compile)
-				match = regex.FindString(result_body)
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.jsonMessageError.mustCompile != "" {
+				mustCompile = test.jsonMessageError.mustCompile
+				actual = test.jsonMessageError.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
 
 				assert.Equal(t, match, actual)
 			}

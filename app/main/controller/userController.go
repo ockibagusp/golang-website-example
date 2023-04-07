@@ -689,7 +689,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 	if uid == 1 {
 		log.Warn("END request method GET for delete user [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, "403 Forbidden")
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": "Forbidden",
+		})
 	}
 
 	var (
