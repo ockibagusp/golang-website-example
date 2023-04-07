@@ -89,7 +89,9 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			log.Warn("to middleware.SetSession session not found for login")
 			log.Warn("END request method POST for login: [-]failure")
 			// err: session not found
-			return c.HTML(http.StatusForbidden, err.Error())
+			return c.JSON(http.StatusForbidden, echo.Map{
+				"message": err.Error(),
+			})
 		}
 
 		log.Info("END request method POST [@route: /]")
@@ -119,7 +121,9 @@ func (ctrl *Controller) Logout(c echo.Context) error {
 	if err := middleware.ClearSession(c); err != nil {
 		log.Warn("to middleware.ClearSession session not found")
 		// err: session not found
-		return c.HTML(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	log.Info("END request method GET for logout")

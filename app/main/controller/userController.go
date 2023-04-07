@@ -91,7 +91,9 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		log.Warnf("for GET to users without ctrl.userService.FindAll errors: `%v`", err)
 		log.Warn("END request method GET for users: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	log.Info("END request method GET for users: [+]success")
@@ -161,7 +163,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
 				log.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
-				return c.HTML(http.StatusBadRequest, err.Error())
+				return c.JSON(http.StatusBadRequest, echo.Map{
+					"message": err.Error(),
+				})
 			}
 			// Location or District?
 			location = uint(location64)
@@ -261,7 +265,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 				log.Warn("to middleware.SetSession session not found for create user")
 				log.Warn("END request method POST for create user: [-]failure")
 				// err: session not found
-				return c.HTML(http.StatusForbidden, err.Error())
+				return c.JSON(http.StatusForbidden, echo.Map{
+					"message": err.Error(),
+				})
 			}
 			log.Info("END request method POST for create user: [+]success")
 			return c.Redirect(http.StatusMovedPermanently, "/")
@@ -318,7 +324,9 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		)
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Method Not Acceptable
-		return c.HTML(http.StatusNotAcceptable, err.Error())
+		return c.JSON(http.StatusNotAcceptable, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	locations, err := locationModules.NewDB().FindAll(ic)
@@ -326,7 +334,9 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		log.Warnf("for GET to read user without models.location{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Not Acceptable
-		return c.HTML(http.StatusNotAcceptable, err.Error())
+		return c.JSON(http.StatusNotAcceptable, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	log.Info("END request method GET for read user: [+]success")
@@ -379,7 +389,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	// admin: yes
@@ -392,7 +404,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			(user.Username != username),
 		)
 		log.Warn("END request method GET for update user: [-]failure")
-		return c.HTML(http.StatusForbidden, "403 Forbidden")
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": "403 Forbidden",
+		})
 	}
 
 	if c.Request().Method == "POST" {
@@ -405,7 +419,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
 				log.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
-				return c.HTML(http.StatusBadRequest, err.Error())
+				return c.JSON(http.StatusBadRequest, echo.Map{
+					"message": err.Error(),
+				})
 			}
 			// Location or District?
 			location = uint(location64)
@@ -462,7 +478,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		log.Warnf("for GET to update user without models.location{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 405 Method Not Allowed
-		return c.HTML(http.StatusNotAcceptable, err.Error())
+		return c.JSON(http.StatusNotAcceptable, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	log.Info("END request method GET for update user: [+]success")
@@ -515,7 +533,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	/*
@@ -533,7 +553,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, err.Error())
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	if c.Request().Method == "POST" {
@@ -599,7 +621,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			log.Warnf("for POST to update user by password without models.User{}.UpdateByIDandPassword() errors: `%v`", err)
 			log.Warn("END request method POST for update user by password: [-]failure")
 			// HTTP response status: 405 Method Not Allowed
-			return c.HTML(http.StatusNotAcceptable, err.Error())
+			return c.JSON(http.StatusNotAcceptable, echo.Map{
+				"message": err.Error(),
+			})
 		}
 
 		log.WithField("user_update_password", user).Info("models.User: [+]success")
@@ -665,7 +689,7 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 	if uid == 1 {
 		log.Warn("END request method GET for delete user [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, "403 Forbidden")
+		return c.JSON(http.StatusForbidden, "403 Forbidden")
 	}
 
 	var (
@@ -677,7 +701,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		log.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.HTML(http.StatusNotFound, err.Error())
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	/*
@@ -699,7 +725,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 			)
 			log.Warn("END request method GET for delete user: [-]failure")
 			// HTTP response status: 403 Forbidden
-			return c.HTML(http.StatusForbidden, err.Error())
+			return c.JSON(http.StatusForbidden, echo.Map{
+				"message": err.Error(),
+			})
 		}
 	}
 
@@ -707,7 +735,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		log.Warnf("for GET to delete user without models.User{}.Delete() errors: `%v`", err)
 		log.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.HTML(http.StatusForbidden, err.Error())
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": err.Error(),
+		})
 	}
 
 	middleware.SetFlashSuccess(c, fmt.Sprintf("success delete user: %s!", user.Username))
@@ -716,7 +746,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		if err := middleware.ClearSession(c); err != nil {
 			log.Warn("to middleware.ClearSession session not found")
 			// err: session not found
-			return c.HTML(http.StatusBadRequest, err.Error())
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"message": err.Error(),
+			})
 		}
 		// delete user
 		return c.Redirect(http.StatusSeeOther, "/")
