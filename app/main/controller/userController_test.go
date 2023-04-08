@@ -497,14 +497,15 @@ func TestReadUserController(t *testing.T) {
 	truncateUsers()
 
 	testCases := []struct {
-		name        string
-		expect      string // auth or no-auth
-		method      int    // method: 1=GET or 2=POST
-		path        string
-		status      int
-		htmlNavbar  regex
-		htmlHeading regex
-		flashError  regex
+		name             string
+		expect           string // auth or no-auth
+		method           int    // method: 1=GET or 2=POST
+		path             string
+		status           int
+		htmlNavbar       regex
+		htmlHeading      regex
+		flashError       regex
+		jsonMessageError regex
 	}{
 		/*
 			read it [admin]
@@ -534,6 +535,10 @@ func TestReadUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -559,6 +564,10 @@ func TestReadUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -645,6 +654,16 @@ func TestReadUserController(t *testing.T) {
 
 					assert.Equal(match, actual)
 				}
+
+				if test.jsonMessageError.mustCompile != "" {
+					mustCompile = test.jsonMessageError.mustCompile
+					actual = test.jsonMessageError.actual
+
+					regex = regexp.MustCompile(mustCompile)
+					match = regex.FindString(resultBody)
+
+					assert.Equal(match, actual)
+				}
 			} else {
 				panic("method: 1=GET")
 			}
@@ -681,6 +700,8 @@ func TestUpdateUserController(t *testing.T) {
 		// flash message
 		htmlFlashSuccess regex
 		htmlFlashError   regex
+
+		jsonMessageError regex
 	}{
 		/*
 			update it [admin]
@@ -729,6 +750,10 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		// POST
 		{
@@ -798,6 +823,10 @@ func TestUpdateUserController(t *testing.T) {
 			form:   types.UserForm{},
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -824,6 +853,10 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "-2",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to GET update it failure: id=3",
@@ -832,6 +865,10 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "3", // user: 2 sugriwa no
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Forbidden"}`,
+			},
 		},
 		// POST
 		// ?
@@ -868,6 +905,10 @@ func TestUpdateUserController(t *testing.T) {
 			},
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"Forbidden"}`,
+			},
 		},
 
 		/*
@@ -1003,6 +1044,16 @@ func TestUpdateUserController(t *testing.T) {
 				assert.Equal(t, match, actual)
 			}
 
+			if test.jsonMessageError.mustCompile != "" {
+				mustCompile = test.jsonMessageError.mustCompile
+				actual = test.jsonMessageError.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				assert.Equal(t, match, actual)
+			}
+
 			statusCode := result.Raw().StatusCode
 			if test.status != statusCode {
 				t.Logf(
@@ -1037,6 +1088,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		// flash message
 		htmlFlashSuccess regex
 		htmlFlashError   regex
+
+		jsonMessageError regex
 	}{
 		/*
 			update by password it [admin]
@@ -1076,6 +1129,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		// POST
 		{
@@ -1160,6 +1217,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -1186,6 +1247,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "1",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to [subali] GET update user by password it failure: id=3",
@@ -1194,6 +1259,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "3",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to GET update user by password it failure: id=-1",
@@ -1202,6 +1271,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		// POST
 		{
@@ -1230,6 +1303,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to [subali] POST update user by password it failure: id=3",
@@ -1239,6 +1316,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 		{
 			name:   "users [sugriwa] to POST update user by password it failure: id=-1",
@@ -1248,6 +1329,10 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
+			jsonMessageError: regex{
+				mustCompile: `{"message":"(.*)"}`,
+				actual:      `{"message":"User Not Found"}`,
+			},
 		},
 
 		/*
@@ -1393,6 +1478,16 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			if test.htmlFlashError.mustCompile != "" {
 				mustCompile = test.htmlFlashError.mustCompile
 				actual = test.htmlFlashError.actual
+
+				regex = regexp.MustCompile(mustCompile)
+				match = regex.FindString(resultBody)
+
+				assert.Equal(t, match, actual)
+			}
+
+			if test.jsonMessageError.mustCompile != "" {
+				mustCompile = test.jsonMessageError.mustCompile
+				actual = test.jsonMessageError.actual
 
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)

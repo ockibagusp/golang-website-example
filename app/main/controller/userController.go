@@ -405,7 +405,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user: [-]failure")
 		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "403 Forbidden",
+			"message": "Forbidden",
 		})
 	}
 
