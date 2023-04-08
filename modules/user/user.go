@@ -292,10 +292,10 @@ func (repo *GormRepository) DeletePermanently(ic business.InternalContext, uid u
 
 	tx := query.Begin()
 	var count int64
-	// if tx.Unscoped().Select("id").First(&selectUser).Error != nil {}
-	if tx.Unscoped().Select("id").First(&selectedUser).Count(&count); count != 1 {
+	// if tx.Unscoped().Select("id").First(&selectUser, uid).Error != nil {}
+	if tx.Unscoped().Select("id").First(&selectedUser, uid).Count(&count); count != 1 {
 		tx.Rollback()
-		return errors.New("User Not Found")
+		return errors.New("Delete Permanently User Not Found")
 	}
 
 	// if tx.Unscoped().Delete(&selectUser, uid).Error != nil {}
