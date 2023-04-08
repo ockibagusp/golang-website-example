@@ -12,6 +12,8 @@ import (
 )
 
 func TestLogin(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for db users
@@ -123,7 +125,7 @@ func TestLogin(t *testing.T) {
 				regex := regexp.MustCompile(test.flash.mustCompile)
 				match := regex.FindString(resultBody)
 
-				assert.Equal(t, match, test.flash.actual)
+				assert.Equal(match, test.flash.actual)
 			}
 		})
 	}

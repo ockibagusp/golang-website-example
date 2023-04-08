@@ -13,6 +13,8 @@ import (
 )
 
 func TestAdminDeletePermanently(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
@@ -123,7 +125,7 @@ func TestAdminDeletePermanently(t *testing.T) {
 				// assert := assert.New(t)
 				// ...
 				// assert.Equal(match, actual)
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlHeading.mustCompile != "" {
@@ -133,7 +135,7 @@ func TestAdminDeletePermanently(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.jsonMessageError.mustCompile != "" {
@@ -143,7 +145,7 @@ func TestAdminDeletePermanently(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode
@@ -158,6 +160,8 @@ func TestAdminDeletePermanently(t *testing.T) {
 }
 
 func TestAdminRestoreByID(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
@@ -297,7 +301,7 @@ func TestAdminRestoreByID(t *testing.T) {
 				// assert := assert.New(t)
 				// ...
 				// assert.Equal(match, actual)
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlHeading.mustCompile != "" {
@@ -307,7 +311,7 @@ func TestAdminRestoreByID(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashSuccess.mustCompile != "" {
@@ -317,7 +321,7 @@ func TestAdminRestoreByID(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.jsonMessageError.mustCompile != "" {
@@ -327,7 +331,7 @@ func TestAdminRestoreByID(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode
@@ -342,6 +346,8 @@ func TestAdminRestoreByID(t *testing.T) {
 }
 
 func TestDeletePermanentlyByID(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
@@ -481,7 +487,7 @@ func TestDeletePermanentlyByID(t *testing.T) {
 				// assert := assert.New(t)
 				// ...
 				// assert.Equal(match, actual)
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlHeading.mustCompile != "" {
@@ -491,7 +497,7 @@ func TestDeletePermanentlyByID(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashSuccess.mustCompile != "" {
@@ -501,7 +507,7 @@ func TestDeletePermanentlyByID(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.jsonMessageError.mustCompile != "" {
@@ -511,7 +517,7 @@ func TestDeletePermanentlyByID(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode

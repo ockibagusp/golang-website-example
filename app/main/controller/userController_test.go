@@ -217,8 +217,9 @@ func TestUsersController(t *testing.T) {
 }
 
 func TestCreateUserController(t *testing.T) {
-	noAuth := setupTestServer(t)
+	var assert *assert.Assertions = assert.New(t)
 
+	noAuth := setupTestServer(t)
 	// test for SetSession = false
 	method.SetSession = false
 	// test for db users
@@ -441,7 +442,7 @@ func TestCreateUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashError.mustCompile != "" {
@@ -451,10 +452,9 @@ func TestCreateUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
-			assert := assert.New(t)
 			if test.htmlNavbar.mustCompile != "" {
 				mustCompile = test.htmlNavbar.mustCompile
 				actual = test.htmlNavbar.actual
@@ -680,6 +680,8 @@ func TestReadUserController(t *testing.T) {
 }
 
 func TestUpdateUserController(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
@@ -1011,7 +1013,7 @@ func TestUpdateUserController(t *testing.T) {
 				// assert := assert.New(t)
 				// ...
 				// assert.Equal(match, actual)
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlHeading.mustCompile != "" {
@@ -1021,7 +1023,7 @@ func TestUpdateUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashSuccess.mustCompile != "" {
@@ -1031,7 +1033,7 @@ func TestUpdateUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashError.mustCompile != "" {
@@ -1041,7 +1043,7 @@ func TestUpdateUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.jsonMessageError.mustCompile != "" {
@@ -1051,7 +1053,7 @@ func TestUpdateUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode
@@ -1069,6 +1071,8 @@ func TestUpdateUserController(t *testing.T) {
 }
 
 func TestUpdateUserByPasswordUserController(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
@@ -1462,7 +1466,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashSuccess.mustCompile != "" {
@@ -1472,7 +1476,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashError.mustCompile != "" {
@@ -1482,7 +1486,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.jsonMessageError.mustCompile != "" {
@@ -1492,7 +1496,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode
@@ -1511,6 +1515,8 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 
 // TODO: Test Delete User Controller, insyaallah
 func TestDeleteUserController(t *testing.T) {
+	assert := assert.New(t)
+
 	noAuth := setupTestServer(t)
 
 	// test for SetSession = false
@@ -1704,7 +1710,7 @@ func TestDeleteUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashSuccess.mustCompile != "" {
@@ -1714,7 +1720,7 @@ func TestDeleteUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.htmlFlashError.mustCompile != "" {
@@ -1724,7 +1730,7 @@ func TestDeleteUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			if test.jsonMessageError.mustCompile != "" {
@@ -1734,7 +1740,7 @@ func TestDeleteUserController(t *testing.T) {
 				regex = regexp.MustCompile(mustCompile)
 				match = regex.FindString(resultBody)
 
-				assert.Equal(t, match, actual)
+				assert.Equal(match, actual)
 			}
 
 			statusCode := result.Raw().StatusCode

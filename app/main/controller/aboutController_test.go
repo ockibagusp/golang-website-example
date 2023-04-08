@@ -12,7 +12,13 @@ import (
 )
 
 func TestAboutSuccess(t *testing.T) {
-	assert := assert.New(t)
+	// assert := assert.New(t)
+	// ...
+	// assert.Equal(match, actual)
+	//
+	// or,
+	//
+	// assert.Equal(t, match, actual)
 
 	noAuth := setupTestServer(t)
 
@@ -67,7 +73,7 @@ func TestAboutSuccess(t *testing.T) {
 			regex := regexp.MustCompile(test.htmlNavbar.mustCompile)
 			match := regex.FindString(resultBody)
 
-			assert.Equal(match, test.htmlNavbar.actual)
+			assert.Equal(t, match, test.htmlNavbar.actual)
 		})
 	}
 }
