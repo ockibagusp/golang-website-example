@@ -3,32 +3,7 @@
 [-] load
 
 # Insyaallah, New tasks:
-[] coverage tests
-
-➜  golang-website-example git:(master) ✗ go test -cover               
-?       github.com/ockibagusp/golang-website-example    [no test files]
-
-➜  golang-website-example git:(master) ✗ go test ./tests -cover               
-ok      github.com/ockibagusp/golang-website-example/tests      2.827s  coverage: [no statements]
-
-➜  golang-website-example git:(master) ✗ go test ./tests -coverpkg=./...      
-ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of statements in ./...
-                                                                    --------
-
-move to new package...
-
-[] log file lines (caller), example,
-{"file": ".../controllers/user_controller.go:76", ...}
-
-[] no debug for create models.User
-
-example,
-[6.075ms] [rows:0] INSERT INTO `users` ... VALUES (...'unit-test','unit-test@exemple.com','$2a$10$wyzBl/d31ahlHVU52kgkT.cH1lXI9b0cmdiM9Gw2ciyY9C69bTLh6','Unit Test',0,'',0)
-...
-time="2023-01-14T15:14:14+07:00" level=info msg="START request method POST for create user" route=/users/add username=
-time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=/users/add user_success="{{... example example@example.com $2a$10$1cbJNsJNOXk4hwYYVtlUT.B0MwNwp4sRmI2pS9frCuC.0IBLyRsSO Example 0  0}" username=}}
-
-[] ...
+[] new mock
 
 # Completed task:
 1. [-] testing session
@@ -89,3 +64,58 @@ time="2022-12-30T14:54:47+07:00" level=warning msg="for GET to delete user witho
 ...
 
 4. [v] test without csrf
+
+5. [v] coverage tests
+
+➜  golang-website-example git:(master) ✗ go test -cover               
+?       github.com/ockibagusp/golang-website-example    [no test files]
+
+➜  golang-website-example git:(master) ✗ go test ./tests -cover               
+ok      github.com/ockibagusp/golang-website-example/tests      2.827s  coverage: [no statements]
+
+➜  golang-website-example git:(master) ✗ go test ./tests -coverpkg=./...      
+ok      github.com/ockibagusp/golang-website-example/tests coverage: 62.6% of statements in ./...
+                                                                    --------
+
+move to new package...
+
+[] ...
+
+6. [v] out of the package template, example: t["login.html"] = parseFileHTMLOnly("views/login.html")
+app/main/template/template.go
+
+x map[string]*template.Template
+var AppendTemplates = map[string]*template.Template
+
+v make(...)
+var AppendTemplates = make(map[string]*template.Template)
+
+6. [v] log file lines (caller), example,
+{"caller": "user_controller.go:76", "function": "...", ..., "tracker_id": "12345..."}
+
+
+"tracker_id": -> https://github.com/google/uuid
+https://stackoverflow.com/questions/42762391/is-it-possible-to-wrap-log-logger-functions-without-losing-the-line-number-prefi
+
+I was going to include this in the question as my current workaround, but I suppose it is a valid answer. I'm hoping somebody can tell me of a logger config option I've missed that lets me adjust the depth the logger uses when it calls runtime.Caller.
+A workaround is to remove the log.Lshortfile flag and implement the behavior manually:
+
+func info(format string, args ...interface{}) {
+    _, file, line, _ := runtime.Caller(1)
+
+    prefix := fmt.Sprintf("%v:%v: ", path.Base(file), line)
+
+    if logger != nil {
+        logger.Printf(prefix+format+"\n", args...)
+    }
+}
+
+8. [v] no debug for create models.User
+
+example,
+[6.075ms] [rows:0] INSERT INTO `users` ... VALUES (...'unit-test','unit-test@exemple.com','$2a$10$wyzBl/d31ahlHVU52kgkT.cH1lXI9b0cmdiM9Gw2ciyY9C69bTLh6','Unit Test',0,'',0)
+...
+time="2023-01-14T15:14:14+07:00" level=info msg="START request method POST for create user" route=/users/add username=
+time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=/users/add user_success="{{... example example@example.com $2a$10$1cbJNsJNOXk4hwYYVtlUT.B0MwNwp4sRmI2pS9frCuC.0IBLyRsSO Example 0  0}" username=}}
+
+https://medium.com/hackernoon/keep-passwords-and-secrets-out-of-your-logs-with-go-a2294a9546ce

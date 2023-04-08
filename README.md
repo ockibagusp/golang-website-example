@@ -15,13 +15,18 @@ First, clone the repo:
 $ git clone https://github.com/ockibagusp/golang-website-example.git
 ```
 
+Repo dep
+```bash
+$ make dep
+```
+
 ## Setting MySQL database
 
 ### Database 
 file: golang-website-example.sql -> new database: golang-website-example
 
 ### Testing
-file: golang-website-example.sql -> new database: golang-website-example_test
+file: golang-website-example.sql -> new database: golang-website-example-test
 
 ## Users Table
 
@@ -36,7 +41,7 @@ file: golang-website-example.sql -> new database: golang-website-example_test
 
 ### Compile and run Go program
 ```
-$ go run main.go
+$ make run
 ```
 
 or,
@@ -44,74 +49,71 @@ or,
 ### Build compiles the packages
 
 ```
-$ go build
+$ make build
 ```
 
 - On Linux or Mac:
 
     ```
-    $ ./golang-website-example
+    $ ./main
     ```
 
 - On  Windows:
 
     ```
-    $ golang-website-example.exe
+    $ main.exe
     ```
 
 
 ## Router
-This using [router](https://github.com/ockibagusp/golang-website-example/blob/master/router/router.go).
-
-
-## httpexpect: Test for Debug
-This using [debug](https://github.com/ockibagusp/golang-website-example/blob/master/tests/main_test.go).
-
-Optional. Default value @debug: {true} or {1}.
-
-1. function debug (bool)
-
-    @function debug: {true} or {false}
-
-2. os.Setenv("debug", ...)
-
-    - @debug: {true} or {1}
-
-        ```
-        os.Setenv("debug", "true") 
-        ```
-        or,
-        ```
-        os.Setenv("debug", "1")
-        ```
-
-    - @debug: {false} or {0}
-        ```
-        os.Setenv("debug", "false") 
-        ```
-        or,
-        ```
-        os.Setenv("debug", "0")
-        ```
+This using [router](https://github.com/ockibagusp/golang-website-example/blob/master/api/main/router/router.go).
 
 ### Test the packages
 
 Example,
 
+#### test all flag
 ```bash
-$ go test github.com/ockibagusp/golang-website-example/tests 
+$ make test
+```
+
+#### test controller flag
+```bash
+$ make test-ctrl
 ```
 
 or, verbose output (-v) flag:
 
+#### test verbose all flag
 ```bash
-$ go test ./tests -v
+$ make test-verbose
 ```
 
-or, verbose output (-v) select function (-run) flag:
-
+#### test verbose controller flag
 ```bash
-$ go test ./tests -run=TestHomeController
+$ make test-verbose-ctrl
+```
+
+or, cover all flag
+
+#### test cover
+```bash
+$ make cover
+```
+
+#### cover show flag:
+```bash
+$ make cover-show
+```
+
+#### cover html flag:
+```bash
+$ make cover-html
+```
+
+#### cover select function (-func) flag:
+```bash
+$ make cover-func
 ```
 
 ## Air: cloud Live reload for Go apps
@@ -123,13 +125,13 @@ $ go test ./tests -run=TestHomeController
 
 ## Operating System (with me)
 ### Linux:
-- Fedora 36 Workstation
+- Fedora 37 Workstation
 
 ### Go: 
-- go1.18.5 linux/amd64
+- go version go1.19.7 linux/amd64
 
 ### MySQL: 
-- mysql  Ver 8.0.27 for Linux on x86_64 (Source distribution)
+- Server version: 10.5.18-MariaDB MariaDB Server
 
 
 ### Bahasa Indonesia

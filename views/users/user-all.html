@@ -74,7 +74,7 @@
                   {{$user.Name}}
                 </td>
                 <td>
-                  {{if eq $user.IsAdmin 1}}
+                  {{if eq $user.Role "admin"}}
                     yes
                   {{else}}
                     no

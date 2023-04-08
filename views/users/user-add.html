@@ -36,6 +36,7 @@
     $("#user-form").validate({
       // Specify the validation rules
       rules: {
+        role: "required",
         username: {
           required: true,
           minlength: 4,
@@ -57,7 +58,7 @@
           maxlength: 18,
           equalTo: "#password"
         },
-        city: {
+        location: {
           required: true,
           number: true
         },
@@ -84,7 +85,7 @@
           minlength: "Your password must be at least 6-18 characters long",
           maxlength: "Your password must be at least 6-18 characters long"
         },
-        city: "Please enter a valid city address",
+        location: "Please enter a valid location address",
         // agree: "Please accept our policy"
       },
 
