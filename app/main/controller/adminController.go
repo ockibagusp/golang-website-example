@@ -191,13 +191,13 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 		log.Warn("END request method GET for admin delete permanently by id [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "403 Forbidden",
+			"message": "Forbidden",
 		})
 	}
 
 	trackerID := log.SetTrackerID()
 	ic := business.NewInternalContext(trackerID)
-	_, err := ctrl.userService.UnscopedFirstUserByID(ic, uid)
+	user, err := ctrl.userService.UnscopedFirstUserByID(ic, uid)
 	if err != nil {
 		log.Warnf("for GET to admin delete permanently by id without ctrl.userService.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
@@ -215,6 +215,8 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
+
+	middleware.SetFlashSuccess(c, fmt.Sprintf("success permanently user: %s!", user.Username))
 
 	// delete permanently admin
 	log.Info("END request method GET for admin delete permanently by id: [+]success")
