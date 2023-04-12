@@ -2,11 +2,13 @@ package controller
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
@@ -156,125 +158,184 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 	if c.Request().Method == "POST" {
 		log.Info("START request method POST for create user")
 
-		var location uint
-		if c.FormValue("location") != "" {
-			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
-			if err != nil {
-				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
-				log.Warn("END request method POST for create user: [-]failure")
-				// HTTP response status: 400 Bad Request
-				return c.JSON(http.StatusBadRequest, echo.Map{
-					"message": err.Error(),
-				})
-			}
-			// Location or District?
-			location = uint(location64)
-		}
+		// var location uint
+		// if c.FormValue("location") != "" {
+		// 	location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
+		// 	if err != nil {
+		// 		log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
+		// 		log.Warn("END request method POST for create user: [-]failure")
+		// 		// HTTP response status: 400 Bad Request
+		// 		return c.JSON(http.StatusBadRequest, echo.Map{
+		// 			"message": err.Error(),
+		// 		})
+		// 	}
+		// 	// Location or District?
+		// 	// location = uint(location64)
+		// }
 
-		// userForm: type of a user
-		userForm := types.UserForm{
-			Role:            c.FormValue("role"),
-			Username:        c.FormValue("username"),
-			Email:           c.FormValue("email"),
-			Password:        c.FormValue("password"),
-			ConfirmPassword: c.FormValue("confirm_password"),
-			Name:            c.FormValue("name"),
-			Location:        location,
-			Photo:           c.FormValue("photo"),
-		}
+		// var (
+		// 	validPhoto         bool = true
+		// 	errs               []error
+		// 	fileType, fileName string
+		// 	fileByte           []byte
+		// 	userForm           types.UserForm
+		// )
 
-		// userForm: Validate of a validate user
-		err = validation.Errors{
-			"username": validation.Validate(
-				userForm.Username, validation.Required, validation.Length(4, 15),
-			),
-			"email": validation.Validate(userForm.Email, validation.Required, validation.Length(5, 30), is.EmailFormat),
-			"password": validation.Validate(
-				userForm.Password, validation.Required, validation.Length(6, 18),
-				validation.By(types.PasswordEquals(userForm.ConfirmPassword)),
-			),
-			"name":     validation.Validate(userForm.Name, validation.Required, validation.Length(3, 30)),
-			"location": validation.Validate(userForm.Location),
-			"photo":    validation.Validate(userForm.Photo),
-		}.Filter()
-		/* if err = validation.Errors{...}.Filter(); err != nil {
-			...
-		} why?
-		*/
+		// request on c: parse input, type multipart/form-data
+		c.Request().ParseMultipartForm(1024)
+
+		var (
+			// validPhoto bool = false
+			// fileType, fileName string
+			// fileByte           []byte
+			err error
+		)
+
+		// source
+		file, err := c.FormFile("photo")
 		if err != nil {
-			log.Warnf("for POST to create user without validation.Errors: `%v`", err)
-			middleware.SetFlashError(c, err.Error())
-
-			log.Warn("END request method POST for create user: [-]failure")
-			// HTTP response status: 400 Bad Request
-			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-				"name":             "User Add",
-				"nav":              "user Add", // (?)
-				"session_username": username,
-				"session_role":     role,
-				"flash_error 	":    middleware.GetFlashError(c),
-				"csrf":             c.Get("csrf"),
-				"locations":        locations,
-				"is_new":           true,
-			})
+			return err
 		}
-
-		// Password Hash
-		var hash string
-		hash, err = ctrl.authService.PasswordHash(userForm.Password)
+		src, err := file.Open()
 		if err != nil {
-			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
-			log.Warn("END request method POST for create user: [-]failure")
+			return err
+		}
+		defer src.Close()
+		// > upload
+
+		// fileByte, _ = ioutil.ReadAll(src)
+		// fileType = http.DetectContentType(fileByte)
+
+		// fileName = fmt.Sprint("members/", uuid.New().Time())
+		// if fileType == "image/jpeg" {
+		// 	fileName += ".jpeg"
+		// } else if fileType == "image/png" {
+		// 	fileName += ".png"
+		// } else {
+		// 	return errors.New("no image jpeg, jpg and png")
+		// }
+
+		file.Filename = fmt.Sprint("members/", uuid.New().Time(), ".jpeg")
+
+		// Destination
+		dst, err := os.Create(file.Filename)
+		if err != nil {
+			return err
+		}
+		defer dst.Close()
+
+		// Copy
+		if _, err = io.Copy(dst, src); err != nil {
 			return err
 		}
 
-		user = &selectUser.User{
-			Role:     userForm.Role,
-			Username: userForm.Username,
-			Email:    userForm.Email,
-			Password: hash,
-			Name:     userForm.Name,
-			Location: userForm.Location,
-			Photo:    userForm.Photo,
-		}
+		return c.JSON(http.StatusOK, "ok")
 
-		if _, err := ctrl.userService.Create(ic, user); err != nil {
-			log.WithField("user_failure", user).Warn("for POST to create user without models.User: nil")
-			middleware.SetFlashError(c, err.Error())
+		// userForm: type of a user
+		// userForm = types.UserForm{
+		// 	Role:            c.FormValue("role"),
+		// 	Username:        c.FormValue("username"),
+		// 	Email:           c.FormValue("email"),
+		// 	Password:        c.FormValue("password"),
+		// 	ConfirmPassword: c.FormValue("confirm_password"),
+		// 	Name:            c.FormValue("name"),
+		// 	Location:        location,
+		// }
 
-			log.Warn("END request method POST for create user: [-]failure")
-			// HTTP response status: 400 Bad Request
-			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-				"name":             "User Add",
-				"nav":              "user Add", // (?)
-				"session_username": username,
-				"session_role":     role,
-				"csrf":             c.Get("csrf"),
-				"flash_error":      middleware.GetFlashError(c),
-				"locations":        locations,
-				"is_new":           true,
-			})
-		}
+		return c.JSON(http.StatusOK, "errs")
 
-		log.WithField("user_success", user).Info("models.User: [+]success")
-		middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
-		// create user
-		if role == "anonymous" {
-			if _, err := middleware.SetSession(user, c); err != nil {
-				middleware.SetFlashError(c, err.Error())
-				log.Warn("to middleware.SetSession session not found for create user")
-				log.Warn("END request method POST for create user: [-]failure")
-				// err: session not found
-				return c.JSON(http.StatusForbidden, echo.Map{
-					"message": err.Error(),
-				})
-			}
-			log.Info("END request method POST for create user: [+]success")
-			return c.Redirect(http.StatusMovedPermanently, "/")
-		}
-		log.Info("END request method POST for create user: [+]success")
-		// create admin
-		return c.Redirect(http.StatusMovedPermanently, "/users")
+		// // userForm: Validate of a validate user
+		// err = validation.Errors{
+		// 	// "username": validation.Validate(
+		// 	// 	userForm.Username, validation.Required, validation.Length(4, 15),
+		// 	// ),
+		// 	// "email": validation.Validate(userForm.Email, validation.Required, validation.Length(5, 30), is.EmailFormat),
+		// 	// "password": validation.Validate(
+		// 	// 	userForm.Password, validation.Required, validation.Length(6, 18),
+		// 	// 	validation.By(types.PasswordEquals(userForm.ConfirmPassword)),
+		// 	// ),
+		// 	// "name":     validation.Validate(userForm.Name, validation.Required, validation.Length(3, 30)),
+		// 	// "location": validation.Validate(userForm.Location),
+		// 	"photo": validation.Validate(userForm.Photo),
+		// }.Filter()
+		// /* if err = validation.Errors{...}.Filter(); err != nil {
+		// 	...
+		// } why?
+		// */
+		// if err != nil {
+		// 	log.Warnf("for POST to create user without validation.Errors: `%v`", err)
+		// 	middleware.SetFlashError(c, err.Error())
+
+		// 	log.Warn("END request method POST for create user: [-]failure")
+		// 	// HTTP response status: 400 Bad Request
+		// 	return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
+		// 		"name":             "User Add",
+		// 		"nav":              "user Add", // (?)
+		// 		"session_username": username,
+		// 		"session_role":     role,
+		// 		"flash_error 	":    middleware.GetFlashError(c),
+		// 		"csrf":             c.Get("csrf"),
+		// 		"locations":        locations,
+		// 		"is_new":           true,
+		// 	})
+		// }
+
+		// // Password Hash
+		// var hash string
+		// hash, err = ctrl.authService.PasswordHash(userForm.Password)
+		// if err != nil {
+		// 	log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
+		// 	log.Warn("END request method POST for create user: [-]failure")
+		// 	return err
+		// }
+
+		// user = &selectUser.User{
+		// 	Role:     userForm.Role,
+		// 	Username: userForm.Username,
+		// 	Email:    userForm.Email,
+		// 	Password: hash,
+		// 	Name:     userForm.Name,
+		// 	Location: userForm.Location,
+		// 	Photo:    userForm.Photo,
+		// }
+
+		// if _, err := ctrl.userService.Create(ic, user); err != nil {
+		// 	log.WithField("user_failure", user).Warn("for POST to create user without models.User: nil")
+		// 	middleware.SetFlashError(c, err.Error())
+
+		// 	log.Warn("END request method POST for create user: [-]failure")
+		// 	// HTTP response status: 400 Bad Request
+		// 	return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
+		// 		"name":             "User Add",
+		// 		"nav":              "user Add", // (?)
+		// 		"session_username": username,
+		// 		"session_role":     role,
+		// 		"csrf":             c.Get("csrf"),
+		// 		"flash_error":      middleware.GetFlashError(c),
+		// 		"locations":        locations,
+		// 		"is_new":           true,
+		// 	})
+		// }
+
+		// log.WithField("user_success", user).Info("models.User: [+]success")
+		// middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
+		// // create user
+		// if role == "anonymous" {
+		// 	if _, err := middleware.SetSession(user, c); err != nil {
+		// 		middleware.SetFlashError(c, err.Error())
+		// 		log.Warn("to middleware.SetSession session not found for create user")
+		// 		log.Warn("END request method POST for create user: [-]failure")
+		// 		// err: session not found
+		// 		return c.JSON(http.StatusForbidden, echo.Map{
+		// 			"message": err.Error(),
+		// 		})
+		// 	}
+		// 	log.Info("END request method POST for create user: [+]success")
+		// 	return c.Redirect(http.StatusMovedPermanently, "/")
+		// }
+		// log.Info("END request method POST for create user: [+]success")
+		// // create admin
+		// return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
 	log.Info("START request method GET for create user")
