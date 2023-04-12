@@ -2,7 +2,7 @@
 <!-- &lcud;{ is_new ? 'New Node' : 'Edit Node' }&rcud; -->
 {{if not .is_read}}
 <!-- form action="[hostname|IP addresses]/users/...". CSRF-token demands?  -->
-<form action="/users{{if .is_new}}/add{{else}}/view/{{.user.Model.ID}}{{end}}" id="user-form" method="post">
+<form action="/users{{if .is_new}}/add{{else}}/view/{{.user.Model.ID}}{{end}}" id="user-form" method="post" enctype="multipart/form-data">
   <input type="hidden" name="X-CSRF-Token" value="{{.csrf}}"/>
   {{end}}
   <div class="form-row">
