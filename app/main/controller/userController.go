@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -185,16 +186,23 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			Location:        location,
 		}
 
-		// request on c: parse input, type multipart/form-data
-		c.Request().ParseMultipartForm(1024)
+		// Set max file size
+		err := c.Request().ParseMultipartForm(1024)
+		if err != nil {
+			return c.JSON(http.StatusForbidden, echo.Map{
+				"message": "File size is too big",
+			})
+		}
 
 		// source
 		file, err := c.FormFile("photo")
 		if err != nil {
-			return err
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"message": "Bad Request",
+			})
 		}
 
-		oldFilename := fmt.Sprint(userForm.Username, file.Filename)
+		oldFilename := fmt.Sprint(userForm.Username, rand.Intn(1000), file.Filename)
 		file.Filename = fmt.Sprint("members/", oldFilename)
 		src, err := file.Open()
 		if err != nil {
@@ -206,13 +214,17 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		// Destination
 		dst, err := os.Create(file.Filename)
 		if err != nil {
-			return err
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"message": "Bad Request",
+			})
 		}
 		defer dst.Close()
 
 		// Copy
 		if _, err = io.Copy(dst, src); err != nil {
-			return err
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"message": "Bad Request",
+			})
 		}
 
 		userForm.Photo = file.Filename
