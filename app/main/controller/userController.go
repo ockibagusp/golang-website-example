@@ -2,15 +2,13 @@ package controller
 
 import (
 	"fmt"
-	"io"
-	"math/rand"
 	"net/http"
-	"os"
 	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/labstack/echo/v4"
+	selectHelpers "github.com/ockibagusp/golang-website-example/app/main/helpers"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
@@ -186,45 +184,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			Location:        location,
 		}
 
-		// Set max file size
-		err := c.Request().ParseMultipartForm(1024)
-		if err != nil {
-			return c.JSON(http.StatusForbidden, echo.Map{
-				"message": "File size is too big",
-			})
-		}
-
-		// source
-		file, err := c.FormFile("photo")
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, echo.Map{
-				"message": "Bad Request",
-			})
-		}
-
-		oldFilename := fmt.Sprint(userForm.Username, rand.Intn(1000), file.Filename)
-		file.Filename = fmt.Sprint("members/", oldFilename)
-		src, err := file.Open()
-		if err != nil {
-			return err
-		}
-		defer src.Close()
-		// > upload
-
-		// Destination
-		dst, err := os.Create(file.Filename)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, echo.Map{
-				"message": "Bad Request",
-			})
-		}
-		defer dst.Close()
-
-		// Copy
-		if _, err = io.Copy(dst, src); err != nil {
-			return c.JSON(http.StatusBadRequest, echo.Map{
-				"message": "Bad Request",
-			})
+		file, errJSON := selectHelpers.UploadPhoto(c, userForm.Username)
+		if errJSON != nil {
+			return errJSON
 		}
 
 		userForm.Photo = file.Filename
