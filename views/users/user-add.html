@@ -26,11 +26,11 @@
     </div>
   </div>
 </main>
-{{end}}
 
 <!-- jQuery Validate -->
 <!-- too long, around 2015 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/additional-methods.min.js"></script>
 <script>
   $(document).ready(function () {
     $("#user-form").validate({
@@ -62,7 +62,10 @@
           required: true,
           number: true
         },
-        // photo: ?
+        photo: {
+          required: true,
+          extension: "jpg|jpeg|png"
+        },
         // agree: "required"
       },
 
@@ -86,6 +89,10 @@
           maxlength: "Your password must be at least 6-18 characters long"
         },
         location: "Please enter a valid location address",
+        photo: {
+          required: "Please provide a photo",
+          extension: "Please upload file in these format only (jpg, jpeg and png)"
+        },
         // agree: "Please accept our policy"
       },
 
@@ -93,5 +100,7 @@
         form.submit();
       }
     })
-  });
+  })
 </script>
+
+{{end}}

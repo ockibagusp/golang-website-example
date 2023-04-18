@@ -8,7 +8,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/labstack/echo/v4"
-	selectHelpers "github.com/ockibagusp/golang-website-example/app/main/helpers"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
@@ -184,12 +183,15 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			Location:        location,
 		}
 
-		file, errJSON := selectHelpers.UploadPhoto(c, userForm.Username)
-		if errJSON != nil {
-			return errJSON
-		}
+		// file, errJSON := selectHelpers.UploadPhoto(c, updateUser.Username, true)
+		// if errJSON != nil {
+		// 	return errJSON
+		// }
 
-		userForm.Photo = file.Filename
+		// if file != nil {
+		// 	updateUser.Photo = file.Filename
+		// }
+
 		// userForm: Validate of a validate user
 		err = validation.Errors{
 			"username": validation.Validate(
@@ -440,8 +442,16 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			Email:    c.FormValue("email"),
 			Name:     c.FormValue("name"),
 			Location: location,
-			Photo:    c.FormValue("photo"),
 		}
+
+		// file, errJSON := selectHelpers.UploadPhoto(c, updateUser.Username, true)
+		// if errJSON != nil {
+		// 	return errJSON
+		// }
+
+		// if file != nil {
+		// 	updateUser.Photo = file.Filename
+		// }
 
 		// newUser, err = ctrl.userService.Update(ic, user, updateUser); err != nil: equal
 		if user, err = ctrl.userService.Update(ic, user, updateUser); err != nil {
