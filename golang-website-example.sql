@@ -71,7 +71,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'2020-02-22 15:28:40','2022-02-05 10:14:04',NULL,'admin','admin','admin@website.com','$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW','Admin',32,''),(2,'2020-03-17 06:56:10','2021-11-25 09:30:58',NULL,'user','sugriwa','sugriwa@wanara.com','$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu','Sugriwa',0,''),(3,'2020-03-17 06:57:47','2021-11-25 09:30:58',NULL,'user','subali','subali@wanara.com','$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y','Subali',0,'');
+INSERT INTO `users` VALUES (1,'2020-02-22 15:28:40','2022-02-05 10:14:04',NULL,'admin','admin','admin@website.com','$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW','Admin',32,'members/admin3981.png'),(2,'2020-03-17 06:56:10','2021-11-25 09:30:58',NULL,'user','sugriwa','sugriwa@wanara.com','$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu','Sugriwa',0,'members/sugriwa2492.png'),(3,'2020-03-17 06:57:47','2021-11-25 09:30:58',NULL,'user','subali','subali@wanara.com','$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y','Subali',0,'members/subali453.png');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
