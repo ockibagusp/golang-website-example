@@ -53,6 +53,7 @@ func truncateUsers() {
 			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
 			Name:     "Admin",
 			Role:     "admin",
+			Photo:    "members/admin3981.png",
 		},
 		{
 			Model:    business.Model{ID: 2},
@@ -61,6 +62,7 @@ func truncateUsers() {
 			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
 			Name:     "Sugriwa",
 			Role:     "user",
+			Photo:    "members/sugriwa2492.png",
 		},
 		{
 			Model:    business.Model{ID: 3},
@@ -69,6 +71,7 @@ func truncateUsers() {
 			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
 			Name:     "Subali",
 			Role:     "user",
+			Photo:    "members/subali453.png",
 		},
 		{
 			Model:    business.Model{ID: 4},
@@ -77,6 +80,7 @@ func truncateUsers() {
 			Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",
 			Name:     "Ocki Bagus Pratama",
 			Role:     "user",
+			Photo:    "members/ockibagusp981495792267526.jpg",
 		},
 	}
 
