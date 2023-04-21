@@ -1,18 +1,30 @@
 package auth
 
 import (
+	"time"
+
+	"github.com/golang-jwt/jwt"
 	"github.com/ockibagusp/golang-website-example/business"
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type (
+	JwtClaims struct {
+		UserID   uint   `json:"user_id"`
+		Username string `json:"username"`
+		Role     string `json:"role"`
+
+		jwt.StandardClaims
+	}
+
 	service struct {
 		userService user.Service
 	}
 
 	Service interface {
 		VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool)
+		GenerateToken(jwtSign string, userID uint, userName string, userRole string) (signedToken string, err error)
 		CheckHashPassword(hash, password string) bool
 		PasswordHash(password string) (string, error)
 	}
@@ -86,4 +98,28 @@ func (s *service) PasswordHash(password string) (string, error) {
 func (s *service) CheckHashPassword(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func newJWTClaims(userID uint, username string, role string, issuedAt int64, expiredAt int64) JwtClaims {
+	return JwtClaims{
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		StandardClaims: jwt.StandardClaims{
+			IssuedAt:  issuedAt,
+			ExpiresAt: expiredAt,
+		},
+	}
+}
+
+func (s *service) GenerateToken(jwtSign string, userID uint, userName string, userRole string) (signedToken string, err error) {
+	timeNow := time.Now()
+	claims := newJWTClaims(userID, userName, userRole, timeNow.Unix(), timeNow.Add(time.Hour*24).Unix())
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err = token.SignedString([]byte(jwtSign))
+	if err != nil {
+		return
+	}
+
+	return signedToken, nil
 }

@@ -1,13 +1,9 @@
 package middleware
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	modelsTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/models"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
 )
@@ -22,57 +18,6 @@ func sessionNewCookieStore() *sessions.CookieStore {
 	return sessions.NewCookieStore(
 		[]byte(sessionsCookieStore),
 	)
-}
-
-func SessionMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			conf := config.GetAPPConfig()
-
-			var (
-				session_gorilla *sessions.Session
-				err             error
-			)
-
-			// Test: session_test = true
-			if conf.SetSessionToFalse() {
-				session_gorilla, err = modelsTest.GetAuthSession()
-			} else {
-				session_gorilla, err = session.Get("session", c)
-			}
-
-			if err != nil {
-				return c.HTML(http.StatusForbidden, "no session")
-			}
-
-			path := c.Request().URL.Path
-			role := session_gorilla.Values["role"]
-			if role != "admin" && role != "user" {
-				role = "anonymous"
-			}
-
-			// -> role = "anonymous"
-			if strings.Contains(path, "/login") || strings.Contains(path, "/logout") {
-				return next(c)
-			}
-
-			id := session_gorilla.Values["id"]
-			if id == "" {
-				id = 0
-			}
-
-			username := session_gorilla.Values["username"]
-			if username == "" {
-				username = "anonymous"
-			}
-
-			c.Set("id", id)
-			c.Set("username", username)
-			c.Set("role", role)
-
-			return next(c)
-		}
-	}
 }
 
 // SetSession: set session from User

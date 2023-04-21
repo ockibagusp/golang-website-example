@@ -83,16 +83,20 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			})
 		}
 
-		if _, err := middleware.SetSession(user, c); err != nil {
+		token, err := ctrl.authService.GenerateToken(ctrl.appConfig.AppJWTAuthSign, user.ID, user.Username, user.Role)
+		if err != nil {
 			middleware.SetFlashError(c, err.Error())
 
 			log.Warn("to middleware.SetSession session not found for login")
 			log.Warn("END request method POST for login: [-]failure")
 			// err: session not found
+			// // echo.ErrForbidden
 			return c.JSON(http.StatusForbidden, echo.Map{
-				"message": err.Error(),
+				"message": err,
 			})
 		}
+		_ = token
+		// cookie ?
 
 		log.Info("END request method POST [@route: /]")
 		return c.Redirect(http.StatusFound, "/")

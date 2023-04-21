@@ -17,7 +17,8 @@ import (
 type (
 	Config struct {
 		// app
-		AppDBDriver string
+		AppDBDriver    string
+		AppJWTAuthSign string
 		// mysql
 		DBMySQLHost     string
 		DBMySQLPort     string
@@ -55,7 +56,8 @@ func GetAPPConfig() *Config {
 
 	return &Config{
 		// app
-		AppDBDriver: os.Getenv("APP_DB_DRIVER"),
+		AppDBDriver:    os.Getenv("APP_DB_DRIVER"),
+		AppJWTAuthSign: os.Getenv("APP_JWT_AUTH_SIGN"),
 		// mysql
 		DBMySQLHost:     os.Getenv("DB_MYSQL_HOST"),
 		DBMySQLPort:     os.Getenv("DB_MYSQL_PORT"),

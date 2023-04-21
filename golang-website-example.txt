@@ -3,7 +3,22 @@
 [-] load
 
 # Insyaallah, New tasks:
+[] JSON Web Tokens
+Repo. golang-rest-api
+https://github.com/brianfromlife/golang-rest-api
+
+Testing users_test.go
+https://github.com/brianfromlife/golang-rest-api/blob/main/internal/api/users_test.go
+
+Repo. golang-jwt-authentication-api-sample
+https://github.com/brainattica/golang-jwt-authentication-api-sample
+
+Routers
+https://github.com/brainattica/golang-jwt-authentication-api-sample/tree/master/routers
+
 [] new mock
+Mock golang-rest-api
+https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/mocks/data/users/mocks.go
 
 # Completed task:
 1. [-] testing session
