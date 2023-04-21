@@ -28,40 +28,14 @@ func RegisterPath(
 	// Instantiate a template registry with an array of template set
 	router.Renderer = template.NewTemplates()
 
-	sessionMiddleware := middleware.SessionMiddleware()
+	jwtAuthMiddleware := middleware.JwtAuthMiddleware(appConfig.AppJWTAuthSign)
 
 	// public
-	public := router.Group("", sessionMiddleware)
-	public.GET("/", controller.Home).Name = "home"
-	public.GET("/about", controller.About).Name = "about"
-	public.GET("/login", controller.Login).Name = "login get"
-	public.POST("/login", controller.Login).Name = "login post"
-	public.GET("/logout", controller.Logout).Name = "logout get"
-
+	SetPublicRoutes(router, controller, jwtAuthMiddleware)
 	// user
-	user := router.Group("/users", sessionMiddleware)
-	user.GET("", controller.Users).Name = "users"
-	user.GET("/add", controller.CreateUser).Name = "user/add get"
-	user.POST("/add", controller.CreateUser).Name = "user/add post"
-	user.GET("/read/:id", controller.ReadUser).Name = "user/read get"
-	user.GET("/view/:id", controller.UpdateUser).Name = "user/view get"
-	user.POST("/view/:id", controller.UpdateUser).Name = "user/view post"
-	user.GET("/view/:id/password", controller.UpdateUserByPassword).
-		Name = "user/view/:id/password get"
-	user.POST("/view/:id/password", controller.UpdateUserByPassword).
-		Name = "user/view/:id/password post"
-	user.GET("/delete/:id", controller.DeleteUser).Name = "user/delete get"
-
+	SetUserRoutes(router, controller, jwtAuthMiddleware)
 	// admin
-	admin := router.Group("/admin", sessionMiddleware)
-	admin.GET("/delete-permanently", controller.DeletePermanently).
-		Name = "/admin/delete-permanently get"
-	admin.GET("/restore/:id", controller.RestoreUser).
-		Name = "/admin/restore/:id get"
-	// "/admin/delete-permanently/:id" unable
-	// "/admin/delete/permanently/:id" can
-	admin.GET("/delete/permanently/:id", controller.DeletePermanentlyByID).
-		Name = "/admin/delete/permanently/:id get"
+	SetAdminRoutes(router, controller, jwtAuthMiddleware)
 
 	return
 }
