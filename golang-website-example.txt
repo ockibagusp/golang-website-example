@@ -4,6 +4,8 @@
 
 # Insyaallah, New tasks:
 [] new mock
+Mock golang-rest-api
+https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/mocks/data/users/mocks.go
 
 # Completed task:
 1. [-] testing session
