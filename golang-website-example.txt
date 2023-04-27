@@ -3,6 +3,14 @@
 [-] load
 
 # Insyaallah, New tasks:
+[] website response
+categoryResponse := controller.CategoryService.FindById(request.Context(), id)
+webResponse := web.WebResponse{
+	Code:   200,
+	Status: "OK",
+	Data:   categoryResponse,
+}
+
 [] JSON Web Tokens
 Repo. golang-rest-api
 https://github.com/brianfromlife/golang-rest-api
@@ -16,9 +24,27 @@ https://github.com/brainattica/golang-jwt-authentication-api-sample
 Routers
 https://github.com/brainattica/golang-jwt-authentication-api-sample/tree/master/routers
 
+Models
+https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/models/requests.go
+
+Interface: type IUserProvider interface {...}
+ 
+Context: type ...Provider struct {
+	...Collection *...Collection
+	ctx            context.Context
+}
+
 [] new mock
 Mock golang-rest-api
 https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/mocks/data/users/mocks.go
+
+How do I mock a simple POST body when creating a test request
+https://stackoverflow.com/questions/45942832/how-do-i-mock-a-simple-post-body-when-creating-a-test-request
+
+...
+r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("a=1&b=2"))
+r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+...
 
 # Completed task:
 1. [-] testing session
