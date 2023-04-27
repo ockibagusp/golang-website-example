@@ -13,7 +13,6 @@ import (
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
 	userModule "github.com/ockibagusp/golang-website-example/modules/user"
-	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
@@ -90,16 +89,6 @@ func truncateUsers() {
 			panic("Username not already: " + err.Error())
 		}
 	}
-}
-
-func TestController(t *testing.T) {
-	/*
-		assert := assert.New(t)
-		assert.NotNil(setupTestController())
-
-		or,
-	*/
-	assert.NotNil(t, setupTestController())
 }
 
 // setup test Handler
