@@ -1,11 +1,12 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/ockibagusp/golang-website-example/business/auth"
+
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -16,8 +17,16 @@ type (
 	}
 )
 
-var responseForbidden = echo.Map{
-	"message": http.StatusText(http.StatusForbidden),
+var responseForbidden = Response{
+	Message: http.StatusText(http.StatusForbidden),
+}
+
+var responseUnauthorized = Response{
+	Message: http.StatusText(http.StatusUnauthorized),
+}
+
+var responseBadRequest = Response{
+	Message: http.StatusText(http.StatusBadRequest),
 }
 
 func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
@@ -25,6 +34,16 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			if strings.Contains(c.Request().URL.Path, "/login") {
 				return next(c)
+			}
+
+			cookie, err := c.Request().Cookie("token")
+			if err != nil {
+				if err == http.ErrNoCookie {
+					// If the cookie is not set, return an unauthorized status
+					return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+				}
+				// For any other type of error, return a bad request status
+				return c.JSON(http.StatusBadRequest, responseBadRequest)
 			}
 
 			signature := strings.Split(c.Request().Header.Get("Authorization"), " ")
@@ -35,34 +54,37 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 				return c.JSON(http.StatusForbidden, responseForbidden)
 			}
 
-			claim := jwt.MapClaims{}
-			token, err := jwt.ParseWithClaims(signature[1], claim, func(token *jwt.Token) (interface{}, error) {
-				_, ok := token.Method.(*jwt.SigningMethodHMAC)
-				if !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
+			// Get the JWT string from the cookie
+			tokenStr := cookie.Value
 
+			// Initialize a new instance of `Claims`
+			claims := &auth.JwtClaims{}
+
+			// Parse the JWT string and store the result in `claims`.
+			// Note that we are passing the key in this method as well. This method will return an error
+			// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+			// or if the signature does not match
+			token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte(secret), nil
 			})
 			if err != nil {
+				if err == jwt.ErrSignatureInvalid {
+					return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+				}
+				return c.JSON(http.StatusBadRequest, responseBadRequest)
+			}
+			if !token.Valid {
+				return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+			}
+
+			claims, ok := token.Claims.(*auth.JwtClaims)
+			if !ok && !token.Valid {
 				return c.JSON(http.StatusForbidden, responseForbidden)
 			}
 
-			method, ok := token.Method.(*jwt.SigningMethodHMAC)
-			if !ok || method != jwt.SigningMethodHS256 {
-				return c.JSON(http.StatusForbidden, responseForbidden)
-			}
-
-			if claim.Valid() != nil {
-				return c.JSON(http.StatusForbidden, responseForbidden)
-			}
-
-			userID, _ := claim["user_id"].(float64)
-			username, _ := claim["username"].(string)
-			role, _ := claim["role"].(string)
-			c.Set("user_id", int(userID))
-			c.Set("username", username)
-			c.Set("role", role)
+			c.Set("uid", claims.UserID)
+			c.Set("username", claims.Username)
+			c.Set("role", claims.Role)
 
 			return next(c)
 		}
@@ -73,8 +95,8 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 func isAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := c.Get("user").(*jwt.Token)
-		claims := user.Claims.(jwt.MapClaims)
-		isAdmin := claims["admin"].(bool)
+		claims := user.Claims.(*auth.JwtClaims)
+		isAdmin := claims.Role == "admin"
 
 		if isAdmin == false {
 			return echo.ErrUnauthorized

@@ -89,7 +89,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
 		// Declare the token with the algorithm used for signing, and the claims
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		// Create the JWT string
-		tokenString, err := token.SignedString(ctrl.appConfig.AppJWTAuthSign)
+		tokenString, err := token.SignedString([]byte(ctrl.appConfig.AppJWTAuthSign))
 		if err != nil {
 			// If there is an error in creating the JWT return an internal server error
 			return c.JSON(http.StatusInternalServerError, echo.Map{
