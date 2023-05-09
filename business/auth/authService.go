@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ockibagusp/golang-website-example/business"
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"golang.org/x/crypto/bcrypt"
@@ -11,11 +11,11 @@ import (
 
 type (
 	JwtClaims struct {
-		UserID   uint   `json:"user_id"`
-		Username string `json:"username"`
-		Role     string `json:"role"`
+		UserID   uint   `form:"user_id" json:"user_id"`
+		Username string `form:"username" json:"username"`
+		Role     string `form:"role" json:"role"`
 
-		jwt.StandardClaims
+		jwt.RegisteredClaims
 	}
 
 	service struct {
@@ -37,24 +37,13 @@ func NewService(userService user.Service) Service {
 }
 
 // VerifyLogin: get-user and valid-password
-func (s *service) VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool) {
-	getUser, err := s.userService.FindByEmail(ic, email)
+func (s *service) VerifyLogin(ic business.InternalContext, username string, plainPassword string) (getUser *user.User, validPassword bool) {
+	getUser, err := s.userService.FirstUserByUsername(ic, username)
 	if err != nil {
 		return
 	}
 
-	// // or,
-	// passwordHash, err := s.PasswordHash(plainPassword)
-	passwordHash, err := func(plainPassword string) (string, error) {
-		// GenerateFromPassword(..., bcrypt.DefaultCost{=10})
-		hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-		return string(hash), err
-	}(plainPassword)
-	if err != nil {
-		return
-	}
-
-	if passwordHash != getUser.Password {
+	if !s.CheckHashPassword(getUser.Password, plainPassword) {
 		return
 	}
 
@@ -100,21 +89,21 @@ func (s *service) CheckHashPassword(hash, password string) bool {
 	return err == nil
 }
 
-func newJWTClaims(userID uint, username string, role string, issuedAt int64, expiredAt int64) JwtClaims {
+func newJWTClaims(userID uint, username string, role string, issuedAt time.Time, expiredAt time.Time) JwtClaims {
 	return JwtClaims{
 		UserID:   userID,
 		Username: username,
 		Role:     role,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  issuedAt,
-			ExpiresAt: expiredAt,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			ExpiresAt: jwt.NewNumericDate(expiredAt),
 		},
 	}
 }
 
 func (s *service) GenerateToken(jwtSign string, userID uint, userName string, userRole string) (signedToken string, err error) {
 	timeNow := time.Now()
-	claims := newJWTClaims(userID, userName, userRole, timeNow.Unix(), timeNow.Add(time.Hour*24).Unix())
+	claims := newJWTClaims(userID, userName, userRole, timeNow, timeNow.Add(time.Hour*1))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err = token.SignedString([]byte(jwtSign))
 	if err != nil {

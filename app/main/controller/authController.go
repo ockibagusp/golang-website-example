@@ -2,16 +2,19 @@ package controller
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/ockibagusp/golang-website-example/business"
+	"github.com/ockibagusp/golang-website-example/business/auth"
 	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
-var slogger = log.NewPackage("session_controller")
+var aulogger = log.NewPackage("session_controller")
 
 func init() {
 	// Templates: session controller
@@ -27,10 +30,10 @@ func init() {
  * @route: /login
  */
 func (ctrl *Controller) Login(c echo.Context) error {
-	log := slogger.Start(c)
+	log := aulogger.Start(c)
 	defer log.End()
 
-	trackerID := slogger.SetTrackerID()
+	trackerID := aulogger.SetTrackerID()
 	ic := business.NewInternalContext(trackerID)
 	if c.Request().Method == "POST" {
 		log.Info("START request method POST for login")
@@ -52,11 +55,10 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			})
 		}
 
-		user, err := ctrl.userService.FirstUserByUsername(
-			ic, passwordForm.Username,
-		)
-		if err != nil {
-			middleware.SetFlashError(c, err.Error())
+		user, validPassword := ctrl.authService.VerifyLogin(ic, passwordForm.Username, passwordForm.Password)
+		if !validPassword {
+			// or, middleware.SetFlashError(c, "username or password not match")
+			middleware.SetFlash(c, "error", "username or password not match")
 
 			log.Warn("for database `username` or `password` not nil for login")
 			log.Warn("END request method POST for login: [-]failure")
@@ -67,36 +69,41 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			})
 		}
 
-		// check hash password:
-		// match = true
-		// match = false
-		if !ctrl.authService.CheckHashPassword(user.Password, passwordForm.Password) {
-			// or, middleware.SetFlashError(c, "username or password not match")
-			middleware.SetFlash(c, "error", "username or password not match")
+		// Declare the expiration time of the token
+		// here, we have kept it as 24 hour
+		expirationTime := time.Now().Add(24 * time.Hour)
 
-			log.Warn("to check wrong hashed password for login")
-			log.Warn("END request method POST for login: [-]failure")
-			return c.Render(http.StatusForbidden, "login.html", echo.Map{
-				"csrf":         c.Get("csrf"),
-				"flash_error":  middleware.GetFlash(c, "error"),
-				"is_html_only": true,
-			})
+		// Create claims with multiple fields populated
+		claims := auth.JwtClaims{
+			UserID:   user.ID,
+			Username: user.Username,
+			Role:     user.Role,
+			RegisteredClaims: jwt.RegisteredClaims{
+				// A usual scenario is to set the expiration time relative to the current time
+				ExpiresAt: jwt.NewNumericDate(expirationTime),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				NotBefore: jwt.NewNumericDate(time.Now()),
+			},
 		}
 
-		token, err := ctrl.authService.GenerateToken(ctrl.appConfig.AppJWTAuthSign, user.ID, user.Username, user.Role)
+		// Declare the token with the algorithm used for signing, and the claims
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		// Create the JWT string
+		tokenString, err := token.SignedString(ctrl.appConfig.AppJWTAuthSign)
 		if err != nil {
-			middleware.SetFlashError(c, err.Error())
-
-			log.Warn("to middleware.SetSession session not found for login")
-			log.Warn("END request method POST for login: [-]failure")
-			// err: session not found
-			// // echo.ErrForbidden
-			return c.JSON(http.StatusForbidden, echo.Map{
-				"message": err,
+			// If there is an error in creating the JWT return an internal server error
+			return c.JSON(http.StatusInternalServerError, echo.Map{
+				"message": "server error",
 			})
 		}
-		_ = token
-		// cookie ?
+
+		// Finally, we set the client cookie for "token" as the JWT we just generated
+		// we also set an expiry time which is the same as the token itself
+		cookie := new(http.Cookie)
+		cookie.Name = "token"
+		cookie.Value = tokenString
+		cookie.Expires = expirationTime
+		c.SetCookie(cookie)
 
 		log.Info("END request method POST [@route: /]")
 		return c.Redirect(http.StatusFound, "/")
@@ -117,7 +124,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
  * @route: /logout
  */
 func (ctrl *Controller) Logout(c echo.Context) error {
-	log := slogger.Start(c)
+	log := aulogger.Start(c)
 	defer log.End()
 
 	log.Info("START request method GET for logout")

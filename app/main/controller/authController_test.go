@@ -2,14 +2,64 @@ package controller_test
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/labstack/echo/v4"
 	methodTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
 	modelsTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/models"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestLogin_Success(t *testing.T) {
+	// echo setup
+	e := echo.New()
+
+	// test data
+	expected := "username=admin&password=admin123"
+
+	request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	recorder := httptest.NewRecorder()
+	c := e.NewContext(request, recorder)
+
+	// internal setup
+	mockApp := setupTestController()
+
+	// act
+	mockApp.Login(c)
+
+	// assert
+	assert := assert.New(t)
+	assert.Equal(http.StatusOK, recorder.Code)
+}
+
+func TestRegisterAccount_PasswordTooShort(t *testing.T) {
+	// test data
+	// expected := `{"username":"user1","email":"123"}`
+
+	// echo setup
+	e := echo.New()
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	recorder := httptest.NewRecorder()
+	c := e.NewContext(request, recorder)
+
+	// internal setup
+	mockApp := setupTestController()
+
+	// act
+	mockApp.Home(c)
+
+	// assert
+	assert := assert.New(t)
+	assert.Equal(http.StatusOK, recorder.Code)
+	// assert.Contains(recorder.Body.String(), "A validation error occurred")
+	// assert.Contains(recorder.Body.String(), "Password must be 8 characters")
+}
 
 func TestLogin(t *testing.T) {
 	assert := assert.New(t)
