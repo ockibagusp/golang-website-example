@@ -14,16 +14,16 @@ import (
 	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
-var aulogger = log.NewPackage("session_controller")
+var aulogger = log.NewPackage("auth_controller")
 
 func init() {
-	// Templates: session controller
+	// Templates: auth controller
 	templates := selectTemplate.AppendTemplates
 	templates["login.html"] = selectTemplate.ParseFileHTMLOnly("views/login.html")
 }
 
 /*
- * Session: Login
+ * Auth: Login
  *
  * @target: All
  * @method: GET
@@ -117,7 +117,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
 }
 
 /*
- * Session: Logout
+ * auth: Logout
  *
  * @target: Users
  * @method: GET
@@ -130,8 +130,8 @@ func (ctrl *Controller) Logout(c echo.Context) error {
 	log.Info("START request method GET for logout")
 
 	if err := middleware.ClearSession(c); err != nil {
-		log.Warn("to middleware.ClearSession session not found")
-		// err: session not found
+		log.Warn("to middleware.Clearauth auth not found")
+		// err: auth not found
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"message": err.Error(),
 		})
