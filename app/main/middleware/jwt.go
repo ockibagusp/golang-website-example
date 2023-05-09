@@ -46,14 +46,6 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 				return c.JSON(http.StatusBadRequest, responseBadRequest)
 			}
 
-			signature := strings.Split(c.Request().Header.Get("Authorization"), " ")
-			if len(signature) < 2 {
-				return c.JSON(http.StatusForbidden, responseForbidden)
-			}
-			if signature[0] != "Bearer" {
-				return c.JSON(http.StatusForbidden, responseForbidden)
-			}
-
 			// Get the JWT string from the cookie
 			tokenStr := cookie.Value
 
