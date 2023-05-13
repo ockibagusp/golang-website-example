@@ -269,7 +269,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
 		// create user
 		if role == "anonymous" {
-			if _, err := middleware.SetSession(user, c); err != nil {
+			if err := middleware.SetCookie(c, user, ctrl.appConfig.AppJWTAuthSign); err != nil {
 				middleware.SetFlashError(c, err.Error())
 				log.Warn("to middleware.SetSession session not found for create user")
 				log.Warn("END request method POST for create user: [-]failure")
@@ -762,13 +762,7 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 	middleware.SetFlashSuccess(c, fmt.Sprintf("success delete user: %s!", user.Username))
 	if role == "user" {
 		log.Info("END [user] request method GET for delete user: [+]success")
-		if err := middleware.ClearSession(c); err != nil {
-			log.Warn("to middleware.ClearSession session not found")
-			// err: session not found
-			return c.JSON(http.StatusBadRequest, echo.Map{
-				"message": err.Error(),
-			})
-		}
+		middleware.ClearCookie(c)
 		// delete user
 		return c.Redirect(http.StatusSeeOther, "/")
 	}

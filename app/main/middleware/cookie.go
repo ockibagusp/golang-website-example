@@ -7,36 +7,24 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/business"
 	"github.com/ockibagusp/golang-website-example/business/auth"
 	selectUser "github.com/ockibagusp/golang-website-example/business/user"
-	"github.com/ockibagusp/golang-website-example/config"
 )
 
 // SetCookieNoAuth: set cookie from User: anonymous
-func SetCookieNoAuth(c echo.Context) (err error) {
-	JWTAuthSign := config.GetAPPConfig().AppJWTAuthSign
-
-	user := selectUser.User{
-		Model:    business.Model{ID: 0},
-		Username: "anonymous",
-		Role:     "anonymous",
-	}
-
-	setCookie(c, &user, JWTAuthSign)
+func SetCookieNoAuth(c echo.Context) {
+	// ?
+	c.SetCookie(&http.Cookie{
+		Name:   "token",
+		Value:  "anonymous",
+		MaxAge: -1,
+	})
 
 	return
 }
 
 // SetCookie: set cookie from User
 func SetCookie(c echo.Context, user *selectUser.User, JWTAuthSign string) (err error) {
-	setCookie(c, user, JWTAuthSign)
-
-	return
-}
-
-// setCookie: set cookie from User
-func setCookie(c echo.Context, user *selectUser.User, JWTAuthSign string) (err error) {
 	// Declare the expiration time of the token
 	// here, we have kept it as 24 hour
 	expirationTime := time.Now().Add(24 * time.Hour)

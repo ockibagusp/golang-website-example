@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -32,46 +33,56 @@ var responseBadRequest = Response{
 func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if strings.Contains(c.Request().URL.Path, "/login") {
-				return next(c)
-			}
-
+			// Initialize a new instance of `Claims` and ok
+			var (
+				claims *auth.JwtClaims = &auth.JwtClaims{}
+				ok     bool
+			)
 			cookie, err := c.Request().Cookie("token")
 			if err != nil {
+				fmt.Println("no cookie")
 				if err == http.ErrNoCookie {
-					// If the cookie is not set, return an unauthorized status
+					fmt.Println("err cookie")
+
+					claims.UserID = 0
+					claims.Username = "anonymous"
+					claims.Role = "anonymous"
+					// If the cookie is not set, new the cookie
+					SetCookieNoAuth(c)
+				}
+			} else {
+				fmt.Println("cookie")
+
+				// Get the JWT string from the cookie
+				tokenStr := cookie.Value
+
+				// Parse the JWT string and store the result in `claims`.
+				// Note that we are passing the key in this method as well. This method will return an error
+				// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+				// or if the signature does not match
+				token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+					return []byte(secret), nil
+				})
+				if err != nil {
+					if err == jwt.ErrSignatureInvalid {
+						return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+					}
+					return c.JSON(http.StatusBadRequest, responseBadRequest)
+				}
+				if !token.Valid {
 					return c.JSON(http.StatusUnauthorized, responseUnauthorized)
 				}
-				// For any other type of error, return a bad request status
-				return c.JSON(http.StatusBadRequest, responseBadRequest)
-			}
 
-			// Get the JWT string from the cookie
-			tokenStr := cookie.Value
-
-			// Initialize a new instance of `Claims`
-			claims := &auth.JwtClaims{}
-
-			// Parse the JWT string and store the result in `claims`.
-			// Note that we are passing the key in this method as well. This method will return an error
-			// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-			// or if the signature does not match
-			token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-				return []byte(secret), nil
-			})
-			if err != nil {
-				if err == jwt.ErrSignatureInvalid {
-					return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+				claims, ok = token.Claims.(*auth.JwtClaims)
+				if !ok && !token.Valid {
+					return c.JSON(http.StatusForbidden, responseForbidden)
 				}
-				return c.JSON(http.StatusBadRequest, responseBadRequest)
-			}
-			if !token.Valid {
-				return c.JSON(http.StatusUnauthorized, responseUnauthorized)
 			}
 
-			claims, ok := token.Claims.(*auth.JwtClaims)
-			if !ok && !token.Valid {
-				return c.JSON(http.StatusForbidden, responseForbidden)
+			path := c.Request().URL.Path
+			// -> role = "anonymous"
+			if strings.Contains(path, "/login") || strings.Contains(path, "/logout") {
+				return next(c)
 			}
 
 			c.Set("uid", claims.UserID)

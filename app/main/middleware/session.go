@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	selectUser "github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
 )
 
@@ -18,50 +17,6 @@ func sessionNewCookieStore() *sessions.CookieStore {
 	return sessions.NewCookieStore(
 		[]byte(sessionsCookieStore),
 	)
-}
-
-// SetSession: set session from User
-func SetSession(user *selectUser.User, c echo.Context) (session_gorilla *sessions.Session, err error) {
-	session_gorilla, err = session.Get("session", c)
-	if err != nil {
-		return
-	}
-
-	session_gorilla.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7, // 7 days expired
-		HttpOnly: true,
-		Secure:   true,
-	}
-
-	session_gorilla.Values["id"] = user.ID
-	session_gorilla.Values["username"] = user.Username
-	session_gorilla.Values["role"] = user.Role
-
-	session_gorilla.Save(c.Request(), c.Response())
-
-	return
-}
-
-// ClearSession: delete session from User
-func ClearSession(c echo.Context) (err error) {
-	var session_gorilla *sessions.Session
-	if session_gorilla, err = session.Get("session", c); err != nil {
-		return
-	}
-
-	session_gorilla.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   true,
-	}
-
-	session_gorilla.Values["id"] = 0
-	session_gorilla.Values["username"] = "anonymous"
-	session_gorilla.Values["role"] = "anonymous"
-	session_gorilla.Save(c.Request(), c.Response())
-	return
 }
 
 /////

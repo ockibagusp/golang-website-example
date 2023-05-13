@@ -2,15 +2,12 @@ package controller
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/ockibagusp/golang-website-example/business"
-	"github.com/ockibagusp/golang-website-example/business/auth"
 	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
@@ -69,41 +66,12 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			})
 		}
 
-		// Declare the expiration time of the token
-		// here, we have kept it as 24 hour
-		expirationTime := time.Now().Add(24 * time.Hour)
-
-		// Create claims with multiple fields populated
-		claims := auth.JwtClaims{
-			UserID:   user.ID,
-			Username: user.Username,
-			Role:     user.Role,
-			RegisteredClaims: jwt.RegisteredClaims{
-				// A usual scenario is to set the expiration time relative to the current time
-				ExpiresAt: jwt.NewNumericDate(expirationTime),
-				IssuedAt:  jwt.NewNumericDate(time.Now()),
-				NotBefore: jwt.NewNumericDate(time.Now()),
-			},
-		}
-
-		// Declare the token with the algorithm used for signing, and the claims
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		// Create the JWT string
-		tokenString, err := token.SignedString([]byte(ctrl.appConfig.AppJWTAuthSign))
-		if err != nil {
+		if err := middleware.SetCookie(c, user, ctrl.appConfig.AppJWTAuthSign); err != nil {
 			// If there is an error in creating the JWT return an internal server error
 			return c.JSON(http.StatusInternalServerError, echo.Map{
-				"message": "server error",
+				"message": err,
 			})
 		}
-
-		// Finally, we set the client cookie for "token" as the JWT we just generated
-		// we also set an expiry time which is the same as the token itself
-		cookie := new(http.Cookie)
-		cookie.Name = "token"
-		cookie.Value = tokenString
-		cookie.Expires = expirationTime
-		c.SetCookie(cookie)
 
 		log.Info("END request method POST [@route: /]")
 		return c.Redirect(http.StatusFound, "/")
@@ -129,13 +97,7 @@ func (ctrl *Controller) Logout(c echo.Context) error {
 
 	log.Info("START request method GET for logout")
 
-	if err := middleware.ClearSession(c); err != nil {
-		log.Warn("to middleware.Clearauth auth not found")
-		// err: auth not found
-		return c.JSON(http.StatusBadRequest, echo.Map{
-			"message": err.Error(),
-		})
-	}
+	middleware.ClearCookie(c)
 
 	log.Info("END request method GET for logout")
 	return c.Redirect(http.StatusSeeOther, "/")
