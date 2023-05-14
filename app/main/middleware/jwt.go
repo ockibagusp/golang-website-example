@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -38,29 +37,34 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 				claims *auth.JwtClaims = &auth.JwtClaims{}
 				ok     bool
 			)
+
+			claimsAnonymous := func() {
+				claims.UserID = 0
+				claims.Username = "anonymous"
+				claims.Role = "anonymous"
+			}
+
 			cookie, err := c.Request().Cookie("token")
 			if err != nil {
-				fmt.Println("no cookie")
 				if err == http.ErrNoCookie {
-					fmt.Println("err cookie")
-
-					claims.UserID = 0
-					claims.Username = "anonymous"
-					claims.Role = "anonymous"
+					claimsAnonymous()
 					// If the cookie is not set, new the cookie
 					SetCookieNoAuth(c)
 				}
-			} else {
-				fmt.Println("cookie")
 
+				// For any other type of error, return a bad request status
+				return c.JSON(http.StatusBadRequest, responseBadRequest)
+			} else if cookie.Value == "anonymous" {
+				claimsAnonymous()
+			} else {
 				// Get the JWT string from the cookie
-				tokenStr := cookie.Value
+				tokenString := cookie.Value
 
 				// Parse the JWT string and store the result in `claims`.
 				// Note that we are passing the key in this method as well. This method will return an error
 				// if the token is invalid (if it has expired according to the expiry time we set on sign in),
 				// or if the signature does not match
-				token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+				token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 					return []byte(secret), nil
 				})
 				if err != nil {

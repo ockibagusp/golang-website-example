@@ -13,14 +13,8 @@ import (
 
 // SetCookieNoAuth: set cookie from User: anonymous
 func SetCookieNoAuth(c echo.Context) {
-	// ?
-	c.SetCookie(&http.Cookie{
-		Name:   "token",
-		Value:  "anonymous",
-		MaxAge: -1,
-	})
-
-	return
+	cookie := setTokenAnonymous()
+	c.SetCookie(cookie)
 }
 
 // SetCookie: set cookie from User
@@ -64,9 +58,18 @@ func SetCookie(c echo.Context, user *selectUser.User, JWTAuthSign string) (err e
 
 // ClearCookie: delete cookie from User
 func ClearCookie(c echo.Context) {
-	c.SetCookie(&http.Cookie{
-		Name:   "token",
-		Value:  "anonymous",
-		MaxAge: -1,
-	})
+	c.SetCookie(setTokenAnonymous())
+}
+
+func setTokenAnonymous() (cookie *http.Cookie) {
+	cookie = new(http.Cookie)
+	cookie.Name = "token"
+	cookie.Value = "anonymous"
+	// Declare the expiration time of the token
+	// here, we have kept it as 7 days
+	cookie.Expires = time.Now().Add(7 * (24 * time.Hour))
+	// // cakes are all missing
+	// cookie.MaxAge = -1
+
+	return
 }
