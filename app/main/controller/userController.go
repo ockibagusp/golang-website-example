@@ -98,10 +98,10 @@ func (ctrl *Controller) Users(c echo.Context) error {
 
 	log.Info("END request method GET for users: [+]success")
 	return c.Render(http.StatusOK, "users/user-all.html", echo.Map{
-		"name":             fmt.Sprintf("Users: %v", typing),
-		"nav":              "users", // (?)
-		"session_username": username,
-		"session_role":     role,
+		"name":            fmt.Sprintf("Users: %v", typing),
+		"nav":             "users", // (?)
+		"claims_username": username,
+		"claims_role":     role,
 		/*
 			"flash": echo.Map{"success": ..., "error": ...}
 			or,
@@ -217,14 +217,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			log.Warn("END request method POST for create user: [-]failure")
 			// HTTP response status: 400 Bad Request
 			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-				"name":             "User Add",
-				"nav":              "user Add", // (?)
-				"session_username": username,
-				"session_role":     role,
-				"flash_error 	":    middleware.GetFlashError(c),
-				"csrf":             c.Get("csrf"),
-				"locations":        locations,
-				"is_new":           true,
+				"name":            "User Add",
+				"nav":             "user Add", // (?)
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error 	":   middleware.GetFlashError(c),
+				"csrf":            c.Get("csrf"),
+				"locations":       locations,
+				"is_new":          true,
 			})
 		}
 
@@ -254,14 +254,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			log.Warn("END request method POST for create user: [-]failure")
 			// HTTP response status: 400 Bad Request
 			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-				"name":             "User Add",
-				"nav":              "user Add", // (?)
-				"session_username": username,
-				"session_role":     role,
-				"csrf":             c.Get("csrf"),
-				"flash_error":      middleware.GetFlashError(c),
-				"locations":        locations,
-				"is_new":           true,
+				"name":            "User Add",
+				"nav":             "user Add", // (?)
+				"claims_username": username,
+				"claims_role":     role,
+				"csrf":            c.Get("csrf"),
+				"flash_error":     middleware.GetFlashError(c),
+				"locations":       locations,
+				"is_new":          true,
 			})
 		}
 
@@ -289,14 +289,14 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 	log.Info("START request method GET for create user")
 	log.Info("END request method GET for create user: [+]success")
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
-		"name":             "User Add",
-		"nav":              "user Add", // (?)
-		"session_username": username,
-		"session_role":     role,
-		"csrf":             c.Get("csrf"),
-		"flash_error":      middleware.GetFlashError(c),
-		"locations":        locations,
-		"is_new":           true,
+		"name":            "User Add",
+		"nav":             "user Add", // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"csrf":            c.Get("csrf"),
+		"flash_error":     middleware.GetFlashError(c),
+		"locations":       locations,
+		"is_new":          true,
 	})
 }
 
@@ -350,15 +350,15 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 
 	log.Info("END request method GET for read user: [+]success")
 	return c.Render(http.StatusOK, "users/user-read.html", echo.Map{
-		"name":             fmt.Sprintf("User: %s", user.Name),
-		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
-		"session_username": username,
-		"session_role":     role,
-		"flash_success":    middleware.GetFlashSuccess(c),
-		"flash_error":      middleware.GetFlashError(c),
-		"user":             user,
-		"locations":        locations,
-		"is_read":          true,
+		"name":            fmt.Sprintf("User: %s", user.Name),
+		"nav":             fmt.Sprintf("User: %s", user.Name), // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"flash_success":   middleware.GetFlashSuccess(c),
+		"flash_error":     middleware.GetFlashError(c),
+		"user":            user,
+		"locations":       locations,
+		"is_read":         true,
 	})
 }
 
@@ -464,14 +464,14 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			locations, _ := locationModules.NewDB().FindAll(ic)
 			// HTTP response status: 406 Method Not Acceptable
 			return c.Render(http.StatusNotAcceptable, "users/user-view.html", echo.Map{
-				"name":             fmt.Sprintf("User: %s", user.Name),
-				"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
-				"session_username": username,
-				"session_role":     role,
-				"flash_error":      middleware.GetFlashError(c),
-				"csrf":             c.Get("csrf"),
-				"user":             user,
-				"locations":        locations,
+				"name":            fmt.Sprintf("User: %s", user.Name),
+				"nav":             fmt.Sprintf("User: %s", user.Name), // (?)
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"csrf":            c.Get("csrf"),
+				"user":            user,
+				"locations":       locations,
 			})
 		}
 
@@ -502,14 +502,14 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 
 	log.Info("END request method GET for update user: [+]success")
 	return c.Render(http.StatusOK, "users/user-view.html", echo.Map{
-		"name":             fmt.Sprintf("User: %s", user.Name),
-		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
-		"session_username": username,
-		"session_role":     role,
-		"flash_error":      middleware.GetFlashError(c),
-		"csrf":             c.Get("csrf"),
-		"user":             user,
-		"locations":        locations,
+		"name":            fmt.Sprintf("User: %s", user.Name),
+		"nav":             fmt.Sprintf("User: %s", user.Name), // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"flash_error":     middleware.GetFlashError(c),
+		"csrf":            c.Get("csrf"),
+		"user":            user,
+		"locations":       locations,
 	})
 }
 
@@ -588,12 +588,12 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			middleware.SetFlashError(c, "check hash password is wrong!")
 			log.Warn("END request method POST for update user by password: [-]failure")
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
-				"name":             fmt.Sprintf("User: %s", user.Name),
-				"session_username": username,
-				"session_role":     role,
-				"flash_error":      middleware.GetFlashError(c),
-				"user":             user,
-				"is_html_only":     true,
+				"name":            fmt.Sprintf("User: %s", user.Name),
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"user":            user,
+				"is_html_only":    true,
 			})
 		}
 
@@ -616,12 +616,12 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			// 	"message": "Passwords Don't Match",
 			// })
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
-				"name":             fmt.Sprintf("User: %s", user.Name),
-				"session_username": username,
-				"session_role":     role,
-				"flash_error":      middleware.GetFlashError(c),
-				"user":             user,
-				"is_html_only":     true,
+				"name":            fmt.Sprintf("User: %s", user.Name),
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"user":            user,
+				"is_html_only":    true,
 			})
 		}
 
@@ -668,12 +668,12 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		name (string): "user-view-password.html" -> yes
 	*/
 	return c.Render(http.StatusOK, "user-view-password.html", echo.Map{
-		"session_username": username,
-		"session_role":     role,
-		"csrf":             c.Get("csrf"),
-		"name":             fmt.Sprintf("User: %s", user.Name),
-		"user":             user,
-		"is_html_only":     true,
+		"claims_username": username,
+		"claims_role":     role,
+		"csrf":            c.Get("csrf"),
+		"name":            fmt.Sprintf("User: %s", user.Name),
+		"user":            user,
+		"is_html_only":    true,
 	})
 }
 

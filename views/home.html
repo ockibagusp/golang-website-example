@@ -19,9 +19,9 @@
   <div class="jumbotron jumbotron-fluid">
     <div class="container">
       <h1 class="display-4">Hello {{index . "message"}}</h1>
-      {{if eq .session_role "admin"}}
+      {{if eq .claims_role "admin"}}
       <p class="lead">Admin.</p>
-      {{else if eq .session_role "user"}}
+      {{else if eq .claims_role "user"}}
       <p class="lead">User.</p>
       {{else}}
       <p class="lead">Test.</p>

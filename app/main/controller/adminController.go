@@ -79,10 +79,10 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 	username, _ := c.Get("username").(string)
 	log.Info("END request method GET to admin delete permanently: [+]success")
 	return c.Render(http.StatusOK, "admin/admin-delete-permanently.html", echo.Map{
-		"name":             fmt.Sprintf("Users: %v", typing),
-		"nav":              "users", // (?)
-		"session_username": username,
-		"session_role":     role,
+		"name":            fmt.Sprintf("Users: %v", typing),
+		"nav":             "users", // (?)
+		"claims_username": username,
+		"claims_role":     role,
 		/*
 			"flash": echo.Map{"success": ..., "error": ...}
 			or,

@@ -10,7 +10,7 @@
       <label for="role">Role</label>
       <select id="role" name="role" class="form-control" {{if.is_read}}disabled{{end}}>
         <option value="user" {{if eq .user.Role "user"}}selected{{end}}>User</option>
-        {{if eq .session_role "admin"}}
+        {{if eq .claims_role "admin"}}
         <option value="admin" {{if eq .user.Role "admin"}}selected{{end}}>Admin</option>
         {{end}}
       </select>
