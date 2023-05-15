@@ -37,6 +37,7 @@ func SetFlash(c echo.Context, name, value string) {
 	session, _ := sessionNewCookieStore().Get(c.Request(), txSessionFlash)
 
 	session.AddFlash(value, name)
+	session.Options.MaxAge = 2
 	session.Save(c.Request(), c.Response())
 }
 
@@ -50,6 +51,7 @@ func GetFlash(c echo.Context, name string) (flashes []string) {
 	}
 
 	session, _ := sessionNewCookieStore().Get(c.Request(), txSessionFlash)
+	session.Options.MaxAge = 2
 
 	fls := session.Flashes(name)
 	if len(fls) > 0 {
