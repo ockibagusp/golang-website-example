@@ -45,15 +45,12 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 			}
 
 			cookie, err := c.Request().Cookie("token")
-			if err != nil {
-				if err == http.ErrNoCookie {
-					claimsAnonymous()
-					// If the cookie is not set, new the cookie
-					SetCookieNoAuth(c)
-				}
-
-				// For any other type of error, return "home"
-				return c.Redirect(http.StatusFound, "/")
+			if err != nil || cookie.Value == "anonymous" {
+				// http.ErrNoCookie or for any other type of error
+				// for JWT claims anonymous
+				claimsAnonymous()
+				// If the cookie is not set, new the cookie
+				SetCookieNoAuth(c)
 			} else if cookie.Value != "anonymous" {
 				// Get the JWT string from the cookie
 				tokenString := cookie.Value
@@ -79,8 +76,6 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 				if !ok && !token.Valid {
 					return c.JSON(http.StatusForbidden, responseForbidden)
 				}
-			} else if cookie.Value == "anonymous" {
-				claimsAnonymous()
 			} else {
 				// For any other type of error, return a bad request status
 				return c.JSON(http.StatusBadRequest, responseBadRequest)
