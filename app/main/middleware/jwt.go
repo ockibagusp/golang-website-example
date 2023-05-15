@@ -38,19 +38,18 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 				ok     bool
 			)
 
-			claimsAnonymous := func() {
-				claims.UserID = 0
-				claims.Username = "anonymous"
-				claims.Role = "anonymous"
-			}
-
 			cookie, err := c.Request().Cookie("token")
 			if err != nil || cookie.Value == "anonymous" {
 				// http.ErrNoCookie or for any other type of error
 				// for JWT claims anonymous
-				claimsAnonymous()
-				// If the cookie is not set, new the cookie
-				SetCookieNoAuth(c)
+				claims.UserID = 0
+				claims.Username = "anonymous"
+				claims.Role = "anonymous"
+
+				if err == http.ErrNoCookie {
+					// If the cookie is not set, new the cookie
+					SetCookieNoAuth(c)
+				}
 			} else if cookie.Value != "anonymous" {
 				// Get the JWT string from the cookie
 				tokenString := cookie.Value
