@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -79,7 +80,7 @@ func TestLogin_WithInputPOSTForSuccess(t *testing.T) {
 
 			// act
 			statusCode := recorder.Code
-			if assert.NoError(mockApp.Login(c)) {
+			if assert.Error(mockApp.Login(c)) {
 				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
 			}
 		})
@@ -92,6 +93,7 @@ func TestLogin_WithInputPOSTNotForUsernameFailure(t *testing.T) {
 
 	// echo setup
 	e := echo.New()
+	e.Renderer = template.NewTemplates()
 
 	testCases := []struct {
 		name   string
@@ -155,9 +157,9 @@ func TestLogin_WithInputPOSTNotForUsernameFailure(t *testing.T) {
 
 			// act
 			statusCode := recorder.Code
-			if assert.Error(mockApp.Login(c)) {
+			if assert.NoError(mockApp.Login(c)) {
 				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
-				// ? assert.Contains(recorder.Body.String(), "*username or password not match")
+				assert.Contains(recorder.Body.String(), "*username or password not match")
 			}
 		})
 	}

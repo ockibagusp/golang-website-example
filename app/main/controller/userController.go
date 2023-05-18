@@ -153,7 +153,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 	}
 
 	locations, _ := locationModules.NewDB().FindAll(ic)
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		log.Info("START request method POST for create user")
 
 		var location uint
@@ -418,7 +418,7 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		})
 	}
 
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		log.Info("START request method POST for update user")
 
 		var location uint
@@ -575,7 +575,7 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		})
 	}
 
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		// newPasswordForm: type of a password user
 		_newPasswordForm := types.NewPasswordForm{
 			OldPassword:        c.FormValue("old_password"),

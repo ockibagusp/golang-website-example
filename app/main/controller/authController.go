@@ -23,7 +23,7 @@ func init() {
  * Auth: Login
  *
  * @target: All
- * @method: GET
+ * @method: GET and POST
  * @route: /login
  */
 func (ctrl *Controller) Login(c echo.Context) error {
@@ -32,7 +32,7 @@ func (ctrl *Controller) Login(c echo.Context) error {
 
 	trackerID := aulogger.SetTrackerID()
 	ic := business.NewInternalContext(trackerID)
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		log.Info("START request method POST for login")
 		passwordForm := &types.LoginForm{
 			Username: c.FormValue("username"),

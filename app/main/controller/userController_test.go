@@ -2,15 +2,101 @@ package controller_test
 
 import (
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
 	modelsTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/models"
+	"github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	// echo setup
+	e := echo.New()
+	// Why bootstrap.min.css, bootstrap.min.js, jquery.min.js?
+	e.Static("/assets", "assets")
+
+	// Instantiate a template registry with an array of template set
+	e.Renderer = template.NewTemplates()
+
+	testCases := []struct {
+		name     string
+		urlQuery string // @route: exemple /users?admin=all
+		form     types.UserForm
+		status   int
+	}{
+		/*
+			users admin [admin]
+		*/
+		{
+			name: "user admin [admin] for POST create to success",
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "unit-test",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+
+		{
+			name: "user no-auth [user] for POST create to success",
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "example",
+				Email:           "example@example.com",
+				Name:            "Example",
+				Password:        "example123",
+				ConfirmPassword: "example123",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			// test data
+			expected := make(url.Values)
+			expected.Set("name", test.form.Name)
+			expected.Set("email", test.form.Email)
+			expected.Set("username", test.form.Username)
+			expected.Set("password", test.form.Password)
+			expected.Set("confirm_password", test.form.ConfirmPassword)
+			expected.Set("role", test.form.Role)
+
+			request := httptest.NewRequest(http.MethodPost, "/users/add", strings.NewReader(expected.Encode()))
+			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			recorder := httptest.NewRecorder()
+			c := e.NewContext(request, recorder)
+
+			// internal setup
+			mockApp := setupTestController()
+
+			// act
+			statusCode := recorder.Code
+			if assert.NoError(mockApp.CreateUser(c)) {
+				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
+			}
+		})
+	}
+}
+
+// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'email_UNIQUE' " v
+//			-> " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' " x
 
 func TestUsersController(t *testing.T) {
 	assert := assert.New(t)
@@ -229,7 +315,7 @@ func TestCreateUserController(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		method int    // method: 1=GET or 2=POST
+		method string
 		expect string // auth or no-auth
 		form   types.UserForm
 		status int
@@ -249,7 +335,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to GET create it success",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -267,7 +353,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "user [admin] to POST create it success",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "unit-test",
@@ -299,7 +385,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to POST create it failure: Duplicate entry",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "unit-test",
@@ -334,7 +420,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET create it failure",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			// redirect @route: /users/read/:id
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -348,7 +434,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "user [sugriwa] to POST create it failure",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			// redirect @route: /users/read/:id
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -371,7 +457,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to GET create it success",
 			expect: "anonymous",
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
@@ -389,7 +475,7 @@ func TestCreateUserController(t *testing.T) {
 		{
 			name:   "user [no-auth] to POST create it success",
 			expect: "anonymous",
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "example",
@@ -414,12 +500,12 @@ func TestCreateUserController(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 			var result *httpexpect.Response
-			if test.method == method.HTTP_REQUEST_GET {
+			if test.method == http.MethodGet {
 				result = noAuth.GET("/users/add").
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
-			} else if test.method == method.HTTP_REQUEST_POST {
+			} else if test.method == http.MethodPost {
 				result = noAuth.POST("/users/add").
 					WithForm(test.form).
 					Expect().
@@ -499,7 +585,7 @@ func TestReadUserController(t *testing.T) {
 	testCases := []struct {
 		name             string
 		expect           string // auth or no-auth
-		method           int    // method: 1=GET or 2=POST
+		method           string
 		path             string
 		status           int
 		htmlNavbar       regex
@@ -513,7 +599,7 @@ func TestReadUserController(t *testing.T) {
 		{
 			name:   "users [admin] to GET read it success",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -531,7 +617,7 @@ func TestReadUserController(t *testing.T) {
 		{
 			name:   "users [admin] to GET read it failure",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
@@ -547,7 +633,7 @@ func TestReadUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET read it success",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -560,7 +646,7 @@ func TestReadUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET read it failure",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// HTTP response status: 406 Not Acceptable
 			status: http.StatusNotAcceptable,
@@ -576,7 +662,7 @@ func TestReadUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to GET read it failure",
 			expect: ANONYMOUS,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -590,7 +676,7 @@ func TestReadUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to GET read it failure: 4 session and no-id",
 			expect: ANONYMOUS,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK: 3 session and id
@@ -608,7 +694,7 @@ func TestReadUserController(t *testing.T) {
 
 		var result *httpexpect.Response
 		t.Run(test.name, func(t *testing.T) {
-			if test.method == method.HTTP_REQUEST_GET {
+			if test.method == http.MethodGet {
 				// same:
 				//
 				// noAuth.GET("/users/read/{id}").
@@ -692,7 +778,7 @@ func TestUpdateUserController(t *testing.T) {
 	testCases := []struct {
 		name   string
 		expect string // auth or no-auth
-		method int    // method: 1=GET or 2=POST
+		method string // method: 1=GET or 2=POST
 		path   string // id=string. Exemple, id="1"
 		form   types.UserForm
 		status int
@@ -712,7 +798,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to admin GET update it success: id=1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1", // admin: 1 admin
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -730,7 +816,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to user GET update it success: id=2",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "2", // user: 2 sugriwa
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -748,7 +834,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to -1 GET update it failure: id=-1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -761,7 +847,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to admin POST update it success: id=1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "1", // admin: 1 admin
 			form: types.UserForm{
 				Role:     "admin",
@@ -789,7 +875,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to user POST update it success: id=2",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "2", // user: 2 sugriwa
 			form: types.UserForm{
 				// id=2 username: sugriwa
@@ -820,7 +906,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [admin] to POST update it failure: id=-1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "-1",
 			form:   types.UserForm{},
 			// HTTP response status: 404 Not Found
@@ -838,7 +924,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET update it success: id=2",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "2", // user: 2 sugriwa ok
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -851,7 +937,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET update it failure: id=-2",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-2",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -863,7 +949,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET update it failure: id=3",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "3", // user: 2 sugriwa no
 			// HTTP response status: 403 Forbidden,
 			status: http.StatusForbidden,
@@ -877,7 +963,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to sugriwa POST update it success",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "2", // user: 2 sugriwa
 			form: types.UserForm{
 				Username: "sugriwa", // admin: "sugriwa-success" to sugriwa: "sugriwa"
@@ -900,7 +986,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to POST update it failure",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "3", // user: 2 sugriwa no
 			form: types.UserForm{
 				Username: "subali-failure",
@@ -920,7 +1006,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to GET update it failure: id=1",
 			expect: "anonymous",
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -934,7 +1020,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to GET update it failure: id=-1",
 			expect: "anonymous",
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK: 3 session and id
@@ -944,7 +1030,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to POST update it failure: id=2",
 			expect: "anonymous",
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "2",
 			form: types.UserForm{
 				Username: "sugriwa-failure",
@@ -956,7 +1042,7 @@ func TestUpdateUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to POST update it failure: id=-2",
 			expect: "anonymous",
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "-2",
 			form: types.UserForm{
 				Username: "sugriwa-failure",
@@ -972,7 +1058,7 @@ func TestUpdateUserController(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 			var result *httpexpect.Response
-			if test.method == method.HTTP_REQUEST_GET {
+			if test.method == http.MethodGet {
 				// same:
 				//
 				// noAuth.GET("/users/view/{id}").
@@ -982,7 +1068,7 @@ func TestUpdateUserController(t *testing.T) {
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
-			} else if test.method == method.HTTP_REQUEST_POST {
+			} else if test.method == http.MethodPost {
 				result = noAuth.POST("/users/view/{id}").
 					WithPath("id", test.path).
 					WithForm(test.form).
@@ -1083,7 +1169,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 	testCases := []struct {
 		name   string
 		expect string // ADMIN and SUGRIWA
-		method int    // method: 1=GET or 2=POST
+		method string // method: 1=GET or 2=POST
 		path   string // id=string. Exemple, id="1"
 		form   types.NewPasswordForm
 		status int
@@ -1102,7 +1188,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [admin] to GET update user by password it success: id=1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -1115,7 +1201,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [admin] to [sugriwa] GET update user by password it success: id=2",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -1129,7 +1215,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			name: "users [admin] to GET update user by password it failure: id=-1" +
 				" GET passwords don't match",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -1142,7 +1228,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [admin] to POST update user by password it success: id=1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "1",
 			form: types.NewPasswordForm{
 				OldPassword:        "admin123",
@@ -1165,7 +1251,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [admin] to [sugriwa] POST update user by password it success: id=2",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "2",
 			form: types.NewPasswordForm{
 				OldPassword:        "user123",
@@ -1189,7 +1275,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			name: "users [admin] to POST update user by password it failure: id=1" +
 				" POST passwords don't match",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "1",
 			form: types.NewPasswordForm{
 				OldPassword:        "admin_success",
@@ -1203,7 +1289,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 			name: "users [admin] to [sugriwa] POST update user by password it failure: id=2" +
 				" POST passwords don't match",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "2",
 			form: types.NewPasswordForm{
 				OldPassword:        "admin_password_success",
@@ -1216,7 +1302,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [admin] to POST update user by password it failure: id=-1",
 			expect: ADMIN,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "-1",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 404 Not Found
@@ -1234,7 +1320,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET update user by password it success: id=2",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "2",
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
@@ -1247,7 +1333,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to [admin] GET update user by password it failure: id=1",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
@@ -1259,7 +1345,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to [subali] GET update user by password it failure: id=3",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "3",
 			// HTTP response status: 403 Forbidden
 			status: http.StatusForbidden,
@@ -1271,7 +1357,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to GET update user by password it failure: id=-1",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
 			status: http.StatusNotFound,
@@ -1284,7 +1370,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to POST update user by password it success: id=2",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "2",
 			form: types.NewPasswordForm{
 				OldPassword:        "user_success",
@@ -1302,7 +1388,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to [admin] POST update user by password it failure: id=1",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "1",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 403 Forbidden,
@@ -1315,7 +1401,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to [subali] POST update user by password it failure: id=3",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "3",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 403 Forbidden,
@@ -1328,7 +1414,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [sugriwa] to POST update user by password it failure: id=-1",
 			expect: SUGRIWA,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "-1",
 			form:   types.NewPasswordForm{},
 			// HTTP response status: 404 Not Found
@@ -1346,7 +1432,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to GET update user by password it failure: id=1",
 			expect: ANONYMOUS,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1360,7 +1446,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to POST update user by password it failure: id=-1",
 			expect: ANONYMOUS,
-			method: method.HTTP_REQUEST_GET,
+			method: http.MethodGet,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1375,7 +1461,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to POST update user by password it failure: id=1",
 			expect: ANONYMOUS,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1390,7 +1476,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 		{
 			name:   "users [no-auth] to POST update user by password it success: id=-1",
 			expect: ANONYMOUS,
-			method: method.HTTP_REQUEST_POST,
+			method: http.MethodPost,
 			path:   "-1",
 			// redirect @route: /login
 			// HTTP response status: 200 OK
@@ -1432,7 +1518,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 
 		var result *httpexpect.Response
 		t.Run(test.name, func(t *testing.T) {
-			if test.method == method.HTTP_REQUEST_GET {
+			if test.method == http.MethodGet {
 				// equal:
 				//
 				// noAuth.POST("/users/view/{id}/password").
@@ -1442,7 +1528,7 @@ func TestUpdateUserByPasswordUserController(t *testing.T) {
 					WithForm(test.form).
 					Expect().
 					Status(test.status)
-			} else if test.method == method.HTTP_REQUEST_POST {
+			} else if test.method == http.MethodPost {
 				result = noAuth.POST("/users/view/{id}/password").
 					WithPath("id", test.path).
 					WithForm(test.form).
