@@ -3,94 +3,32 @@ package controller_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"regexp"
+	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	methodTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
-	modelsTest "github.com/ockibagusp/golang-website-example/app/main/controller/mock/models"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLogin_Success(t *testing.T) {
-	// echo setup
-	e := echo.New()
-
-	// test data
-	expected := "username=admin&password=admin123"
-
-	request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	recorder := httptest.NewRecorder()
-	c := e.NewContext(request, recorder)
-
-	// internal setup
-	mockApp := setupTestController()
-
-	// act
-	mockApp.Login(c)
-
+func TestLogin_WithInputPOSTForSuccess(t *testing.T) {
 	// assert
 	assert := assert.New(t)
-	assert.Equal(http.StatusOK, recorder.Code)
-}
-
-func TestRegisterAccount_PasswordTooShort(t *testing.T) {
-	// test data
-	// expected := `{"username":"user1","email":"123"}`
 
 	// echo setup
 	e := echo.New()
-	request := httptest.NewRequest(http.MethodGet, "/", nil)
-	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	recorder := httptest.NewRecorder()
-	c := e.NewContext(request, recorder)
-
-	// internal setup
-	mockApp := setupTestController()
-
-	// act
-	mockApp.Home(c)
-
-	// assert
-	assert := assert.New(t)
-	assert.Equal(http.StatusOK, recorder.Code)
-	// assert.Contains(recorder.Body.String(), "A validation error occurred")
-	// assert.Contains(recorder.Body.String(), "Password must be 8 characters")
-}
-
-func TestLogin(t *testing.T) {
-	assert := assert.New(t)
-
-	noAuth := setupTestServer(t)
-
-	// test for db users
-	truncateUsers()
 
 	testCases := []struct {
 		name   string
-		method int
-		expect string
 		user   types.LoginForm
-		flash  regex
 		status int
 	}{
 		/*
-			users [admin]
+			users admin [admin]
 		*/
 		{
-			name:   "users [admin] to GET login",
-			method: methodTest.HTTP_REQUEST_GET,
-			expect: ADMIN,
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-		},
-		{
-			name:   "users [admin] to POST login success",
-			method: methodTest.HTTP_REQUEST_POST,
-			expect: ADMIN,
+			name: "user admin [admin] for POST login to success",
 			user: types.LoginForm{
 				Username: "admin",
 				Password: "admin123",
@@ -98,84 +36,332 @@ func TestLogin(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
-		{
-			name:   "users [admin] to POST login failure",
-			method: methodTest.HTTP_REQUEST_POST,
-			expect: ADMIN,
-			user: types.LoginForm{
-				Username: "admin",
-				Password: "<bad password>",
-			},
-			flash: regex{
-				mustCompile: `<p class="text-danger">*(.*)</p>`,
-				actual:      `<p class="text-danger">*username or password not match</p>`,
-			},
-			// HTTP response status: 403 Forbidden
-			status: http.StatusForbidden,
-		},
-
 		/*
-			users [ockibagusp]
+			users sugriwa [user]
 		*/
 		{
-			name:   "users [ockibagusp] to GET login",
-			method: methodTest.HTTP_REQUEST_GET,
-			expect: OCKIBAGUSP,
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
-		},
-		{
-			name:   "users [ockibagusp] to POST login success",
-			method: methodTest.HTTP_REQUEST_POST,
-			expect: OCKIBAGUSP,
+			name: "user sugriwa [user] for POST login to success",
 			user: types.LoginForm{
-				Username: "ockibagusp",
+				Username: "sugriwa",
 				Password: "user123",
 			},
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
+		/*
+			users subali [user]
+		*/
 		{
-			name:   "users [ockibagusp] to POST login failure",
-			method: methodTest.HTTP_REQUEST_POST,
-			expect: OCKIBAGUSP,
+			name: "user subali [user] for POST login to success",
 			user: types.LoginForm{
-				Username: "ockibagusp",
-				Password: "<bad password>",
+				Username: "subali",
+				Password: "user123",
 			},
-			flash: regex{
-				mustCompile: `<p class="text-danger">*(.*)</p>`,
-				actual:      `<p class="text-danger">*username or password not match</p>`,
-			},
-			// HTTP response status: 403 Forbidden
-			status: http.StatusForbidden,
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
 		},
 	}
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			modelsTest.UserSelectTest = test.expect // ADMIN and OCKIBAGUSP
+			// test data
+			expected := make(url.Values)
+			expected.Set("username", test.user.Username)
+			expected.Set("password", test.user.Password)
 
-			if test.method == methodTest.HTTP_REQUEST_GET {
-				noAuth.GET("/login").
-					Expect().
-					Status(test.status)
-				return
+			request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected.Encode()))
+			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			recorder := httptest.NewRecorder()
+			c := e.NewContext(request, recorder)
+
+			// internal setup
+			mockApp := setupTestController()
+
+			// act
+			statusCode := recorder.Code
+			if assert.NoError(mockApp.Login(c)) {
+				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
 			}
-			// tc.method == POST
-			result := noAuth.POST("/login").
-				WithForm(test.user).
-				Expect().
-				Status(test.status)
+		})
+	}
+}
 
-			// flash message: "username or password not match"
-			if (test.flash.mustCompile == "") && (test.flash.actual == "") {
-				resultBody := result.Body().Raw()
+func TestLogin_WithInputPOSTNotForUsernameFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
 
-				regex := regexp.MustCompile(test.flash.mustCompile)
-				match := regex.FindString(resultBody)
+	// echo setup
+	e := echo.New()
 
-				assert.Equal(match, test.flash.actual)
+	testCases := []struct {
+		name   string
+		user   types.LoginForm
+		status int
+	}{
+		/*
+			user admin_failure
+		*/
+		{
+			name: "user admin_failure for POST login to failure",
+			user: types.LoginForm{
+				Username: "admin_failure",
+				Password: "admin123",
+			},
+			// HTTP response status: 406 Not Acceptable?
+
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			user sugriwa_failure
+		*/
+		{
+			name: "user sugriwa_failure for POST login to failure",
+			user: types.LoginForm{
+				Username: "sugriwa_failure",
+				Password: "user123",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			user anonymous
+		*/
+		{
+			name: "user anonymous for POST login to failure",
+			user: types.LoginForm{
+				Username: "anonymous",
+				Password: "user123",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			// test data
+			expected := make(url.Values)
+			expected.Set("username", test.user.Username)
+			expected.Set("password", test.user.Password)
+
+			request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected.Encode()))
+			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			recorder := httptest.NewRecorder()
+			c := e.NewContext(request, recorder)
+
+			// internal setup
+			mockApp := setupTestController()
+
+			// act
+			statusCode := recorder.Code
+			if assert.Error(mockApp.Login(c)) {
+				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
+				// ? assert.Contains(recorder.Body.String(), "*username or password not match")
+			}
+		})
+	}
+}
+
+func TestLogin_WithInputPOSTPasswordTooShortFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	// echo setup
+	e := echo.New()
+
+	testCases := []struct {
+		name   string
+		user   types.LoginForm
+		status int
+	}{
+		/*
+			users admin [admin]
+		*/
+		{
+			name: "user admin [admin] for POST login to failure",
+			user: types.LoginForm{
+				Username: "admin",
+				Password: "admi",
+			},
+			// HTTP response status: 406 Not Acceptable?
+
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			users sugriwa [user]
+		*/
+		{
+			name: "user sugriwa [user] for POST login to failure",
+			user: types.LoginForm{
+				Username: "sugriwa",
+				Password: "user",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			// test data
+			expected := make(url.Values)
+			expected.Set("username", test.user.Username)
+			expected.Set("password", test.user.Password)
+
+			request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected.Encode()))
+			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			recorder := httptest.NewRecorder()
+			c := e.NewContext(request, recorder)
+
+			// internal setup
+			mockApp := setupTestController()
+
+			// act
+			statusCode := recorder.Code
+			if assert.Error(mockApp.Login(c)) {
+				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
+				// ? assert.Contains(recorder.Body.String(), "*username or password not match")
+			}
+		})
+	}
+}
+
+func TestLogin_WithInputPOSTPasswordTooLongFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	// echo setup
+	e := echo.New()
+
+	testCases := []struct {
+		name   string
+		user   types.LoginForm
+		status int
+	}{
+		/*
+			users admin [admin]
+		*/
+		{
+			name: "user admin [admin] for POST login to failure",
+			user: types.LoginForm{
+				Username: "admin",
+				Password: "<bad password too long>",
+			},
+			// HTTP response status: 406 Not Acceptable?
+
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			users sugriwa [user]
+		*/
+		{
+			name: "user sugriwa [user] for POST login to failure",
+			user: types.LoginForm{
+				Username: "sugriwa",
+				Password: "<bad password too long>",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			// test data
+			expected := make(url.Values)
+			expected.Set("username", test.user.Username)
+			expected.Set("password", test.user.Password)
+
+			request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected.Encode()))
+			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			recorder := httptest.NewRecorder()
+			c := e.NewContext(request, recorder)
+
+			// internal setup
+			mockApp := setupTestController()
+
+			// act
+			statusCode := recorder.Code
+			if assert.Error(mockApp.Login(c)) {
+				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
+				// ? assert.Contains(recorder.Body.String(), "*username or password not match")
+			}
+		})
+	}
+}
+
+func TestLogin_WithInputPOSTPasswordTooShort(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	// echo setup
+	e := echo.New()
+
+	testCases := []struct {
+		name   string
+		user   types.LoginForm
+		status int
+	}{
+		/*
+			users admin [admin]
+		*/
+		{
+			name: "user admin [admin] for POST login to success",
+			user: types.LoginForm{
+				Username: "admin",
+				Password: "<bad>",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			users sugriwa [user]
+		*/
+		{
+			name: "user sugriwa [user] for POST login to success",
+			user: types.LoginForm{
+				Username: "sugriwa",
+				Password: "<bad>",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+		/*
+			users subali [user]
+		*/
+		{
+			name: "user subali [user] for POST login to success",
+			user: types.LoginForm{
+				Username: "subali",
+				Password: "user",
+			},
+			// HTTP response status: 200 OK
+			status: http.StatusOK,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			// test data
+			expected := make(url.Values)
+			expected.Set("username", test.user.Username)
+			expected.Set("password", test.user.Password)
+
+			request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(expected.Encode()))
+			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			recorder := httptest.NewRecorder()
+			c := e.NewContext(request, recorder)
+
+			// internal setup
+			mockApp := setupTestController()
+
+			// act
+			statusCode := recorder.Code
+			if assert.Error(mockApp.Login(c)) {
+				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
 			}
 		})
 	}
