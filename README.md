@@ -140,21 +140,15 @@ $ make cover-func
 
 - too much
 
-## Operating System (with me)
+## Golang:
 
-### macOS:
+- go version go1.20.3
 
-- macOS Ventura 13.3.1 (a)
+## MySQL:
 
-### Go:
+- Active Instance: MySQL 8.0.32
 
-- go version go1.20.3 darwin/arm64
-
-### MySQL:
-
-- Active Instance: MySQL 8.0.32-arm64
-
-- MySQL Workbench Community (GPL) for macOS version 8.0.33 CE build 2947366 (64 bit)
+- MySQL Workbench Community (GPL) version 8.0.33 CE build 2947366 (64 bit)
 
 ### Bahasa Indonesia
 
