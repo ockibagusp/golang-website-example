@@ -80,7 +80,7 @@ func TestLogin_WithInputPOSTForSuccess(t *testing.T) {
 
 			// act
 			statusCode := recorder.Code
-			if assert.Error(mockApp.Login(c)) {
+			if assert.NoError(mockApp.Login(c)) {
 				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
 			}
 		})
@@ -224,7 +224,6 @@ func TestLogin_WithInputPOSTPasswordTooShortFailure(t *testing.T) {
 			statusCode := recorder.Code
 			if assert.Error(mockApp.Login(c)) {
 				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
-				// ? assert.Contains(recorder.Body.String(), "*username or password not match")
 			}
 		})
 	}
@@ -289,7 +288,6 @@ func TestLogin_WithInputPOSTPasswordTooLongFailure(t *testing.T) {
 			statusCode := recorder.Code
 			if assert.Error(mockApp.Login(c)) {
 				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
-				// ? assert.Contains(recorder.Body.String(), "*username or password not match")
 			}
 		})
 	}
