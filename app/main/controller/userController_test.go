@@ -18,15 +18,14 @@ import (
 )
 
 func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
+	// test for db users
+	truncateUsers()
+
 	// assert
 	assert := assert.New(t)
 
 	// echo setup
 	e := echo.New()
-	// Why bootstrap.min.css, bootstrap.min.js, jquery.min.js?
-	e.Static("/assets", "assets")
-
-	// Instantiate a template registry with an array of template set
 	e.Renderer = template.NewTemplates()
 
 	testCases := []struct {
