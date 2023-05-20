@@ -16,26 +16,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	ADMIN      string = "admin"
-	SUGRIWA           = "sugriwa"
-	SUBALI            = "subali"
-	OCKIBAGUSP        = "ockibagusp"
-	ANONYMOUS         = "anonymous"
-)
-
-// test flash message: struct
-type flash struct {
-	successMessage string
-	errorMessage   string
-}
-
-// test regex: struct
-type regex struct {
-	mustCompile string
-	actual      string
-}
-
 var conf *config.Config = config.GetAPPConfig()
 var db *gorm.DB = conf.GetDatabaseConnection()
 
