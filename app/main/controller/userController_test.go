@@ -29,10 +29,9 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 	e.Renderer = template.NewTemplates()
 
 	testCases := []struct {
-		name     string
-		urlQuery string
-		form     types.UserForm
-		status   int
+		name   string
+		form   types.UserForm
+		status int
 	}{
 		/*
 			users admin [admin]
