@@ -2,33 +2,22 @@ package controller_test
 
 import (
 	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/ockibagusp/golang-website-example/business/auth"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
-	// test for db users
-	truncateUsers()
-
-	// assert
-	assert := assert.New(t)
-
-	// echo setup
-	e := echo.New()
-	e.Renderer = template.NewTemplates()
+	noAuth := setupTestServer(t)
 
 	testCases := []struct {
 		name   string
 		form   types.UserForm
+		token  echo.Map
 		status int
 	}{
 		/*
@@ -36,6 +25,10 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 		*/
 		{
 			name: "user admin [admin] for POST create to success",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "unit-test",
@@ -47,9 +40,12 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 		},
-
 		{
 			name: "user no-auth [user] for POST create to success",
+			token: echo.Map{
+				"username": "anonymous",
+				"role":     "anonymous",
+			},
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "example",
@@ -65,30 +61,24 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			// test data
-			expected := make(url.Values)
-			expected.Set("name", test.form.Name)
-			expected.Set("email", test.form.Email)
-			expected.Set("username", test.form.Username)
-			expected.Set("password", test.form.Password)
-			expected.Set("confirm_password", test.form.ConfirmPassword)
-			expected.Set("role", test.form.Role)
-
-			request := httptest.NewRequest(http.MethodPost, "/users/add", strings.NewReader(expected.Encode()))
-			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
-			recorder := httptest.NewRecorder()
-			c := e.NewContext(request, recorder)
-
-			// internal setup
-			mockApp := setupTestController()
-
-			// act
-			statusCode := recorder.Code
-			if assert.NoError(mockApp.CreateUser(c)) {
-				assert.Equalf(test.status, statusCode, "got: %d but expect %d", test.status, statusCode)
-			}
+			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			noAuth.POST("/users/add").
+				WithCookie("token", token).
+				WithForm(types.UserForm{
+					Role:            test.form.Role,
+					Username:        test.form.Username,
+					Email:           test.form.Email,
+					Name:            test.form.Name,
+					Password:        test.form.Password,
+					ConfirmPassword: test.form.ConfirmPassword,
+				}).
+				Expect().
+				Status(test.status)
 		})
 	}
+
+	// test for db users
+	truncateUsers()
 }
 
 func TestCreateUsers_WithInputPOSTFormRoleWrongFailure(t *testing.T) {
