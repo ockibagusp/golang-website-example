@@ -24,7 +24,6 @@ type (
 
 	Service interface {
 		VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool)
-		GenerateToken(jwtSign string, userID uint, userName string, userRole string) (signedToken string, err error)
 		CheckHashPassword(hash, password string) bool
 		PasswordHash(password string) (string, error)
 	}
@@ -95,17 +94,18 @@ func newJWTClaims(userID uint, username string, role string, issuedAt time.Time,
 		Username: username,
 		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt:  jwt.NewNumericDate(issuedAt),
 			ExpiresAt: jwt.NewNumericDate(expiredAt),
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			NotBefore: jwt.NewNumericDate(issuedAt),
 		},
 	}
 }
 
-func (s *service) GenerateToken(jwtSign string, userID uint, userName string, userRole string) (signedToken string, err error) {
+func GenerateToken(jwtAuhtSign string, userID uint, userName string, userRole string) (signedToken string, err error) {
 	timeNow := time.Now()
 	claims := newJWTClaims(userID, userName, userRole, timeNow, timeNow.Add(time.Hour*1))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err = token.SignedString([]byte(jwtSign))
+	signedToken, err = token.SignedString([]byte(jwtAuhtSign))
 	if err != nil {
 		return
 	}

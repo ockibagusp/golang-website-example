@@ -18,10 +18,11 @@ func SetCookieNoAuth(c echo.Context) {
 }
 
 // SetCookie: set cookie from User
-func SetCookie(c echo.Context, user *selectUser.User, JWTAuthSign string) (err error) {
+func SetCookie(c echo.Context, user *selectUser.User, jwtAuthSign string) (err error) {
 	// Declare the expiration time of the token
 	// here, we have kept it as 24 hour
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expiredAt := time.Now().Add(time.Hour * 24)
+	issuedAt := time.Now()
 
 	// Create claims with multiple fields populated
 	claims := auth.JwtClaims{
@@ -30,16 +31,16 @@ func SetCookie(c echo.Context, user *selectUser.User, JWTAuthSign string) (err e
 		Role:     user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			// A usual scenario is to set the expiration time relative to the current time
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(expiredAt),
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			NotBefore: jwt.NewNumericDate(issuedAt),
 		},
 	}
 
 	// Declare the token with the algorithm used for signing, and the claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Create the JWT string
-	tokenString, err := token.SignedString([]byte(JWTAuthSign))
+	signedToken, err := token.SignedString([]byte(jwtAuthSign))
 	if err != nil {
 		// If there is an error in creating the JWT return an internal server error
 		return errors.New("server error")
@@ -49,8 +50,8 @@ func SetCookie(c echo.Context, user *selectUser.User, JWTAuthSign string) (err e
 	// we also set an expiry time which is the same as the token itself
 	cookie := new(http.Cookie)
 	cookie.Name = "token"
-	cookie.Value = tokenString
-	cookie.Expires = expirationTime
+	cookie.Value = signedToken
+	cookie.Expires = expiredAt
 	c.SetCookie(cookie)
 
 	return
