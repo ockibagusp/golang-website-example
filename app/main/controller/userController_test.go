@@ -93,19 +93,326 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 	}
 }
 
-// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'email_UNIQUE' " v
-//			-> " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' " x
-
-func TestUpdateUserController(t *testing.T) {
+func TestCreateUsers_WithInputPOSTFormRoleWrongFailure(t *testing.T) {
+	// assert
 	assert := assert.New(t)
 
 	noAuth := setupTestServer(t)
 
-	// test for SetSession = false
-	method.SetSession = false
+	//  Error "role" wrong
+	result := noAuth.POST("/users/add").
+		WithForm(types.UserForm{
+			Role:            "failure",
+			Username:        "unit-test",
+			Email:           "unit-test@exemple.com",
+			Name:            "Unit Test",
+			Password:        "unit-test",
+			ConfirmPassword: "unit-test",
+		}).
+		Expect().
+		Status(http.StatusBadRequest)
+
+	assert.Contains(result.Body().Raw(), "Error 1265 (01000): Data truncated for column &#39;role&#39; at row 1!")
+
+	// test for db users
+	truncateUsers()
+}
+
+func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	noAuth := setupTestServer(t)
+	var result *httpexpect.Response
+
+	t.Run(`user admin [admin] for POST form create to failure: Error "role"`, func(t *testing.T) {
+		result = noAuth.POST("/users/add").
+			WithForm(types.UserForm{
+				Role:            "failure",
+				Username:        "unit-test",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			}).
+			Expect().
+			Status(http.StatusBadRequest)
+
+		assert.Contains(result.Body().Raw(), "Error 1265 (01000): Data truncated for column &#39;role&#39; at row 1!")
+	})
+
+	testCases := []struct {
+		name   string
+		expect string // auth or no-auth
+		path   string // id=string. Exemple, id="1"
+		form   types.UserForm
+		status int
+
+		htmlNavbar  string
+		htmlHeading string
+		// flash message
+		htmlFlashSuccess string
+		htmlFlashError   string
+
+		jsonMessageError string
+	}{
+		/*
+			create it [admin]
+		*/
+		{
+			name: "user admin [admin] for POST form create to failure",
+			form: types.UserForm{
+				Role:            "failure",
+				Username:        "unit-test",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			status: http.StatusBadRequest,
+		},
+		// /*
+		// 	create it [admin]
+		// */
+		// {
+		// 	name:   "users [admin] to admin POST create it success: id=1",
+		// 	expect: ADMIN,
+		// 	path:   "1", // admin: 1 admin
+		// 	form: types.UserForm{
+		// 		Role:     "admin",
+		// 		Username: "admin-success",
+		// 	},
+		// 	// redirect @route: /users
+		// 	// HTTP response status: 200 OK
+		// 	status: http.StatusOK,
+		// 	// body navbar
+		// 	htmlNavbar: `<a class="btn">ADMIN</a>`,
+		// 	// body heading
+		// 	htmlHeading: `<h2 class="mt-4">Users: All</h2>`,
+		// 	// flash message success
+		// 	htmlFlashSuccess: `<strong>success:</strong> success create user: admin-success!`,
+		// },
+		// {
+		// 	name:   "users [admin] to user POST create it success: id=2",
+		// 	expect: ADMIN,
+		// 	path:   "2", // user: 2 sugriwa
+		// 	form: types.UserForm{
+		// 		// id=2 username: sugriwa
+		// 		Role:     "user",
+		// 		Username: "sugriwa",
+		// 		Name:     "Sugriwa Success",
+		// 	},
+		// 	// redirect @route: /users
+		// 	// HTTP response status: 200 OK
+		// 	status: http.StatusOK,
+		// 	// body navbar
+		// 	htmlNavbar: `<a class="btn">ADMIN</a>`,
+		// 	// body heading
+		// 	htmlHeading: `<h2 class="mt-4">Users: All</h2>`,
+		// 	// flash message success
+		// 	// [admin] id=2 username: sugriwa
+		// 	htmlFlashSuccess: `<strong>success:</strong> success create user: sugriwa!`,
+		// },
+		// {
+		// 	name:   "users [admin] to POST create it failure: id=-1",
+		// 	expect: ADMIN,
+		// 	path:   "-1",
+		// 	form:   types.UserForm{},
+		// 	// HTTP response status: 404 Not Found
+		// 	status:           http.StatusNotFound,
+		// 	jsonMessageError: `{"message":"User Not Found"}`,
+		// },
+
+		// /*
+		// 	create it [sugriwa]
+		// */
+		// // GET
+		// {
+		// 	name:   "users [sugriwa] to GET create it success: id=2",
+		// 	expect: SUGRIWA,
+		// 	method: http.MethodGet,
+		// 	path:   "2", // user: 2 sugriwa ok
+		// 	// HTTP response status: 200 OK
+		// 	status: http.StatusOK,
+		// 	// body heading
+		// 	htmlHeading: regex{
+		// 		mustCompile: `<h2 class="mt-4">(.*)</h2>`,
+		// 		actual:      `<h2 class="mt-4">User: Sugriwa Success</h2>`,
+		// 	},
+		// },
+		// {
+		// 	name:   "users [sugriwa] to GET create it failure: id=-2",
+		// 	expect: SUGRIWA,
+		// 	method: http.MethodGet,
+		// 	path:   "-2",
+		// 	// HTTP response status: 404 Not Found
+		// 	status: http.StatusNotFound,
+		// 	jsonMessageError: regex{
+		// 		mustCompile: `{"message":"(.*)"}`,
+		// 		actual:      `{"message":"User Not Found"}`,
+		// 	},
+		// },
+		// {
+		// 	name:   "users [sugriwa] to GET create it failure: id=3",
+		// 	expect: SUGRIWA,
+		// 	method: http.MethodGet,
+		// 	path:   "3", // user: 2 sugriwa no
+		// 	// HTTP response status: 403 Forbidden,
+		// 	status: http.StatusForbidden,
+		// 	jsonMessageError: regex{
+		// 		mustCompile: `{"message":"(.*)"}`,
+		// 		actual:      `{"message":"Forbidden"}`,
+		// 	},
+		// },
+		// // POST
+		// // ?
+		// {
+		// 	name:   "users [sugriwa] to sugriwa POST create it success",
+		// 	expect: SUGRIWA,
+		// 	path:   "2", // user: 2 sugriwa
+		// 	form: types.UserForm{
+		// 		Username: "sugriwa", // admin: "sugriwa-success" to sugriwa: "sugriwa"
+		// 		Name:     "Sugriwa",
+		// 	},
+		// 	// redirect @route: /
+		// 	// HTTP response status: 200 OK
+		// 	status: http.StatusOK,
+		// 	// body heading
+		// 	htmlHeading: regex{
+		// 		mustCompile: `<h1 class="display-4">(.*)</h1>`,
+		// 		actual:      `<h1 class="display-4">Hello Sugriwa!</h1>`,
+		// 	},
+		// 	// flash message success
+		// 	htmlFlashSuccess: regex{
+		// 		mustCompile: `<strong>success:</strong> (.*)`,
+		// 		actual:      `<strong>success:</strong> success create user: sugriwa!`,
+		// 	},
+		// },
+		// {
+		// 	name:   "users [sugriwa] to POST create it failure",
+		// 	expect: SUGRIWA,
+		// 	path:   "3", // user: 2 sugriwa no
+		// 	form: types.UserForm{
+		// 		Username: "subali-failure",
+		// 	},
+		// 	// HTTP response status: 403 Forbidden
+		// 	status: http.StatusForbidden,
+		// 	jsonMessageError: regex{
+		// 		mustCompile: `{"message":"(.*)"}`,
+		// 		actual:      `{"message":"Forbidden"}`,
+		// 	},
+		// },
+
+		// /*
+		// 	create it [no-auth]
+		// */
+		// // GET
+		// {
+		// 	name:   "users [no-auth] to GET create it failure: id=1",
+		// 	expect: "anonymous",
+		// 	method: http.MethodGet,
+		// 	path:   "1",
+		// 	// redirect @route: /login
+		// 	// HTTP response status: 200 OK
+		// 	status: http.StatusOK,
+		// 	// flash message
+		// 	htmlFlashError: regex{
+		// 		mustCompile: `<p class="text-danger">*(.*)</p>`,
+		// 		actual:      `<p class="text-danger">*login process failed!</p>`,
+		// 	},
+		// },
+		// {
+		// 	name:   "users [no-auth] to GET create it failure: id=-1",
+		// 	expect: "anonymous",
+		// 	method: http.MethodGet,
+		// 	path:   "-1",
+		// 	// redirect @route: /login
+		// 	// HTTP response status: 200 OK: 3 session and id
+		// 	status: http.StatusOK,
+		// },
+		// // POST
+		// {
+		// 	name:   "users [no-auth] to POST create it failure: id=2",
+		// 	expect: "anonymous",
+		// 	path:   "2",
+		// 	form: types.UserForm{
+		// 		Username: "sugriwa-failure",
+		// 	},
+		// 	// redirect @route: /login
+		// 	// HTTP response status: 200 OK: 3 session and id
+		// 	status: http.StatusOK,
+		// },
+		// {
+		// 	name:   "users [no-auth] to POST create it failure: id=-2",
+		// 	expect: "anonymous",
+		// 	path:   "-2",
+		// 	form: types.UserForm{
+		// 		Username: "sugriwa-failure",
+		// 	},
+		// 	// redirect @route: /login
+		// 	// HTTP response status: 200 OK: 3 session and id
+		// 	status: http.StatusOK,
+		// },
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			result = noAuth.POST("/users/add").
+				WithForm(test.form).
+				Expect().
+				Status(test.status)
+
+			// resultBody := result.Body().Raw()
+
+			// // assert.Equal(t, match, actual)
+			// //
+			// // or,
+			// //
+			// // assert := assert.New(t)
+			// // ...
+			// // assert.Equal(match, actual)
+			// if test.htmlNavbar != "" {
+			// 	assert.Equal(resultBody, test.htmlNavbar)
+			// }
+			// assert.Equal(resultBody, test.htmlHeading)
+
+			// if test.htmlFlashSuccess != "" {
+			// 	assert.Equal(resultBody, test.htmlFlashSuccess)
+			// }
+
+			// if test.htmlFlashError != "" {
+			// 	assert.Equal(resultBody, test.htmlFlashError)
+			// }
+
+			// if test.jsonMessageError != "" {
+			// 	assert.Equal(resultBody, test.jsonMessageError)
+			// }
+
+			// statusCode := result.Raw().StatusCode
+			// if test.status != statusCode {
+			// 	t.Logf(
+			// 		"got: %d but expect %d", test.status, statusCode,
+			// 	)
+			// 	t.Fail()
+			// }
+		})
+	}
+
+	// test for db users
+	truncateUsers()
+}
+
+// Database: " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'email_UNIQUE' " v
+//			-> " Error 1062: Duplicate entry 'unit-test@exemple.com' for key 'users.email_UNIQUE' " x
+
+func TestUpdateUserController(t *testing.T) {
 	// test for db users
 	truncateUsers()
 
+	// assert
+	assert := assert.New(t)
+
+	noAuth := setupTestServer(t)
 	testCases := []struct {
 		name   string
 		expect string // auth or no-auth
@@ -114,13 +421,13 @@ func TestUpdateUserController(t *testing.T) {
 		form   types.UserForm
 		status int
 
-		htmlNavbar  regex
-		htmlHeading regex
+		htmlNavbar  string
+		htmlHeading string
 		// flash message
-		htmlFlashSuccess regex
-		htmlFlashError   regex
+		htmlFlashSuccess string
+		htmlFlashError   string
 
-		jsonMessageError regex
+		jsonMessageError string
 	}{
 		/*
 			update it [admin]
@@ -134,15 +441,9 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			htmlNavbar: regex{
-				mustCompile: `<a class="btn">(.*)</a>`,
-				actual:      `<a class="btn">ADMIN</a>`,
-			},
+			htmlNavbar: `<a class="btn">ADMIN</a>`,
 			// body heading
-			htmlHeading: regex{
-				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:      `<h2 class="mt-4">User: Admin</h2>`,
-			},
+			htmlHeading: `<h2 class="mt-4">User: Admin</h2>`,
 		},
 		{
 			name:   "users [admin] to user GET update it success: id=2",
@@ -152,15 +453,9 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			htmlNavbar: regex{
-				mustCompile: `<a class="btn">(.*)</a>`,
-				actual:      `<a class="btn">ADMIN</a>`,
-			},
+			htmlNavbar: `<a class="btn">ADMIN</a>`,
 			// body heading
-			htmlHeading: regex{
-				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:      `<h2 class="mt-4">User: Sugriwa</h2>`,
-			},
+			htmlHeading: `<h2 class="mt-4">User: Sugriwa</h2>`,
 		},
 		{
 			name:   "users [admin] to -1 GET update it failure: id=-1",
@@ -168,11 +463,8 @@ func TestUpdateUserController(t *testing.T) {
 			method: http.MethodGet,
 			path:   "-1",
 			// HTTP response status: 404 Not Found
-			status: http.StatusNotFound,
-			jsonMessageError: regex{
-				mustCompile: `{"message":"(.*)"}`,
-				actual:      `{"message":"User Not Found"}`,
-			},
+			status:           http.StatusNotFound,
+			jsonMessageError: `{"message":"User Not Found"}`,
 		},
 		// POST
 		{
@@ -188,20 +480,11 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			htmlNavbar: regex{
-				mustCompile: `<a class="btn">(.*)</a>`,
-				actual:      `<a class="btn">ADMIN</a>`,
-			},
+			htmlNavbar: `<a class="btn">ADMIN</a>`,
 			// body heading
-			htmlHeading: regex{
-				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:      `<h2 class="mt-4">Users: All</h2>`,
-			},
+			htmlHeading: `<h2 class="mt-4">Users: All</h2>`,
 			// flash message success
-			htmlFlashSuccess: regex{
-				mustCompile: `<strong>success:</strong> (.*)`,
-				actual:      `<strong>success:</strong> success update user: admin-success!`,
-			},
+			htmlFlashSuccess: `<strong>success:</strong> success update user: admin-success!`,
 		},
 		{
 			name:   "users [admin] to user POST update it success: id=2",
@@ -218,21 +501,11 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body navbar
-			htmlNavbar: regex{
-				mustCompile: `<a class="btn">(.*)</a>`,
-				actual:      `<a class="btn">ADMIN</a>`,
-			},
+			htmlNavbar: `<a class="btn">ADMIN</a>`,
 			// body heading
-			htmlHeading: regex{
-				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:      `<h2 class="mt-4">Users: All</h2>`,
-			},
+			htmlHeading: `<h2 class="mt-4">Users: All</h2>`,
 			// flash message success
-			htmlFlashSuccess: regex{
-				mustCompile: `<strong>success:</strong> (.*)`,
-				// [admin] id=2 username: sugriwa
-				actual: `<strong>success:</strong> success update user: sugriwa!`,
-			},
+			htmlFlashSuccess: `<strong>success:</strong> success update user: sugriwa!`,
 		},
 		{
 			name:   "users [admin] to POST update it failure: id=-1",
@@ -241,11 +514,8 @@ func TestUpdateUserController(t *testing.T) {
 			path:   "-1",
 			form:   types.UserForm{},
 			// HTTP response status: 404 Not Found
-			status: http.StatusNotFound,
-			jsonMessageError: regex{
-				mustCompile: `{"message":"(.*)"}`,
-				actual:      `{"message":"User Not Found"}`,
-			},
+			status:           http.StatusNotFound,
+			jsonMessageError: `{"message":"User Not Found"}`,
 		},
 
 		/*
@@ -260,10 +530,7 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			htmlHeading: regex{
-				mustCompile: `<h2 class="mt-4">(.*)</h2>`,
-				actual:      `<h2 class="mt-4">User: Sugriwa Success</h2>`,
-			},
+			htmlHeading: `<h2 class="mt-4">User: Sugriwa Success</h2>`,
 		},
 		{
 			name:   "users [sugriwa] to GET update it failure: id=-2",
@@ -271,11 +538,8 @@ func TestUpdateUserController(t *testing.T) {
 			method: http.MethodGet,
 			path:   "-2",
 			// HTTP response status: 404 Not Found
-			status: http.StatusNotFound,
-			jsonMessageError: regex{
-				mustCompile: `{"message":"(.*)"}`,
-				actual:      `{"message":"User Not Found"}`,
-			},
+			status:           http.StatusNotFound,
+			jsonMessageError: `{"message":"User Not Found"}`,
 		},
 		{
 			name:   "users [sugriwa] to GET update it failure: id=3",
@@ -283,11 +547,8 @@ func TestUpdateUserController(t *testing.T) {
 			method: http.MethodGet,
 			path:   "3", // user: 2 sugriwa no
 			// HTTP response status: 403 Forbidden,
-			status: http.StatusForbidden,
-			jsonMessageError: regex{
-				mustCompile: `{"message":"(.*)"}`,
-				actual:      `{"message":"Forbidden"}`,
-			},
+			status:           http.StatusForbidden,
+			jsonMessageError: `{"message":"Forbidden"}`,
 		},
 		// POST
 		// ?
@@ -304,15 +565,9 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// body heading
-			htmlHeading: regex{
-				mustCompile: `<h1 class="display-4">(.*)</h1>`,
-				actual:      `<h1 class="display-4">Hello Sugriwa!</h1>`,
-			},
+			htmlHeading: `<h1 class="display-4">Hello Sugriwa!</h1>`,
 			// flash message success
-			htmlFlashSuccess: regex{
-				mustCompile: `<strong>success:</strong> (.*)`,
-				actual:      `<strong>success:</strong> success update user: sugriwa!`,
-			},
+			htmlFlashSuccess: `<strong>success:</strong> success update user: sugriwa!`,
 		},
 		{
 			name:   "users [sugriwa] to POST update it failure",
@@ -323,11 +578,8 @@ func TestUpdateUserController(t *testing.T) {
 				Username: "subali-failure",
 			},
 			// HTTP response status: 403 Forbidden
-			status: http.StatusForbidden,
-			jsonMessageError: regex{
-				mustCompile: `{"message":"(.*)"}`,
-				actual:      `{"message":"Forbidden"}`,
-			},
+			status:           http.StatusForbidden,
+			jsonMessageError: `{"message":"Forbidden"}`,
 		},
 
 		/*
@@ -343,10 +595,7 @@ func TestUpdateUserController(t *testing.T) {
 			// HTTP response status: 200 OK
 			status: http.StatusOK,
 			// flash message
-			htmlFlashError: regex{
-				mustCompile: `<p class="text-danger">*(.*)</p>`,
-				actual:      `<p class="text-danger">*login process failed!</p>`,
-			},
+			htmlFlashError: `<p class="text-danger">*login process failed!</p>`,
 		},
 		{
 			name:   "users [no-auth] to GET update it failure: id=-1",
@@ -411,66 +660,19 @@ func TestUpdateUserController(t *testing.T) {
 
 			resultBody := result.Body().Raw()
 
-			var (
-				mustCompile, actual, match string
-				regex                      *regexp.Regexp
-			)
+			assert.Equal(resultBody, test.htmlNavbar)
+			assert.Equal(resultBody, test.htmlHeading)
 
-			if test.htmlNavbar.mustCompile != "" {
-				mustCompile = test.htmlNavbar.mustCompile
-				actual = test.htmlNavbar.actual
-
-				regex = regexp.MustCompile(mustCompile)
-				match = regex.FindString(resultBody)
-
-				// assert.Equal(t, match, actual)
-				//
-				// or,
-				//
-				// assert := assert.New(t)
-				// ...
-				// assert.Equal(match, actual)
-				assert.Equal(match, actual)
+			if test.htmlFlashSuccess != "" {
+				assert.Equal(resultBody, test.htmlFlashSuccess)
 			}
 
-			if test.htmlHeading.mustCompile != "" {
-				mustCompile = test.htmlHeading.mustCompile
-				actual = test.htmlHeading.actual
-
-				regex = regexp.MustCompile(mustCompile)
-				match = regex.FindString(resultBody)
-
-				assert.Equal(match, actual)
+			if test.htmlFlashError != "" {
+				assert.Equal(resultBody, test.htmlFlashError)
 			}
 
-			if test.htmlFlashSuccess.mustCompile != "" {
-				mustCompile = test.htmlFlashSuccess.mustCompile
-				actual = test.htmlFlashSuccess.actual
-
-				regex = regexp.MustCompile(mustCompile)
-				match = regex.FindString(resultBody)
-
-				assert.Equal(match, actual)
-			}
-
-			if test.htmlFlashError.mustCompile != "" {
-				mustCompile = test.htmlFlashError.mustCompile
-				actual = test.htmlFlashError.actual
-
-				regex = regexp.MustCompile(mustCompile)
-				match = regex.FindString(resultBody)
-
-				assert.Equal(match, actual)
-			}
-
-			if test.jsonMessageError.mustCompile != "" {
-				mustCompile = test.jsonMessageError.mustCompile
-				actual = test.jsonMessageError.actual
-
-				regex = regexp.MustCompile(mustCompile)
-				match = regex.FindString(resultBody)
-
-				assert.Equal(match, actual)
+			if test.jsonMessageError != "" {
+				assert.Equal(resultBody, test.jsonMessageError)
 			}
 
 			statusCode := result.Raw().StatusCode
