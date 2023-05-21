@@ -221,7 +221,7 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 				"nav":             "user Add", // (?)
 				"claims_username": username,
 				"claims_role":     role,
-				"flash_error 	":   middleware.GetFlashError(c),
+				"flash_error":     middleware.GetFlashError(c),
 				"csrf":            c.Get("csrf"),
 				"locations":       locations,
 				"is_new":          true,

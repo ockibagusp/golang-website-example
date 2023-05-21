@@ -160,7 +160,8 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
 			},
-			status: http.StatusBadRequest,
+			status:     http.StatusBadRequest,
+			flashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
 		},
 		// /*
 		// 	create it [admin]
