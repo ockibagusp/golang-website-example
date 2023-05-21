@@ -154,7 +154,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			},
 			form: types.UserForm{
 				Role:            "user",
-				Username:        "subali_copy_failure",
+				Username:        "subali_copy_failure", // look
 				Email:           "unit-test@exemple.com",
 				Name:            "Unit Test",
 				Password:        "unit-test",
@@ -171,7 +171,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			},
 			form: types.UserForm{
 				Role:            "user",
-				Username:        "anonymous_failure",
+				Username:        "anonymous_failure", // look
 				Email:           "unit-test@exemple.com",
 				Name:            "Unit Test",
 				Password:        "unit-test",
@@ -192,7 +192,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "subali_failure",
-				Email:           "unit-test@.com",
+				Email:           "unit-test@.com", // look
 				Name:            "Unit Test",
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
@@ -209,7 +209,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			form: types.UserForm{
 				Role:            "user",
 				Username:        "anony_failure",
-				Email:           "unit-test@exemplecom",
+				Email:           "unit-test@exemplecom", // look
 				Name:            "Unit Test",
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
