@@ -15,10 +15,9 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 	noAuth := setupTestServer(t)
 
 	testCases := []struct {
-		name   string
-		form   types.UserForm
-		token  echo.Map
-		status int
+		name  string
+		token echo.Map
+		form  types.UserForm
 	}{
 		/*
 			users admin [admin]
@@ -37,8 +36,6 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
 			},
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
 		},
 		{
 			name: "user no-auth [user] for POST create to success",
@@ -54,8 +51,6 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 				Password:        "example123",
 				ConfirmPassword: "example123",
 			},
-			// HTTP response status: 200 OK
-			status: http.StatusOK,
 		},
 	}
 
@@ -73,7 +68,8 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 					ConfirmPassword: test.form.ConfirmPassword,
 				}).
 				Expect().
-				Status(test.status)
+				// HTTP response status: 200 OK
+				Status(http.StatusOK)
 		})
 	}
 
@@ -178,11 +174,10 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 	var result *httpexpect.Response
 
 	testCases := []struct {
-		name       string
-		token      echo.Map
-		form       types.UserForm
-		status     int
-		flashError string
+		name           string
+		token          echo.Map
+		form           types.UserForm
+		htmlFlashError string
 	}{
 		/*
 			create form username failure
@@ -201,8 +196,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
 			},
-			status:     http.StatusBadRequest,
-			flashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
+			htmlFlashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
 		},
 		{
 			name: "user anonymous for POST form create to username too long failure: 2",
@@ -218,8 +212,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
 			},
-			status:     http.StatusBadRequest,
-			flashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
+			htmlFlashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
 		},
 		/*
 			create form email failure
@@ -238,8 +231,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
 			},
-			status:     http.StatusBadRequest,
-			flashError: "<strong>error:</strong> email: must be a valid email address.!",
+			htmlFlashError: "<strong>error:</strong> email: must be a valid email address.!",
 		},
 		{
 			name: "user anonymous for POST form create to email too long failure: 2",
@@ -255,8 +247,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-test",
 				ConfirmPassword: "unit-test",
 			},
-			status:     http.StatusBadRequest,
-			flashError: "<strong>error:</strong> email: must be a valid email address.!",
+			htmlFlashError: "<strong>error:</strong> email: must be a valid email address.!",
 		},
 		/*
 			create form password it's not confirm_password failure
@@ -275,8 +266,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-failure", // look
 				ConfirmPassword: "unit-test",    // look
 			},
-			status:     http.StatusBadRequest,
-			flashError: " <strong>error:</strong> password: passwords don&#39;t match.!",
+			htmlFlashError: " <strong>error:</strong> password: passwords don&#39;t match.!",
 		},
 		{
 			name: "user anonymous for POST password it's not confirm_password failure: 5",
@@ -292,8 +282,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 				Password:        "unit-test",    // look
 				ConfirmPassword: "unit-failure", // look
 			},
-			status:     http.StatusBadRequest,
-			flashError: " <strong>error:</strong> password: passwords don&#39;t match.!",
+			htmlFlashError: " <strong>error:</strong> password: passwords don&#39;t match.!",
 		},
 	}
 
@@ -312,9 +301,9 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			result = auth.POST("/users/add").
 				WithForm(test.form).
 				Expect().
-				Status(test.status)
+				Status(http.StatusBadRequest)
 
-			assert.Contains(result.Body().Raw(), test.flashError)
+			assert.Contains(result.Body().Raw(), test.htmlFlashError)
 		})
 	}
 
@@ -322,14 +311,72 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 	truncateUsers()
 }
 
-// func TestUpdateUserController(t *testing.T) {
-// 	// test for db users
-// 	truncateUsers()
+func TestUpdateUser_WithInputPOSTForSuccess(t *testing.T) {
+	// assert
+	assert := assert.New(t)
 
-// 	// assert
-// 	assert := assert.New(t)
+	noAuth := setupTestServer(t)
+	testCases := []struct {
+		name             string
+		path             string // id=string. Exemple, id="1"
+		form             types.UserForm
+		htmlFlashSuccess string
+		token            echo.Map
+	}{
+		{
+			name: "user admin [admin] for POST update to success",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			path: "1", // admin: 1 admin
+			form: types.UserForm{
+				Role:     "admin",
+				Username: "admin-success",
+			},
+			htmlFlashSuccess: `<strong>success:</strong> success update user: admin-success!`,
+		},
+		{
+			name: "user subali [user] for POST update to success",
+			token: echo.Map{
+				"username": "subali",
+				"role":     "user",
+			},
+			path: "3", // user: 3 subali
+			form: types.UserForm{
+				Username: "subali-success",
+				Name:     "Subali Success",
+			},
+			htmlFlashSuccess: `<strong>success:</strong> success update user: subali-success!`,
+		},
+	}
 
-// 	noAuth := setupTestServer(t)
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			result := noAuth.POST("/users/view/{id}").
+				WithPath("id", test.path).
+				WithCookie("token", token).
+				WithForm(types.UserForm{
+					Role:            test.form.Role,
+					Username:        test.form.Username,
+					Email:           test.form.Email,
+					Name:            test.form.Name,
+					Password:        test.form.Password,
+					ConfirmPassword: test.form.ConfirmPassword,
+				}).
+				Expect().
+				// HTTP response status: 200 OK
+				Status(http.StatusOK)
+
+			assert.Contains(result.Body().Raw(), test.htmlFlashSuccess)
+		})
+	}
+
+	// test for db users
+	truncateUsers()
+}
+
 // 	testCases := []struct {
 // 		name   string
 // 		expect string // auth or no-auth
