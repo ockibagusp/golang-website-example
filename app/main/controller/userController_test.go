@@ -136,45 +136,25 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 	noAuth := setupTestServer(t)
 	var result *httpexpect.Response
 
-	t.Run(`user admin [admin] for POST form create to failure: Error "role"`, func(t *testing.T) {
-		result = noAuth.POST("/users/add").
-			WithForm(types.UserForm{
-				Role:            "failure",
-				Username:        "unit-test",
-				Email:           "unit-test@exemple.com",
-				Name:            "Unit Test",
-				Password:        "unit-test",
-				ConfirmPassword: "unit-test",
-			}).
-			Expect().
-			Status(http.StatusBadRequest)
-
-		assert.Contains(result.Body().Raw(), "Error 1265 (01000): Data truncated for column &#39;role&#39; at row 1!")
-	})
-
 	testCases := []struct {
-		name   string
-		expect string // auth or no-auth
-		path   string // id=string. Exemple, id="1"
-		form   types.UserForm
-		status int
-
-		htmlNavbar  string
-		htmlHeading string
-		// flash message
-		htmlFlashSuccess string
-		htmlFlashError   string
-
-		jsonMessageError string
+		name       string
+		token      echo.Map
+		form       types.UserForm
+		status     int
+		flashError string
 	}{
 		/*
-			create it [admin]
+			create username failure
 		*/
 		{
-			name: "user admin [admin] for POST form create to failure",
+			name: "user admin [admin] for POST form create to username too long failure: 2",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
 			form: types.UserForm{
-				Role:            "failure",
-				Username:        "unit-test",
+				Role:            "user",
+				Username:        "subali_copy_failure",
 				Email:           "unit-test@exemple.com",
 				Name:            "Unit Test",
 				Password:        "unit-test",
@@ -368,10 +348,22 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			result = noAuth.POST("/users/add").
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
+			auth := noAuth.Builder(func(req *httpexpect.Request) {
+				req.WithCookie("token", token)
+			})
+
+			result = auth.POST("/users/add").
 				WithForm(test.form).
 				Expect().
 				Status(test.status)
+
+			assert.Contains(result.Body().Raw(), test.flashError)
 
 			// resultBody := result.Body().Raw()
 
