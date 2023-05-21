@@ -217,6 +217,43 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			status:     http.StatusBadRequest,
 			flashError: "<strong>error:</strong> email: must be a valid email address.!",
 		},
+		/*
+			create form password it's not confirm_password failure
+		*/
+		{
+			name: "user admin [admin] for POST password it's not confirm_password failure: 4",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "subali",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-failure", // look
+				ConfirmPassword: "unit-test",    // look
+			},
+			status:     http.StatusBadRequest,
+			flashError: " <strong>error:</strong> password: passwords don&#39;t match.!",
+		},
+		{
+			name: "user anonymous for POST password it's not confirm_password failure: 5",
+			token: echo.Map{
+				"username": "anonymous",
+				"role":     "anonymous",
+			},
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "anonymous",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",    // look
+				ConfirmPassword: "unit-failure", // look
+			},
+			status:     http.StatusBadRequest,
+			flashError: " <strong>error:</strong> password: passwords don&#39;t match.!",
+		},
 		// {
 		// 	name:   "users [admin] to admin POST create it success: id=1",
 		// 	expect: ADMIN,
