@@ -445,281 +445,138 @@ func TestUpdateUser_WithInputPOSTForFailure(t *testing.T) {
 	truncateUsers()
 }
 
-// 	testCases := []struct {
-// 		name   string
-// 		expect string // auth or no-auth
-// 		method string // method: 1=GET or 2=POST
-// 		path   string // id=string. Exemple, id="1"
-// 		form   types.UserForm
-// 		status int
+func TestUpdateUserByPassword_WithInputPOSTForSuccess(t *testing.T) {
+	// assert
+	assert := assert.New(t)
 
-// 		htmlNavbar  string
-// 		htmlHeading string
-// 		// flash message
-// 		htmlFlashSuccess string
-// 		htmlFlashError   string
+	noAuth := setupTestServer(t)
+	testCases := []struct {
+		name             string
+		path             string // id=string. Exemple, id="1"
+		form             types.NewPasswordForm
+		htmlFlashSuccess string
+		token            echo.Map
+	}{
+		{
+			name: "user admin [admin] for POST update by password to success",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			path: "1", // admin: 1 admin
+			form: types.NewPasswordForm{
+				OldPassword:        "admin123",
+				NewPassword:        "admin-success",
+				ConfirmNewPassword: "admin-success",
+			},
+			htmlFlashSuccess: "<strong>success:</strong> success update user by password: admin!",
+		},
+		{
+			name: "user subali [user] for POST update by password to success",
+			token: echo.Map{
+				"username": "subali",
+				"role":     "user",
+			},
+			path: "3", // user: 3 subali
+			form: types.NewPasswordForm{
+				OldPassword:        "user123",
+				NewPassword:        "user-success",
+				ConfirmNewPassword: "user-success",
+			},
+			htmlFlashSuccess: `<strong>success:</strong> success update user by password: subali!`,
+		},
+	}
 
-// 		jsonMessageError string
-// 	}{
-// 		/*
-// 			update it [admin]
-// 		*/
-// 		// GET
-// 		{
-// 			name:   "users [admin] to admin GET update it success: id=1",
-// 			expect: ADMIN,
-// 			method: http.MethodGet,
-// 			path:   "1", // admin: 1 admin
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body navbar
-// 			htmlNavbar: `<a class="btn">ADMIN</a>`,
-// 			// body heading
-// 			htmlHeading: `<h2 class="mt-4">User: Admin</h2>`,
-// 		},
-// 		{
-// 			name:   "users [admin] to user GET update it success: id=2",
-// 			expect: ADMIN,
-// 			method: http.MethodGet,
-// 			path:   "2", // user: 2 sugriwa
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body navbar
-// 			htmlNavbar: `<a class="btn">ADMIN</a>`,
-// 			// body heading
-// 			htmlHeading: `<h2 class="mt-4">User: Sugriwa</h2>`,
-// 		},
-// 		{
-// 			name:   "users [admin] to -1 GET update it failure: id=-1",
-// 			expect: ADMIN,
-// 			method: http.MethodGet,
-// 			path:   "-1",
-// 			// HTTP response status: 404 Not Found
-// 			status:           http.StatusNotFound,
-// 			jsonMessageError: `{"message":"User Not Found"}`,
-// 		},
-// 		// POST
-// 		{
-// 			name:   "users [admin] to admin POST update it success: id=1",
-// 			expect: ADMIN,
-// 			method: http.MethodPost,
-// 			path:   "1", // admin: 1 admin
-// 			form: types.UserForm{
-// 				Role:     "admin",
-// 				Username: "admin-success",
-// 			},
-// 			// redirect @route: /users
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body navbar
-// 			htmlNavbar: `<a class="btn">ADMIN</a>`,
-// 			// body heading
-// 			htmlHeading: `<h2 class="mt-4">Users: All</h2>`,
-// 			// flash message success
-// 			htmlFlashSuccess: `<strong>success:</strong> success update user: admin-success!`,
-// 		},
-// 		{
-// 			name:   "users [admin] to user POST update it success: id=2",
-// 			expect: ADMIN,
-// 			method: http.MethodPost,
-// 			path:   "2", // user: 2 sugriwa
-// 			form: types.UserForm{
-// 				// id=2 username: sugriwa
-// 				Role:     "user",
-// 				Username: "sugriwa",
-// 				Name:     "Sugriwa Success",
-// 			},
-// 			// redirect @route: /users
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body navbar
-// 			htmlNavbar: `<a class="btn">ADMIN</a>`,
-// 			// body heading
-// 			htmlHeading: `<h2 class="mt-4">Users: All</h2>`,
-// 			// flash message success
-// 			htmlFlashSuccess: `<strong>success:</strong> success update user: sugriwa!`,
-// 		},
-// 		{
-// 			name:   "users [admin] to POST update it failure: id=-1",
-// 			expect: ADMIN,
-// 			method: http.MethodPost,
-// 			path:   "-1",
-// 			form:   types.UserForm{},
-// 			// HTTP response status: 404 Not Found
-// 			status:           http.StatusNotFound,
-// 			jsonMessageError: `{"message":"User Not Found"}`,
-// 		},
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			result := noAuth.POST("/users/view/{id}/password").
+				WithPath("id", test.path).
+				WithCookie("token", token).
+				WithForm(types.NewPasswordForm{
+					OldPassword:        test.form.OldPassword,
+					NewPassword:        test.form.NewPassword,
+					ConfirmNewPassword: test.form.ConfirmNewPassword,
+				}).
+				Expect().
+				// HTTP response status: 200 OK
+				Status(http.StatusOK)
 
-// 		/*
-// 			update it [sugriwa]
-// 		*/
-// 		// GET
-// 		{
-// 			name:   "users [sugriwa] to GET update it success: id=2",
-// 			expect: SUGRIWA,
-// 			method: http.MethodGet,
-// 			path:   "2", // user: 2 sugriwa ok
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body heading
-// 			htmlHeading: `<h2 class="mt-4">User: Sugriwa Success</h2>`,
-// 		},
-// 		{
-// 			name:   "users [sugriwa] to GET update it failure: id=-2",
-// 			expect: SUGRIWA,
-// 			method: http.MethodGet,
-// 			path:   "-2",
-// 			// HTTP response status: 404 Not Found
-// 			status:           http.StatusNotFound,
-// 			jsonMessageError: `{"message":"User Not Found"}`,
-// 		},
-// 		{
-// 			name:   "users [sugriwa] to GET update it failure: id=3",
-// 			expect: SUGRIWA,
-// 			method: http.MethodGet,
-// 			path:   "3", // user: 2 sugriwa no
-// 			// HTTP response status: 403 Forbidden,
-// 			status:           http.StatusForbidden,
-// 			jsonMessageError: `{"message":"Forbidden"}`,
-// 		},
-// 		// POST
-// 		// ?
-// 		{
-// 			name:   "users [sugriwa] to sugriwa POST update it success",
-// 			expect: SUGRIWA,
-// 			method: http.MethodPost,
-// 			path:   "2", // user: 2 sugriwa
-// 			form: types.UserForm{
-// 				Username: "sugriwa", // admin: "sugriwa-success" to sugriwa: "sugriwa"
-// 				Name:     "Sugriwa",
-// 			},
-// 			// redirect @route: /
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// body heading
-// 			htmlHeading: `<h1 class="display-4">Hello Sugriwa!</h1>`,
-// 			// flash message success
-// 			htmlFlashSuccess: `<strong>success:</strong> success update user: sugriwa!`,
-// 		},
-// 		{
-// 			name:   "users [sugriwa] to POST update it failure",
-// 			expect: SUGRIWA,
-// 			method: http.MethodPost,
-// 			path:   "3", // user: 2 sugriwa no
-// 			form: types.UserForm{
-// 				Username: "subali-failure",
-// 			},
-// 			// HTTP response status: 403 Forbidden
-// 			status:           http.StatusForbidden,
-// 			jsonMessageError: `{"message":"Forbidden"}`,
-// 		},
+			assert.Contains(result.Body().Raw(), test.htmlFlashSuccess)
+		})
+	}
 
-// 		/*
-// 			update it [no-auth]
-// 		*/
-// 		// GET
-// 		{
-// 			name:   "users [no-auth] to GET update it failure: id=1",
-// 			expect: "anonymous",
-// 			method: http.MethodGet,
-// 			path:   "1",
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK
-// 			status: http.StatusOK,
-// 			// flash message
-// 			htmlFlashError: `<p class="text-danger">*login process failed!</p>`,
-// 		},
-// 		{
-// 			name:   "users [no-auth] to GET update it failure: id=-1",
-// 			expect: "anonymous",
-// 			method: http.MethodGet,
-// 			path:   "-1",
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK: 3 session and id
-// 			status: http.StatusOK,
-// 		},
-// 		// POST
-// 		{
-// 			name:   "users [no-auth] to POST update it failure: id=2",
-// 			expect: "anonymous",
-// 			method: http.MethodPost,
-// 			path:   "2",
-// 			form: types.UserForm{
-// 				Username: "sugriwa-failure",
-// 			},
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK: 3 session and id
-// 			status: http.StatusOK,
-// 		},
-// 		{
-// 			name:   "users [no-auth] to POST update it failure: id=-2",
-// 			expect: "anonymous",
-// 			method: http.MethodPost,
-// 			path:   "-2",
-// 			form: types.UserForm{
-// 				Username: "sugriwa-failure",
-// 			},
-// 			// redirect @route: /login
-// 			// HTTP response status: 200 OK: 3 session and id
-// 			status: http.StatusOK,
-// 		},
-// 	}
+	// test for db users
+	truncateUsers()
+}
 
-// 	for _, test := range testCases {
-// 		modelsTest.UserSelectTest = test.expect // ADMIN and SUGRIWA
+func TestUpdateUserByPassword_WithInputPOSTForFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
 
-// 		t.Run(test.name, func(t *testing.T) {
-// 			var result *httpexpect.Response
-// 			if test.method == http.MethodGet {
-// 				// same:
-// 				//
-// 				// noAuth.GET("/users/view/{id}").
-// 				//	WithPath("id", test.path).
-// 				// ...
-// 				result = noAuth.GET("/users/view/{id}", test.path).
-// 					WithForm(test.form).
-// 					Expect().
-// 					Status(test.status)
-// 			} else if test.method == http.MethodPost {
-// 				result = noAuth.POST("/users/view/{id}").
-// 					WithPath("id", test.path).
-// 					WithForm(test.form).
-// 					Expect().
-// 					Status(test.status)
-// 			} else {
-// 				panic("method: 1=GET or 2=POST")
-// 			}
+	noAuth := setupTestServer(t)
+	testCases := []struct {
+		name             string
+		token            echo.Map
+		path             string // id=string. Exemple, id="1"
+		form             types.UserForm
+		jsonMessageError string
+		status           int
+	}{
+		{
+			name: "user admin [admin] for POST update to role error failure id=1",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			path: "1", // admin: 1 admin
+			form: types.UserForm{
+				Role:     "failure", // -> look
+				Username: "admin-error",
+				Location: 0,
+			},
+			jsonMessageError: `{"message":"Internal Server Error"}`,
+			status:           http.StatusInternalServerError,
+		},
+		{
+			name: "user subali [user] for POST update it failure: id=-1",
+			token: echo.Map{
+				"username": "subali",
+				"role":     "user",
+			},
+			path: "-1", // -> look
+			form: types.UserForm{
+				Location: 0,
+			},
+			jsonMessageError: `{"message":"User Not Found"}`,
+			status:           http.StatusNotFound,
+		},
+	}
 
-// 			resultBody := result.Body().Raw()
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
+			result := noAuth.POST("/users/view/{id}").
+				WithPath("id", test.path).
+				WithCookie("token", token).
+				WithForm(test.form).
+				Expect().
+				// HTTP response status: 200 OK
+				Status(test.status)
 
-// 			assert.Equal(resultBody, test.htmlNavbar)
-// 			assert.Equal(resultBody, test.htmlHeading)
+			resultBody := result.Body().Raw()
+			assert.Contains(resultBody, test.jsonMessageError)
+		})
+	}
 
-// 			if test.htmlFlashSuccess != "" {
-// 				assert.Equal(resultBody, test.htmlFlashSuccess)
-// 			}
-
-// 			if test.htmlFlashError != "" {
-// 				assert.Equal(resultBody, test.htmlFlashError)
-// 			}
-
-// 			if test.jsonMessageError != "" {
-// 				assert.Equal(resultBody, test.jsonMessageError)
-// 			}
-
-// 			statusCode := result.Raw().StatusCode
-// 			if test.status != statusCode {
-// 				t.Logf(
-// 					"got: %d but expect %d", test.status, statusCode,
-// 				)
-// 				t.Fail()
-// 			}
-// 		})
-// 	}
-
-// 	// test for db users
-// 	truncateUsers()
-// }
+	// test for db users
+	truncateUsers()
+}
 
 // func TestUpdateUserByPasswordUserController(t *testing.T) {
 // 	assert := assert.New(t)
