@@ -377,6 +377,74 @@ func TestUpdateUser_WithInputPOSTForSuccess(t *testing.T) {
 	truncateUsers()
 }
 
+func TestUpdateUser_WithInputPOSTForFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	noAuth := setupTestServer(t)
+	testCases := []struct {
+		name             string
+		token            echo.Map
+		path             string // id=string. Exemple, id="1"
+		form             types.UserForm
+		jsonMessageError string
+		status           int
+	}{
+		{
+			name: "user admin [admin] for POST update to role error failure id=1",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			path: "1", // admin: 1 admin
+			form: types.UserForm{
+				Role:     "failure", // -> look
+				Username: "admin-error",
+				Location: 0,
+			},
+			jsonMessageError: `{"message":"Internal Server Error"}`,
+			status:           http.StatusInternalServerError,
+		},
+		{
+			name: "user subali [user] for POST update it failure: id=-1",
+			token: echo.Map{
+				"username": "subali",
+				"role":     "user",
+			},
+			path: "-1", // -> look
+			form: types.UserForm{
+				Location: 0,
+			},
+			jsonMessageError: `{"message":"User Not Found"}`,
+			status:           http.StatusNotFound,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
+			result := noAuth.POST("/users/view/{id}").
+				WithPath("id", test.path).
+				WithCookie("token", token).
+				WithForm(test.form).
+				Expect().
+				// HTTP response status: 200 OK
+				Status(test.status)
+
+			resultBody := result.Body().Raw()
+			assert.Contains(resultBody, test.jsonMessageError)
+		})
+	}
+
+	// test for db users
+	truncateUsers()
+}
+
 // 	testCases := []struct {
 // 		name   string
 // 		expect string // auth or no-auth
