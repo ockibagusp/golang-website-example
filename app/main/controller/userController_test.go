@@ -144,7 +144,7 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 		flashError string
 	}{
 		/*
-			create username failure
+			create form username failure
 		*/
 		{
 			name: "user admin [admin] for POST form create to username too long failure: 2",
@@ -163,9 +163,60 @@ func TestCreateUsers_WithInputPOSTNotForFormFailure(t *testing.T) {
 			status:     http.StatusBadRequest,
 			flashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
 		},
-		// /*
-		// 	create it [admin]
-		// */
+		{
+			name: "user anonymous for POST form create to username too long failure: 2",
+			token: echo.Map{
+				"username": "anonymous",
+				"role":     "anonymous",
+			},
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "anonymous_failure",
+				Email:           "unit-test@exemple.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			status:     http.StatusBadRequest,
+			flashError: "<strong>error:</strong> username: the length must be between 4 and 15.!",
+		},
+		/*
+			create form email failure
+		*/
+		{
+			name: "user admin [admin] for POST form create to without email failure: 2",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "subali_failure",
+				Email:           "unit-test@.com",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			status:     http.StatusBadRequest,
+			flashError: "<strong>error:</strong> email: must be a valid email address.!",
+		},
+		{
+			name: "user anonymous for POST form create to email too long failure: 2",
+			token: echo.Map{
+				"username": "anonymous",
+				"role":     "anonymous",
+			},
+			form: types.UserForm{
+				Role:            "user",
+				Username:        "anony_failure",
+				Email:           "unit-test@exemplecom",
+				Name:            "Unit Test",
+				Password:        "unit-test",
+				ConfirmPassword: "unit-test",
+			},
+			status:     http.StatusBadRequest,
+			flashError: "<strong>error:</strong> email: must be a valid email address.!",
+		},
 		// {
 		// 	name:   "users [admin] to admin POST create it success: id=1",
 		// 	expect: ADMIN,
