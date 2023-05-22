@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/app/main/helpers"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
@@ -68,8 +69,10 @@ func (ctrl *Controller) Login(c echo.Context) error {
 
 		if err := middleware.SetCookie(c, user, ctrl.appConfig.AppJWTAuthSign); err != nil {
 			// If there is an error in creating the JWT return an internal server error
-			return c.JSON(http.StatusInternalServerError, echo.Map{
-				"message": err,
+			return c.JSON(http.StatusInternalServerError, helpers.ResponseError{
+				Code:    http.StatusInternalServerError,
+				Status:  "Internal Server Error",
+				Message: err,
 			})
 		}
 
