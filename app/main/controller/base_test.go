@@ -101,14 +101,10 @@ func setupTestController() *ctrl.Controller {
 Setup test sever
 
 repository: .env
-1. function conf.GetSessionTest()
-@SESSION_TEST: {true} or {false}
-
-2. function conf.GetDebug()
+function conf.GetDebug()
 @DEBUG: {true} or {false}
 */
 func setupTestServer(t *testing.T, debug ...bool) (noAuth *httpexpect.Expect) {
-	conf.GetSessionTest()
 	conf.GetDebug()
 
 	handler := setupTestHandler()

@@ -25,8 +25,6 @@ type (
 		DBMySQLName     string
 		// secure cookie
 		SessionsCookieStore string
-		// session test
-		SessionTest string
 		// debug
 		Debug string
 	}
@@ -64,8 +62,6 @@ func GetAPPConfig() *Config {
 		DBMySQLName:     os.Getenv("DB_MYSQL_NAME"),
 		// secure cookie
 		SessionsCookieStore: os.Getenv("SESSIONS_COOKIE_STORE"),
-		// session test
-		SessionTest: os.Getenv("SESSION_TEST"),
 		// debug
 		Debug: os.Getenv("DEBUG"),
 	}
@@ -94,16 +90,6 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 
 	log.Fatal("unsupported driver")
 	return nil
-}
-
-func (config *Config) GetSessionTest() {
-	if config.SessionTest == "true" || config.SessionTest == "1" {
-		os.Setenv("SESSION_TEST", "1")
-	} else if config.SessionTest == "" || config.SessionTest == "0" {
-		os.Setenv("SESSION_TEST", "0")
-	} else {
-		log.Fatal("unsupported session test")
-	}
 }
 
 func (config *Config) GetDebug() {
