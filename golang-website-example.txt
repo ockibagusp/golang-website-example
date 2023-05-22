@@ -3,14 +3,6 @@
 [-] load
 
 # Insyaallah, New tasks:
-[] website response
-categoryResponse := controller.CategoryService.FindById(request.Context(), id)
-webResponse := web.WebResponse{
-	Code:   200,
-	Status: "OK",
-	Data:   categoryResponse,
-}
-
 [] JSON Web Tokens
 echo-jwt
 https://github.com/labstack/echo-jwt
@@ -173,3 +165,11 @@ time="2023-01-14T15:14:14+07:00" level=info msg="START request method POST for c
 time="2023-01-14T15:14:15+07:00" level=info msg="models.User: [+]success" route=/users/add user_success="{{... example example@example.com $2a$10$1cbJNsJNOXk4hwYYVtlUT.B0MwNwp4sRmI2pS9frCuC.0IBLyRsSO Example 0  0}" username=}}
 
 https://medium.com/hackernoon/keep-passwords-and-secrets-out-of-your-logs-with-go-a2294a9546ce
+
+9. [v] website response
+categoryResponse := controller.CategoryService.FindById(request.Context(), id)
+webResponse := web.WebResponse{
+	Code:   200,
+	Status: "OK",
+	Data:   categoryResponse,
+}
