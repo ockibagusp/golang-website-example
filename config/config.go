@@ -6,8 +6,6 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
-
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -106,10 +104,6 @@ func (config *Config) GetSessionTest() {
 	} else {
 		log.Fatal("unsupported session test")
 	}
-}
-
-func (config *Config) SetSessionToFalse() bool {
-	return os.Getenv("SESSION_TEST") == "1" && method.SetSession == false
 }
 
 func (config *Config) GetDebug() {
