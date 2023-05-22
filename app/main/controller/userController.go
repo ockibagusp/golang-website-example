@@ -69,9 +69,9 @@ func (ctrl *Controller) Users(c echo.Context) error {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for user: [-]failure")
 			return c.JSON(http.StatusInternalServerError, helpers.Response{
-				Code:    http.StatusInternalServerError,
-				Status:  "Internal Server Error",
-				Message: err,
+				Code:   http.StatusInternalServerError,
+				Status: "Internal Server Error",
+				Data:   err,
 			})
 		}
 		log.Infof("END [user] request method GET for users to users/read/%v: [+]success", user.ID)
@@ -97,9 +97,9 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		log.Warn("END request method GET for users: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -152,9 +152,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for create user: [-]failure")
 			return c.JSON(http.StatusNotFound, helpers.Response{
-				Code:    http.StatusNotFound,
-				Status:  "Not Found",
-				Message: err.Error(),
+				Code:   http.StatusNotFound,
+				Status: "Not Found",
+				Data:   err.Error(),
 			})
 		}
 
@@ -175,9 +175,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 				log.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
 				return c.JSON(http.StatusBadRequest, helpers.Response{
-					Code:    http.StatusBadRequest,
-					Status:  "Bad Request",
-					Message: err.Error(),
+					Code:   http.StatusBadRequest,
+					Status: "Bad Request",
+					Data:   err.Error(),
 				})
 			}
 			// Location or District?
@@ -248,9 +248,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
 			log.Warn("END request method POST for create user: [-]failure")
 			return c.JSON(http.StatusBadRequest, helpers.Response{
-				Code:    http.StatusBadRequest,
-				Status:  "Bad Request",
-				Message: err.Error(),
+				Code:   http.StatusBadRequest,
+				Status: "Bad Request",
+				Data:   err.Error(),
 			})
 		}
 
@@ -292,9 +292,9 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 				log.Warn("END request method POST for create user: [-]failure")
 				// err: session not found
 				return c.JSON(http.StatusForbidden, helpers.Response{
-					Code:    http.StatusForbidden,
-					Status:  "Forbidden",
-					Message: err.Error(),
+					Code:   http.StatusForbidden,
+					Status: "Forbidden",
+					Data:   err.Error(),
 				})
 			}
 			log.Info("END request method POST for create user: [+]success")
@@ -353,9 +353,9 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Method Not Acceptable
 		return c.JSON(http.StatusNotAcceptable, helpers.Response{
-			Code:    http.StatusNotAcceptable,
-			Status:  "Not Acceptable",
-			Message: err.Error(),
+			Code:   http.StatusNotAcceptable,
+			Status: "Not Acceptable",
+			Data:   err.Error(),
 		})
 	}
 
@@ -365,9 +365,9 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Not Acceptable
 		return c.JSON(http.StatusNotAcceptable, helpers.Response{
-			Code:    http.StatusNotAcceptable,
-			Status:  "Not Acceptable",
-			Message: err.Error(),
+			Code:   http.StatusNotAcceptable,
+			Status: "Not Acceptable",
+			Data:   err.Error(),
 		})
 	}
 
@@ -422,9 +422,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -455,9 +455,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 				log.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
 				return c.JSON(http.StatusBadRequest, helpers.Response{
-					Code:    http.StatusBadRequest,
-					Status:  "Bad Request",
-					Message: err.Error(),
+					Code:   http.StatusBadRequest,
+					Status: "Bad Request",
+					Data:   err.Error(),
 				})
 			}
 			// Location or District?
@@ -524,9 +524,9 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 405 Method Not Allowed
 		return c.JSON(http.StatusNotAcceptable, helpers.Response{
-			Code:    http.StatusNotAcceptable,
-			Status:  "Not Acceptable",
-			Message: err.Error(),
+			Code:   http.StatusNotAcceptable,
+			Status: "Not Acceptable",
+			Data:   err.Error(),
 		})
 	}
 
@@ -581,9 +581,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -603,9 +603,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.JSON(http.StatusForbidden, helpers.Response{
-			Code:    http.StatusForbidden,
-			Status:  "Forbidden",
-			Message: err.Error(),
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 
@@ -665,9 +665,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			log.Warnf("for POST to update user by password without middleware.PasswordHash() errors: `%v`", err)
 			log.Warn("END request method POST for update user by password: [-]failure")
 			return c.JSON(http.StatusNotAcceptable, helpers.Response{
-				Code:    http.StatusNotAcceptable,
-				Status:  "Not Acceptable",
-				Message: err.Error(),
+				Code:   http.StatusNotAcceptable,
+				Status: "Not Acceptable",
+				Data:   err.Error(),
 			})
 		}
 
@@ -677,9 +677,9 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			log.Warn("END request method POST for update user by password: [-]failure")
 			// HTTP response status: 405 Method Not Allowed
 			return c.JSON(http.StatusNotAcceptable, helpers.Response{
-				Code:    http.StatusNotAcceptable,
-				Status:  "Not Acceptable",
-				Message: err.Error(),
+				Code:   http.StatusNotAcceptable,
+				Status: "Not Acceptable",
+				Data:   err.Error(),
 			})
 		}
 
@@ -762,9 +762,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		log.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -788,9 +788,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 			log.Warn("END request method GET for delete user: [-]failure")
 			// HTTP response status: 403 Forbidden
 			return c.JSON(http.StatusForbidden, helpers.Response{
-				Code:    http.StatusForbidden,
-				Status:  "Forbidden",
-				Message: err.Error(),
+				Code:   http.StatusForbidden,
+				Status: "Forbidden",
+				Data:   err.Error(),
 			})
 		}
 	}
@@ -800,9 +800,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		log.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.JSON(http.StatusForbidden, helpers.Response{
-			Code:    http.StatusForbidden,
-			Status:  "Forbidden",
-			Message: err.Error(),
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 

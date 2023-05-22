@@ -8,26 +8,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/app/main/helpers"
 )
-
-type (
-	Response struct {
-		Message string      `json:"message"`
-		Data    interface{} `json:"data"`
-	}
-)
-
-var responseForbidden = Response{
-	Message: http.StatusText(http.StatusForbidden),
-}
-
-var responseUnauthorized = Response{
-	Message: http.StatusText(http.StatusUnauthorized),
-}
-
-var responseBadRequest = Response{
-	Message: http.StatusText(http.StatusBadRequest),
-}
 
 func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -63,21 +45,21 @@ func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {
 				})
 				if err != nil {
 					if err == jwt.ErrSignatureInvalid {
-						return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+						return c.JSON(http.StatusUnauthorized, helpers.ResponseUnauthorized)
 					}
-					return c.JSON(http.StatusBadRequest, responseBadRequest)
+					return c.JSON(http.StatusBadRequest, helpers.ResponseBadRequest)
 				}
 				if !token.Valid {
-					return c.JSON(http.StatusUnauthorized, responseUnauthorized)
+					return c.JSON(http.StatusUnauthorized, helpers.ResponseUnauthorized)
 				}
 
 				claims, ok = token.Claims.(*auth.JwtClaims)
 				if !ok && !token.Valid {
-					return c.JSON(http.StatusForbidden, responseForbidden)
+					return c.JSON(http.StatusForbidden, helpers.ResponseForbidden)
 				}
 			} else {
 				// For any other type of error, return a bad request status
-				return c.JSON(http.StatusBadRequest, responseBadRequest)
+				return c.JSON(http.StatusBadRequest, helpers.ResponseBadRequest)
 			}
 
 			path := c.Request().URL.Path

@@ -70,9 +70,9 @@ func (ctrl *Controller) Login(c echo.Context) error {
 		if err := middleware.SetCookie(c, user, ctrl.appConfig.AppJWTAuthSign); err != nil {
 			// If there is an error in creating the JWT return an internal server error
 			return c.JSON(http.StatusInternalServerError, helpers.Response{
-				Code:    http.StatusInternalServerError,
-				Status:  "Internal Server Error",
-				Message: err,
+				Code:   http.StatusInternalServerError,
+				Status: "Internal Server Error",
+				Data:   err,
 			})
 		}
 

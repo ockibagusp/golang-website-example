@@ -74,9 +74,9 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 		log.Warn("END request method GET for admin delete permanently: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -147,9 +147,9 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warn("END request method GET for admin restore: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -158,9 +158,9 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warn("END request method GET for admin restore: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.JSON(http.StatusForbidden, helpers.Response{
-			Code:    http.StatusForbidden,
-			Status:  "Forbidden",
-			Message: err.Error(),
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 
@@ -215,9 +215,9 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 404 Not Found
 		return c.JSON(http.StatusNotFound, helpers.Response{
-			Code:    http.StatusNotFound,
-			Status:  "Not Found",
-			Message: err.Error(),
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -226,9 +226,9 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 403 Forbidden
 		return c.JSON(http.StatusForbidden, helpers.Response{
-			Code:    http.StatusForbidden,
-			Status:  "Forbidden",
-			Message: err.Error(),
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 

@@ -425,7 +425,7 @@ func TestUpdateUser_WithInputPOSTForFailure(t *testing.T) {
 			form: types.UserForm{
 				Location: 0,
 			},
-			jsonMessageError: `{"code":404,"status":"Not Found","message":"User Not Found"}`,
+			jsonMessageError: `{"code":404,"status":"Not Found","data":"User Not Found"}`,
 			status:           http.StatusNotFound,
 		},
 	}
@@ -669,7 +669,7 @@ func TestDelete_WithInputPOSTForFailure(t *testing.T) {
 				"role":     "admin",
 			},
 			path:             "1",
-			jsonMessageError: `{"code":403,"status":"Forbidden","message":null}`,
+			jsonMessageError: `{"code":403,"status":"Forbidden","data":null}`,
 			status:           http.StatusForbidden,
 		},
 		/*
@@ -682,7 +682,7 @@ func TestDelete_WithInputPOSTForFailure(t *testing.T) {
 				"role":     "user",
 			},
 			path:             "-1",
-			jsonMessageError: `{"code":404,"status":"Not Found","message":"User Not Found"}`,
+			jsonMessageError: `{"code":404,"status":"Not Found","data":"User Not Found"}`,
 			status:           http.StatusNotFound,
 		},
 		/*

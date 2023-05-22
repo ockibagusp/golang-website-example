@@ -3,8 +3,8 @@
 [-] load
 
 # Insyaallah, New tasks:
-[] JSON Web Tokens
-echo-jwt
+[v] JSON Web Tokens
+echo-jwt [v]
 https://github.com/labstack/echo-jwt
 
 Repo. golang-rest-api
