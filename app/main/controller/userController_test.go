@@ -56,7 +56,12 @@ func TestCreateUsers_WithInputPOSTForSuccess(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
 			noAuth.POST("/users/add").
 				WithCookie("token", token).
 				WithForm(types.UserForm{
@@ -318,13 +323,13 @@ func TestUpdateUser_WithInputPOSTForSuccess(t *testing.T) {
 	noAuth := setupTestServer(t)
 	testCases := []struct {
 		name             string
+		token            echo.Map
 		path             string // id=string. Exemple, id="1"
 		form             types.UserForm
 		htmlFlashSuccess string
-		token            echo.Map
 	}{
 		{
-			name: "user admin [admin] for POST update to success",
+			name: "user admin [admin] for POST update to success: uid=1",
 			token: echo.Map{
 				"username": "admin",
 				"role":     "admin",
@@ -337,7 +342,7 @@ func TestUpdateUser_WithInputPOSTForSuccess(t *testing.T) {
 			htmlFlashSuccess: `<strong>success:</strong> success update user: admin-success!`,
 		},
 		{
-			name: "user subali [user] for POST update to success",
+			name: "user subali [user] for POST update to success: uid=3",
 			token: echo.Map{
 				"username": "subali",
 				"role":     "user",
@@ -353,7 +358,12 @@ func TestUpdateUser_WithInputPOSTForSuccess(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
 			result := noAuth.POST("/users/view/{id}").
 				WithPath("id", test.path).
 				WithCookie("token", token).
@@ -391,7 +401,7 @@ func TestUpdateUser_WithInputPOSTForFailure(t *testing.T) {
 		status           int
 	}{
 		{
-			name: "user admin [admin] for POST update to role error failure id=1",
+			name: "user admin [admin] for POST update to role error failure: uid=1",
 			token: echo.Map{
 				"username": "admin",
 				"role":     "admin",
@@ -406,7 +416,7 @@ func TestUpdateUser_WithInputPOSTForFailure(t *testing.T) {
 			status:           http.StatusInternalServerError,
 		},
 		{
-			name: "user subali [user] for POST update it failure: id=-1",
+			name: "user subali [user] for POST update it failure: uid=-1",
 			token: echo.Map{
 				"username": "subali",
 				"role":     "user",
@@ -452,13 +462,13 @@ func TestUpdateUserByPassword_WithInputPOSTForSuccess(t *testing.T) {
 	noAuth := setupTestServer(t)
 	testCases := []struct {
 		name             string
+		token            echo.Map
 		path             string // id=string. Exemple, id="1"
 		form             types.NewPasswordForm
 		htmlFlashSuccess string
-		token            echo.Map
 	}{
 		{
-			name: "user admin [admin] for POST update by password to success",
+			name: "user admin [admin] for POST update by password to success: uid=1",
 			token: echo.Map{
 				"username": "admin",
 				"role":     "admin",
@@ -472,7 +482,7 @@ func TestUpdateUserByPassword_WithInputPOSTForSuccess(t *testing.T) {
 			htmlFlashSuccess: "<strong>success:</strong> success update user by password: admin!",
 		},
 		{
-			name: "user subali [user] for POST update by password to success",
+			name: "user subali [user] for POST update by password to success: uid=3",
 			token: echo.Map{
 				"username": "subali",
 				"role":     "user",
@@ -489,7 +499,12 @@ func TestUpdateUserByPassword_WithInputPOSTForSuccess(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
 			result := noAuth.POST("/users/view/{id}/password").
 				WithPath("id", test.path).
 				WithCookie("token", token).
@@ -514,12 +529,12 @@ func TestUpdateUserByPassword_WithInputPOSTForFailure(t *testing.T) {
 	noAuth := setupTestServer(t)
 	testCases := []struct {
 		name  string
+		token echo.Map
 		path  string
 		form  types.NewPasswordForm
-		token echo.Map
 	}{
 		{
-			name: "user admin [admin] for POST update by password to old password error failure id=1",
+			name: "user admin [admin] for POST update by password to old password error failure: uid=1",
 			token: echo.Map{
 				"username": "admin",
 				"role":     "admin",
@@ -532,7 +547,7 @@ func TestUpdateUserByPassword_WithInputPOSTForFailure(t *testing.T) {
 			},
 		},
 		{
-			name: "user sugriwa [user] for POST update by password to old password error failure id=2",
+			name: "user sugriwa [user] for POST update by password to old password error failure: uid=2",
 			token: echo.Map{
 				"username": "sugriwa",
 				"role":     "user",
@@ -548,7 +563,12 @@ func TestUpdateUserByPassword_WithInputPOSTForFailure(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			token, _ := auth.GenerateToken(conf.AppJWTAuthSign, 1, "admin", "admin")
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
 			noAuth.POST("/users/view/{id}/password").
 				WithPath("id", test.path).
 				WithCookie("token", token).
@@ -560,6 +580,143 @@ func TestUpdateUserByPassword_WithInputPOSTForFailure(t *testing.T) {
 				Expect().
 				// HTTP response status: 403 Forbidden
 				Status(http.StatusForbidden)
+		})
+	}
+
+	// test for db users
+	truncateUsers()
+}
+
+func TestDelete_WithInputPOSTForSuccess(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	noAuth := setupTestServer(t)
+	testCases := []struct {
+		name             string
+		token            echo.Map
+		path             string // id=string. Exemple, id="1"
+		htmlFlashSuccess string
+	}{
+		/*
+			delete admin [admin] to success
+		*/
+		{
+			name: "user admin [admin] for GET delete sugriwa [user] to success: uid=2",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			path:             "2",
+			htmlFlashSuccess: "<strong>success:</strong> success delete user: sugriwa!",
+		},
+		/*
+			delete subali [user] to success
+		*/
+		{
+			name: "user subali [user] for GET delete to success: uid=3",
+			token: echo.Map{
+				"username": "subali",
+				"role":     "user",
+			},
+			path:             "3",
+			htmlFlashSuccess: "<strong>success:</strong> success delete user: subali!",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
+			result := noAuth.GET("/users/delete/{id}", test.path).
+				WithCookie("token", token).
+				Expect().
+				// HTTP response status: 200 OK
+				Status(http.StatusOK)
+
+			assert.Contains(result.Body().Raw(), test.htmlFlashSuccess)
+		})
+	}
+
+	// test for db users
+	truncateUsers()
+}
+
+func TestDelete_WithInputPOSTForFailure(t *testing.T) {
+	// assert
+	assert := assert.New(t)
+
+	noAuth := setupTestServer(t)
+	testCases := []struct {
+		name             string
+		token            echo.Map
+		path             string // id=string. Exemple, id="1"
+		jsonMessageError string
+		htmlFlashError   string
+		status           int
+	}{
+		/*
+			delete admin [admin] to admin [admin] failure: uid=1
+		*/
+		{
+			name: "user admin [admin] for GET delete admin [admin] to failure: uid=1",
+			token: echo.Map{
+				"username": "admin",
+				"role":     "admin",
+			},
+			path:             "1",
+			jsonMessageError: `{"message":"Forbidden"}`,
+			status:           http.StatusForbidden,
+		},
+		/*
+			delete subali [user] to failure: uid=2
+		*/
+		{
+			name: "user subali [user] for GET delete failure: uid=-1",
+			token: echo.Map{
+				"username": "subali",
+				"role":     "user",
+			},
+			path:             "-1",
+			jsonMessageError: `{"message":"User Not Found"}`,
+			status:           http.StatusNotFound,
+		},
+		/*
+			delete anonymous to failure: uid=2
+		*/
+		{
+			name: "user anonymous for GET delete failure: uid=2",
+			token: echo.Map{
+				"username": "anonymous",
+				"role":     "anonymous",
+			},
+			path:           "2",
+			htmlFlashError: "*login process failed!",
+			status:         http.StatusOK,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			token, _ := auth.GenerateToken(
+				conf.AppJWTAuthSign,
+				0,
+				test.token["username"].(string),
+				test.token["role"].(string),
+			)
+			result := noAuth.GET("/users/delete/{id}", test.path).
+				WithCookie("token", token).
+				Expect().
+				// HTTP response status: 200 OK
+				Status(test.status)
+
+			resultBody := result.Body().Raw()
+			assert.Contains(resultBody, test.htmlFlashError)
+			assert.Contains(resultBody, test.jsonMessageError)
 		})
 	}
 
