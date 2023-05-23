@@ -3,38 +3,6 @@
 [-] load
 
 # Insyaallah, New tasks:
-[v] JSON Web Tokens
-echo-jwt [v]
-https://github.com/labstack/echo-jwt
-
-Repo. golang-rest-api
-https://github.com/brianfromlife/golang-rest-api
-
-Testing users_test.go
-https://github.com/brianfromlife/golang-rest-api/blob/main/internal/api/users_test.go
-
-Repo. golang-jwt-authentication-api-sample
-https://github.com/brainattica/golang-jwt-authentication-api-sample
-
-Routers
-https://github.com/brainattica/golang-jwt-authentication-api-sample/tree/master/routers
-
-Models
-https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/models/requests.go
-
-Interface: type IUserProvider interface {...}
- 
-Context: type ...Provider struct {
-	...Collection *...Collection
-	ctx            context.Context
-}
-
-Secure Cookie (archived)
-https://github.com/gorilla/securecookie
-// Hash keys should be at least 32 bytes long
-var hashKey = []byte("very-secret")
-var s = securecookie.New(hashKey, nil)
-
 [] new mock
 Mock golang-rest-api
 https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/mocks/data/users/mocks.go
@@ -173,3 +141,35 @@ webResponse := web.WebResponse{
 	Status: "OK",
 	Data:   categoryResponse,
 }
+
+10. [v] JSON Web Tokens
+echo-jwt [v]
+https://github.com/labstack/echo-jwt
+
+Repo. golang-rest-api
+https://github.com/brianfromlife/golang-rest-api
+
+Testing users_test.go
+https://github.com/brianfromlife/golang-rest-api/blob/main/internal/api/users_test.go
+
+Repo. golang-jwt-authentication-api-sample
+https://github.com/brainattica/golang-jwt-authentication-api-sample
+
+Routers
+https://github.com/brainattica/golang-jwt-authentication-api-sample/tree/master/routers
+
+Models
+https://github.com/brianfromlife/golang-rest-api/blob/main/pkg/models/requests.go
+
+Interface: type IUserProvider interface {...}
+ 
+Context: type ...Provider struct {
+	...Collection *...Collection
+	ctx            context.Context
+}
+
+Secure Cookie (archived)
+https://github.com/gorilla/securecookie
+// Hash keys should be at least 32 bytes long
+var hashKey = []byte("very-secret")
+var s = securecookie.New(hashKey, nil)
