@@ -34,10 +34,10 @@ func (ctrl *Controller) About(c echo.Context) error {
 
 	log.Info("END request method GET for about: [+]success")
 	return c.Render(http.StatusOK, "about.html", echo.Map{
-		"name":             "About",
-		"nav":              "about", // (?)
-		"session_username": username,
-		"session_role":     role,
-		"message":          "All about Ocki Bagus Pratama!",
+		"name":            "About",
+		"nav":             "about", // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"message":         "All about Ocki Bagus Pratama!",
 	})
 }

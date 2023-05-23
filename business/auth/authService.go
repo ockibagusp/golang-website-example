@@ -1,12 +1,23 @@
 package auth
 
 import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ockibagusp/golang-website-example/business"
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type (
+	JwtClaims struct {
+		UserID   uint   `form:"user_id" json:"user_id"`
+		Username string `form:"username" json:"username"`
+		Role     string `form:"role" json:"role"`
+
+		jwt.RegisteredClaims
+	}
+
 	service struct {
 		userService user.Service
 	}
@@ -25,24 +36,13 @@ func NewService(userService user.Service) Service {
 }
 
 // VerifyLogin: get-user and valid-password
-func (s *service) VerifyLogin(ic business.InternalContext, email string, plainPassword string) (getUser *user.User, validPassword bool) {
-	getUser, err := s.userService.FindByEmail(ic, email)
+func (s *service) VerifyLogin(ic business.InternalContext, username string, plainPassword string) (getUser *user.User, validPassword bool) {
+	getUser, err := s.userService.FirstUserByUsername(ic, username)
 	if err != nil {
 		return
 	}
 
-	// // or,
-	// passwordHash, err := s.PasswordHash(plainPassword)
-	passwordHash, err := func(plainPassword string) (string, error) {
-		// GenerateFromPassword(..., bcrypt.DefaultCost{=10})
-		hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-		return string(hash), err
-	}(plainPassword)
-	if err != nil {
-		return
-	}
-
-	if passwordHash != getUser.Password {
+	if !s.CheckHashPassword(getUser.Password, plainPassword) {
 		return
 	}
 
@@ -86,4 +86,29 @@ func (s *service) PasswordHash(password string) (string, error) {
 func (s *service) CheckHashPassword(hash, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func newJWTClaims(userID uint, username string, role string, issuedAt time.Time, expiredAt time.Time) JwtClaims {
+	return JwtClaims{
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiredAt),
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			NotBefore: jwt.NewNumericDate(issuedAt),
+		},
+	}
+}
+
+func GenerateToken(jwtAuhtSign string, userID uint, userName string, userRole string) (signedToken string, err error) {
+	timeNow := time.Now()
+	claims := newJWTClaims(userID, userName, userRole, timeNow, timeNow.Add(time.Hour*1))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err = token.SignedString([]byte(jwtAuhtSign))
+	if err != nil {
+		return
+	}
+
+	return signedToken, nil
 }

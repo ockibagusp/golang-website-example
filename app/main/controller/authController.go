@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/app/main/helpers"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
@@ -11,28 +12,28 @@ import (
 	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
-var slogger = log.NewPackage("session_controller")
+var aulogger = log.NewPackage("auth_controller")
 
 func init() {
-	// Templates: session controller
+	// Templates: auth controller
 	templates := selectTemplate.AppendTemplates
 	templates["login.html"] = selectTemplate.ParseFileHTMLOnly("views/login.html")
 }
 
 /*
- * Session: Login
+ * Auth: Login
  *
  * @target: All
- * @method: GET
+ * @method: GET and POST
  * @route: /login
  */
 func (ctrl *Controller) Login(c echo.Context) error {
-	log := slogger.Start(c)
+	log := aulogger.Start(c)
 	defer log.End()
 
-	trackerID := slogger.SetTrackerID()
+	trackerID := aulogger.SetTrackerID()
 	ic := business.NewInternalContext(trackerID)
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		log.Info("START request method POST for login")
 		passwordForm := &types.LoginForm{
 			Username: c.FormValue("username"),
@@ -52,11 +53,10 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			})
 		}
 
-		user, err := ctrl.userService.FirstUserByUsername(
-			ic, passwordForm.Username,
-		)
-		if err != nil {
-			middleware.SetFlashError(c, err.Error())
+		user, validPassword := ctrl.authService.VerifyLogin(ic, passwordForm.Username, passwordForm.Password)
+		if !validPassword {
+			// or, middleware.SetFlashError(c, "username or password not match")
+			middleware.SetFlash(c, "error", "username or password not match")
 
 			log.Warn("for database `username` or `password` not nil for login")
 			log.Warn("END request method POST for login: [-]failure")
@@ -67,30 +67,12 @@ func (ctrl *Controller) Login(c echo.Context) error {
 			})
 		}
 
-		// check hash password:
-		// match = true
-		// match = false
-		if !ctrl.authService.CheckHashPassword(user.Password, passwordForm.Password) {
-			// or, middleware.SetFlashError(c, "username or password not match")
-			middleware.SetFlash(c, "error", "username or password not match")
-
-			log.Warn("to check wrong hashed password for login")
-			log.Warn("END request method POST for login: [-]failure")
-			return c.Render(http.StatusForbidden, "login.html", echo.Map{
-				"csrf":         c.Get("csrf"),
-				"flash_error":  middleware.GetFlash(c, "error"),
-				"is_html_only": true,
-			})
-		}
-
-		if _, err := middleware.SetSession(user, c); err != nil {
-			middleware.SetFlashError(c, err.Error())
-
-			log.Warn("to middleware.SetSession session not found for login")
-			log.Warn("END request method POST for login: [-]failure")
-			// err: session not found
-			return c.JSON(http.StatusForbidden, echo.Map{
-				"message": err.Error(),
+		if err := middleware.SetCookie(c, user, ctrl.appConfig.AppJWTAuthSign); err != nil {
+			// If there is an error in creating the JWT return an internal server error
+			return c.JSON(http.StatusInternalServerError, helpers.Response{
+				Code:   http.StatusInternalServerError,
+				Status: "Internal Server Error",
+				Data:   err,
 			})
 		}
 
@@ -106,25 +88,19 @@ func (ctrl *Controller) Login(c echo.Context) error {
 }
 
 /*
- * Session: Logout
+ * auth: Logout
  *
  * @target: Users
  * @method: GET
  * @route: /logout
  */
 func (ctrl *Controller) Logout(c echo.Context) error {
-	log := slogger.Start(c)
+	log := aulogger.Start(c)
 	defer log.End()
 
 	log.Info("START request method GET for logout")
 
-	if err := middleware.ClearSession(c); err != nil {
-		log.Warn("to middleware.ClearSession session not found")
-		// err: session not found
-		return c.JSON(http.StatusBadRequest, echo.Map{
-			"message": err.Error(),
-		})
-	}
+	middleware.ClearCookie(c)
 
 	log.Info("END request method GET for logout")
 	return c.Redirect(http.StatusSeeOther, "/")

@@ -6,8 +6,6 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/ockibagusp/golang-website-example/app/main/controller/mock/method"
-
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,7 +15,8 @@ import (
 type (
 	Config struct {
 		// app
-		AppDBDriver string
+		AppDBDriver    string
+		AppJWTAuthSign string
 		// mysql
 		DBMySQLHost     string
 		DBMySQLPort     string
@@ -26,8 +25,6 @@ type (
 		DBMySQLName     string
 		// secure cookie
 		SessionsCookieStore string
-		// session test
-		SessionTest string
 		// debug
 		Debug string
 	}
@@ -55,7 +52,8 @@ func GetAPPConfig() *Config {
 
 	return &Config{
 		// app
-		AppDBDriver: os.Getenv("APP_DB_DRIVER"),
+		AppDBDriver:    os.Getenv("APP_DB_DRIVER"),
+		AppJWTAuthSign: os.Getenv("APP_JWT_AUTH_SIGN"),
 		// mysql
 		DBMySQLHost:     os.Getenv("DB_MYSQL_HOST"),
 		DBMySQLPort:     os.Getenv("DB_MYSQL_PORT"),
@@ -64,8 +62,6 @@ func GetAPPConfig() *Config {
 		DBMySQLName:     os.Getenv("DB_MYSQL_NAME"),
 		// secure cookie
 		SessionsCookieStore: os.Getenv("SESSIONS_COOKIE_STORE"),
-		// session test
-		SessionTest: os.Getenv("SESSION_TEST"),
 		// debug
 		Debug: os.Getenv("DEBUG"),
 	}
@@ -94,20 +90,6 @@ func (config *Config) GetDatabaseConnection() *gorm.DB {
 
 	log.Fatal("unsupported driver")
 	return nil
-}
-
-func (config *Config) GetSessionTest() {
-	if config.SessionTest == "true" || config.SessionTest == "1" {
-		os.Setenv("SESSION_TEST", "1")
-	} else if config.SessionTest == "" || config.SessionTest == "0" {
-		os.Setenv("SESSION_TEST", "0")
-	} else {
-		log.Fatal("unsupported session test")
-	}
-}
-
-func (config *Config) SetSessionToFalse() bool {
-	return os.Getenv("SESSION_TEST") == "1" && method.SetSession == false
 }
 
 func (config *Config) GetDebug() {

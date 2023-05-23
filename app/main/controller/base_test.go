@@ -13,29 +13,8 @@ import (
 	"github.com/ockibagusp/golang-website-example/business/user"
 	"github.com/ockibagusp/golang-website-example/config"
 	userModule "github.com/ockibagusp/golang-website-example/modules/user"
-	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
-
-const (
-	ADMIN      string = "admin"
-	SUGRIWA           = "sugriwa"
-	SUBALI            = "subali"
-	OCKIBAGUSP        = "ockibagusp"
-	ANONYMOUS         = "anonymous"
-)
-
-// test flash message: struct
-type flash struct {
-	successMessage string
-	errorMessage   string
-}
-
-// test regex: struct
-type regex struct {
-	mustCompile string
-	actual      string
-}
 
 var conf *config.Config = config.GetAPPConfig()
 var db *gorm.DB = conf.GetDatabaseConnection()
@@ -53,6 +32,7 @@ func truncateUsers() {
 			Password: "$2a$10$XJAj65HZ2c.n1iium4qUEeGarW0PJsqVcedBh.PDGMXdjqfOdN1hW",
 			Name:     "Admin",
 			Role:     "admin",
+			Photo:    "members/admin3981.png",
 		},
 		{
 			Model:    business.Model{ID: 2},
@@ -61,6 +41,7 @@ func truncateUsers() {
 			Password: "$2a$10$bVVMuFHe/iaydX9yO2AttOPT8WyhMPe9F8nDflEqEyJbGRD5.guFu",
 			Name:     "Sugriwa",
 			Role:     "user",
+			Photo:    "members/sugriwa2492.png",
 		},
 		{
 			Model:    business.Model{ID: 3},
@@ -69,6 +50,7 @@ func truncateUsers() {
 			Password: "$2a$10$eO8wPLSfBU.8KLUh/T9kDeBm0vIRjiCvsmWe8ou5fZHJ3cYAUcg6y",
 			Name:     "Subali",
 			Role:     "user",
+			Photo:    "members/subali453.png",
 		},
 		{
 			Model:    business.Model{ID: 4},
@@ -77,6 +59,7 @@ func truncateUsers() {
 			Password: "$2a$10$Y3UewQkjw808Ig90OPjuq.zFYIUGgFkWBuYiKzwLK8n3t9S8RYuYa",
 			Name:     "Ocki Bagus Pratama",
 			Role:     "user",
+			Photo:    "members/ockibagusp981495792267526.jpg",
 		},
 	}
 
@@ -86,16 +69,6 @@ func truncateUsers() {
 			panic("Username not already: " + err.Error())
 		}
 	}
-}
-
-func TestController(t *testing.T) {
-	/*
-		assert := assert.New(t)
-		assert.NotNil(setupTestController())
-
-		or,
-	*/
-	assert.NotNil(t, setupTestController())
 }
 
 // setup test Handler
@@ -128,14 +101,10 @@ func setupTestController() *ctrl.Controller {
 Setup test sever
 
 repository: .env
-1. function conf.GetSessionTest()
-@SESSION_TEST: {true} or {false}
-
-2. function conf.GetDebug()
+function conf.GetDebug()
 @DEBUG: {true} or {false}
 */
 func setupTestServer(t *testing.T, debug ...bool) (noAuth *httpexpect.Expect) {
-	conf.GetSessionTest()
 	conf.GetDebug()
 
 	handler := setupTestHandler()

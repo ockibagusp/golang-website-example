@@ -1,32 +1,57 @@
+# all
+all := ./...
+# test controller
+ctrl := ./app/main/controller
+# cover
+cover := coverage.out
+# main
+main := app/main/main.go
+
 dep:
 	go mod tidy
 
-test:
-	go test ./...
+fmt: 
+	go fmt $(all)
 
-test-ctrl:
-	go test ./app/main/controller
+fmt-ctrl:
+	go fmt $(ctrl)
 
-test-verbose:
-	go test -v ./...
+coverp:
+	go test -coverprofile=$(cover) $(ctrl)
+
+test: fmt
+	go test $(all)
+
+test-ctrl: fmt-ctrl
+	go test $(ctrl)
+
+test-v:
+	go test -v $(all)
 	
-test-verbose-ctrl:
-	go test -v ./app/main/controller
+test-v-ctrl:
+	go test -v $(ctrl)
 
 cover:
 	go tool cover
 
-cover-show:
-	go tool cover -html=coverage.out
+cover-show: coverp
+	go tool cover -func=$(cover)
+	go tool cover -html=$(cover)
+	sleep 3
+	rm $(cover)
 
-cover-func:
-	go tool cover -func=coverage.out
+cover-func: coverp
+	go tool cover -func=$(cover)
+	sleep 3
+	rm $(cover)
 
-cover-html:
-	go tool cover -html=coverage.out -o cover.html
+cover-html: coverp
+	go tool cover -html=$(cover) -o cover.html
+	sleep 3
+	rm -r $(cover) cover.html
 
 run:
-	go run app/main/main.go
+	go run $(main)
 
 build:
-	go build app/main/main.go
+	go build $(main)

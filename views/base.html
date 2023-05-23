@@ -31,11 +31,11 @@
               class="sr-only">(current)</span>{{end}}</a>
         </li>
       </ul>
-      {{if eq .session_role "admin"}}
+      {{if eq .claims_role "admin"}}
       <a class="btn">ADMIN</a>
       {{end}}
 
-      {{if ne .session_role "anonymous"}}
+      {{if ne .claims_role "anonymous"}}
       <a href="/users" class="btn btn-outline-secondary my-2 my-sm-0">Users</a>
       <a href="/logout" class="btn btn-danger my-2 my-sm-0">Logout</a>
       {{else}}

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/app/main/helpers"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/business"
@@ -38,8 +39,9 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 		log.Warn("for GET to admin delete permanently by id without no-session or user no admin [@route: /admin/delete/permanently/:id]")
 		log.Warn("END request method GET for admin delete permanently: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": "Not Found",
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
 		})
 	}
 
@@ -71,18 +73,20 @@ func (ctrl *Controller) DeletePermanently(c echo.Context) error {
 		log.Warnf("for GET to admin delete permanently without ctrl.userService.FindDeleteAll() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
 	username, _ := c.Get("username").(string)
 	log.Info("END request method GET to admin delete permanently: [+]success")
 	return c.Render(http.StatusOK, "admin/admin-delete-permanently.html", echo.Map{
-		"name":             fmt.Sprintf("Users: %v", typing),
-		"nav":              "users", // (?)
-		"session_username": username,
-		"session_role":     role,
+		"name":            fmt.Sprintf("Users: %v", typing),
+		"nav":             "users", // (?)
+		"claims_username": username,
+		"claims_role":     role,
 		/*
 			"flash": echo.Map{"success": ..., "error": ...}
 			or,
@@ -115,8 +119,9 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warn("for GET to admin restore user without no-session or user no admin [@route: /admin/delete/permanently/:id]")
 		log.Warn("END request method GET for admin restore user: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": "Not Found",
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
 		})
 	}
 
@@ -127,8 +132,9 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 	if uid == 1 {
 		log.Warn("END request method GET for admin restore [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "Forbidden",
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
 		})
 	}
 
@@ -140,8 +146,10 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warnf("for GET to admin restore without ctrl.userService.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for admin restore: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -149,8 +157,10 @@ func (ctrl *Controller) RestoreUser(c echo.Context) error {
 		log.Warnf("for GET to admin restore without ctrl.userService.Restore() errors: `%v`", err)
 		log.Warn("END request method GET for admin restore: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 
@@ -178,8 +188,9 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 		log.Warn("for GET to admin delete permanently by id without no-session or user no admin [@route: /admin/delete/permanently/:id]")
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": "Not Found",
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
 		})
 	}
 
@@ -190,8 +201,9 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 	if uid == 1 {
 		log.Warn("END request method GET for admin delete permanently by id [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "Forbidden",
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
 		})
 	}
 
@@ -202,8 +214,10 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 		log.Warnf("for GET to admin delete permanently by id without ctrl.userService.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -211,8 +225,10 @@ func (ctrl *Controller) DeletePermanentlyByID(c echo.Context) error {
 		log.Warnf("for GET to admin delete permanently by id without ctrl.userService.Delete() errors: `%v`", err)
 		log.Warn("END request method GET for admin delete permanently by id: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 

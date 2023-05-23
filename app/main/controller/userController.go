@@ -2,14 +2,13 @@ package controller
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/google/uuid"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/labstack/echo/v4"
+	"github.com/ockibagusp/golang-website-example/app/main/helpers"
 	"github.com/ockibagusp/golang-website-example/app/main/middleware"
 	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
 	"github.com/ockibagusp/golang-website-example/app/main/types"
@@ -69,7 +68,11 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for user: [-]failure")
-			return err
+			return c.JSON(http.StatusInternalServerError, helpers.Response{
+				Code:   http.StatusInternalServerError,
+				Status: "Internal Server Error",
+				Data:   err,
+			})
 		}
 		log.Infof("END [user] request method GET for users to users/read/%v: [+]success", user.ID)
 		return c.Redirect(http.StatusFound, fmt.Sprintf("/users/read/%v", user.ID))
@@ -93,17 +96,19 @@ func (ctrl *Controller) Users(c echo.Context) error {
 		log.Warnf("for GET to users without ctrl.userService.FindAll errors: `%v`", err)
 		log.Warn("END request method GET for users: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
 	log.Info("END request method GET for users: [+]success")
 	return c.Render(http.StatusOK, "users/user-all.html", echo.Map{
-		"name":             fmt.Sprintf("Users: %v", typing),
-		"nav":              "users", // (?)
-		"session_username": username,
-		"session_role":     role,
+		"name":            fmt.Sprintf("Users: %v", typing),
+		"nav":             "users", // (?)
+		"claims_username": username,
+		"claims_role":     role,
 		/*
 			"flash": echo.Map{"success": ..., "error": ...}
 			or,
@@ -146,7 +151,11 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 		if err != nil {
 			log.Warnf(`for GET for create user without select "id" where "username" errors: "%v"`, err)
 			log.Warn("END request method GET for create user: [-]failure")
-			return err
+			return c.JSON(http.StatusNotFound, helpers.Response{
+				Code:   http.StatusNotFound,
+				Status: "Not Found",
+				Data:   err.Error(),
+			})
 		}
 
 		middleware.SetFlashError(c, "403 Forbidden")
@@ -155,200 +164,158 @@ func (ctrl *Controller) CreateUser(c echo.Context) error {
 	}
 
 	locations, _ := locationModules.NewDB().FindAll(ic)
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		log.Info("START request method POST for create user")
 
-		// var location uint
-		// if c.FormValue("location") != "" {
-		// 	location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
-		// 	if err != nil {
-		// 		log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
-		// 		log.Warn("END request method POST for create user: [-]failure")
-		// 		// HTTP response status: 400 Bad Request
-		// 		return c.JSON(http.StatusBadRequest, echo.Map{
-		// 			"message": err.Error(),
-		// 		})
-		// 	}
-		// 	// Location or District?
-		// 	// location = uint(location64)
-		// }
-
-		// var (
-		// 	validPhoto         bool = true
-		// 	errs               []error
-		// 	fileType, fileName string
-		// 	fileByte           []byte
-		// 	userForm           types.UserForm
-		// )
-
-		// request on c: parse input, type multipart/form-data
-		c.Request().ParseMultipartForm(1024)
-
-		var (
-			// validPhoto bool = false
-			// fileType, fileName string
-			// fileByte           []byte
-			err error
-		)
-
-		// source
-		file, err := c.FormFile("photo")
-		if err != nil {
-			return err
+		var location uint
+		if c.FormValue("location") != "" {
+			location64, err := strconv.ParseUint(c.FormValue("location"), 10, 32)
+			if err != nil {
+				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
+				log.Warn("END request method POST for create user: [-]failure")
+				// HTTP response status: 400 Bad Request
+				return c.JSON(http.StatusBadRequest, helpers.Response{
+					Code:   http.StatusBadRequest,
+					Status: "Bad Request",
+					Data:   err.Error(),
+				})
+			}
+			// Location or District?
+			location = uint(location64)
 		}
-		src, err := file.Open()
-		if err != nil {
-			return err
-		}
-		defer src.Close()
-		// > upload
-
-		// fileByte, _ = ioutil.ReadAll(src)
-		// fileType = http.DetectContentType(fileByte)
-
-		// fileName = fmt.Sprint("members/", uuid.New().Time())
-		// if fileType == "image/jpeg" {
-		// 	fileName += ".jpeg"
-		// } else if fileType == "image/png" {
-		// 	fileName += ".png"
-		// } else {
-		// 	return errors.New("no image jpeg, jpg and png")
-		// }
-
-		file.Filename = fmt.Sprint("members/", uuid.New().Time(), ".jpeg")
-
-		// Destination
-		dst, err := os.Create(file.Filename)
-		if err != nil {
-			return err
-		}
-		defer dst.Close()
-
-		// Copy
-		if _, err = io.Copy(dst, src); err != nil {
-			return err
-		}
-
-		return c.JSON(http.StatusOK, "ok")
 
 		// userForm: type of a user
-		// userForm = types.UserForm{
-		// 	Role:            c.FormValue("role"),
-		// 	Username:        c.FormValue("username"),
-		// 	Email:           c.FormValue("email"),
-		// 	Password:        c.FormValue("password"),
-		// 	ConfirmPassword: c.FormValue("confirm_password"),
-		// 	Name:            c.FormValue("name"),
-		// 	Location:        location,
+		var userForm types.UserForm
+		userForm = types.UserForm{
+			Role:            c.FormValue("role"),
+			Username:        c.FormValue("username"),
+			Email:           c.FormValue("email"),
+			Password:        c.FormValue("password"),
+			ConfirmPassword: c.FormValue("confirm_password"),
+			Name:            c.FormValue("name"),
+			Location:        location,
+		}
+
+		// file, errJSON := selectHelpers.UploadPhoto(c, updateUser.Username, true)
+		// if errJSON != nil {
+		// 	return errJSON
 		// }
 
-		return c.JSON(http.StatusOK, "errs")
-
-		// // userForm: Validate of a validate user
-		// err = validation.Errors{
-		// 	// "username": validation.Validate(
-		// 	// 	userForm.Username, validation.Required, validation.Length(4, 15),
-		// 	// ),
-		// 	// "email": validation.Validate(userForm.Email, validation.Required, validation.Length(5, 30), is.EmailFormat),
-		// 	// "password": validation.Validate(
-		// 	// 	userForm.Password, validation.Required, validation.Length(6, 18),
-		// 	// 	validation.By(types.PasswordEquals(userForm.ConfirmPassword)),
-		// 	// ),
-		// 	// "name":     validation.Validate(userForm.Name, validation.Required, validation.Length(3, 30)),
-		// 	// "location": validation.Validate(userForm.Location),
-		// 	"photo": validation.Validate(userForm.Photo),
-		// }.Filter()
-		// /* if err = validation.Errors{...}.Filter(); err != nil {
-		// 	...
-		// } why?
-		// */
-		// if err != nil {
-		// 	log.Warnf("for POST to create user without validation.Errors: `%v`", err)
-		// 	middleware.SetFlashError(c, err.Error())
-
-		// 	log.Warn("END request method POST for create user: [-]failure")
-		// 	// HTTP response status: 400 Bad Request
-		// 	return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-		// 		"name":             "User Add",
-		// 		"nav":              "user Add", // (?)
-		// 		"session_username": username,
-		// 		"session_role":     role,
-		// 		"flash_error 	":    middleware.GetFlashError(c),
-		// 		"csrf":             c.Get("csrf"),
-		// 		"locations":        locations,
-		// 		"is_new":           true,
-		// 	})
+		// if file != nil {
+		// 	updateUser.Photo = file.Filename
 		// }
 
-		// // Password Hash
-		// var hash string
-		// hash, err = ctrl.authService.PasswordHash(userForm.Password)
-		// if err != nil {
-		// 	log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
-		// 	log.Warn("END request method POST for create user: [-]failure")
-		// 	return err
-		// }
+		// userForm: Validate of a validate user
+		err = validation.Errors{
+			"username": validation.Validate(
+				userForm.Username, validation.Required, validation.Length(4, 15),
+			),
+			"email": validation.Validate(userForm.Email, validation.Required, validation.Length(5, 30), is.EmailFormat),
+			"password": validation.Validate(
+				userForm.Password, validation.Required, validation.Length(6, 18),
+				validation.By(types.PasswordEquals(userForm.ConfirmPassword)),
+			),
+			"name":     validation.Validate(userForm.Name, validation.Required, validation.Length(3, 30)),
+			"location": validation.Validate(userForm.Location),
+			"photo":    validation.Validate(userForm.Photo),
+		}.Filter()
+		/* if err = validation.Errors{...}.Filter(); err != nil {
+			...
+		} why?
+		*/
+		if err != nil {
+			log.Warnf("for POST to create user without validation.Errors: `%v`", err)
+			middleware.SetFlashError(c, err.Error())
 
-		// user = &selectUser.User{
-		// 	Role:     userForm.Role,
-		// 	Username: userForm.Username,
-		// 	Email:    userForm.Email,
-		// 	Password: hash,
-		// 	Name:     userForm.Name,
-		// 	Location: userForm.Location,
-		// 	Photo:    userForm.Photo,
-		// }
+			log.Warn("END request method POST for create user: [-]failure")
+			// HTTP response status: 400 Bad Request
+			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
+				"name":            "User Add",
+				"nav":             "user Add", // (?)
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"csrf":            c.Get("csrf"),
+				"locations":       locations,
+				"is_new":          true,
+			})
+		}
 
-		// if _, err := ctrl.userService.Create(ic, user); err != nil {
-		// 	log.WithField("user_failure", user).Warn("for POST to create user without models.User: nil")
-		// 	middleware.SetFlashError(c, err.Error())
+		// Password Hash
+		var hash string
+		hash, err = ctrl.authService.PasswordHash(userForm.Password)
+		if err != nil {
+			log.Warnf("for POST to create user without middleware.PasswordHash error: `%v`", err)
+			log.Warn("END request method POST for create user: [-]failure")
+			return c.JSON(http.StatusBadRequest, helpers.Response{
+				Code:   http.StatusBadRequest,
+				Status: "Bad Request",
+				Data:   err.Error(),
+			})
+		}
 
-		// 	log.Warn("END request method POST for create user: [-]failure")
-		// 	// HTTP response status: 400 Bad Request
-		// 	return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
-		// 		"name":             "User Add",
-		// 		"nav":              "user Add", // (?)
-		// 		"session_username": username,
-		// 		"session_role":     role,
-		// 		"csrf":             c.Get("csrf"),
-		// 		"flash_error":      middleware.GetFlashError(c),
-		// 		"locations":        locations,
-		// 		"is_new":           true,
-		// 	})
-		// }
+		user = &selectUser.User{
+			Role:     userForm.Role,
+			Username: userForm.Username,
+			Email:    userForm.Email,
+			Password: hash,
+			Name:     userForm.Name,
+			Location: userForm.Location,
+			Photo:    userForm.Photo,
+		}
 
-		// log.WithField("user_success", user).Info("models.User: [+]success")
-		// middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
-		// // create user
-		// if role == "anonymous" {
-		// 	if _, err := middleware.SetSession(user, c); err != nil {
-		// 		middleware.SetFlashError(c, err.Error())
-		// 		log.Warn("to middleware.SetSession session not found for create user")
-		// 		log.Warn("END request method POST for create user: [-]failure")
-		// 		// err: session not found
-		// 		return c.JSON(http.StatusForbidden, echo.Map{
-		// 			"message": err.Error(),
-		// 		})
-		// 	}
-		// 	log.Info("END request method POST for create user: [+]success")
-		// 	return c.Redirect(http.StatusMovedPermanently, "/")
-		// }
-		// log.Info("END request method POST for create user: [+]success")
-		// // create admin
-		// return c.Redirect(http.StatusMovedPermanently, "/users")
+		if _, err := ctrl.userService.Create(ic, user); err != nil {
+			log.WithField("user_failure", user).Warn("for POST to create user without models.User: nil")
+			middleware.SetFlashError(c, err.Error())
+
+			log.Warn("END request method POST for create user: [-]failure")
+			// HTTP response status: 400 Bad Request
+			return c.Render(http.StatusBadRequest, "users/user-add.html", echo.Map{
+				"name":            "User Add",
+				"nav":             "user Add", // (?)
+				"claims_username": username,
+				"claims_role":     role,
+				"csrf":            c.Get("csrf"),
+				"flash_error":     middleware.GetFlashError(c),
+				"locations":       locations,
+				"is_new":          true,
+			})
+		}
+
+		log.WithField("user_success", user).Info("models.User: [+]success")
+		middleware.SetFlashSuccess(c, fmt.Sprintf("success new user: %s!", user.Username))
+		// create user
+		if role == "anonymous" {
+			if err := middleware.SetCookie(c, user, ctrl.appConfig.AppJWTAuthSign); err != nil {
+				middleware.SetFlashError(c, err.Error())
+				log.Warn("to middleware.SetSession session not found for create user")
+				log.Warn("END request method POST for create user: [-]failure")
+				// err: session not found
+				return c.JSON(http.StatusForbidden, helpers.Response{
+					Code:   http.StatusForbidden,
+					Status: "Forbidden",
+					Data:   err.Error(),
+				})
+			}
+			log.Info("END request method POST for create user: [+]success")
+			return c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		log.Info("END request method POST for create user: [+]success")
+		// create admin
+		return c.Redirect(http.StatusMovedPermanently, "/users")
 	}
 
 	log.Info("START request method GET for create user")
 	log.Info("END request method GET for create user: [+]success")
 	return c.Render(http.StatusOK, "users/user-add.html", echo.Map{
-		"name":             "User Add",
-		"nav":              "user Add", // (?)
-		"session_username": username,
-		"session_role":     role,
-		"csrf":             c.Get("csrf"),
-		"flash_error":      middleware.GetFlashError(c),
-		"locations":        locations,
-		"is_new":           true,
+		"name":            "User Add",
+		"nav":             "user Add", // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"csrf":            c.Get("csrf"),
+		"flash_error":     middleware.GetFlashError(c),
+		"locations":       locations,
+		"is_new":          true,
 	})
 }
 
@@ -385,8 +352,10 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		)
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Method Not Acceptable
-		return c.JSON(http.StatusNotAcceptable, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotAcceptable, helpers.Response{
+			Code:   http.StatusNotAcceptable,
+			Status: "Not Acceptable",
+			Data:   err.Error(),
 		})
 	}
 
@@ -395,22 +364,24 @@ func (ctrl *Controller) ReadUser(c echo.Context) error {
 		log.Warnf("for GET to read user without models.location{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for read user: [-]failure")
 		// HTTP response status: 406 Not Acceptable
-		return c.JSON(http.StatusNotAcceptable, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotAcceptable, helpers.Response{
+			Code:   http.StatusNotAcceptable,
+			Status: "Not Acceptable",
+			Data:   err.Error(),
 		})
 	}
 
 	log.Info("END request method GET for read user: [+]success")
 	return c.Render(http.StatusOK, "users/user-read.html", echo.Map{
-		"name":             fmt.Sprintf("User: %s", user.Name),
-		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
-		"session_username": username,
-		"session_role":     role,
-		"flash_success":    middleware.GetFlashSuccess(c),
-		"flash_error":      middleware.GetFlashError(c),
-		"user":             user,
-		"locations":        locations,
-		"is_read":          true,
+		"name":            fmt.Sprintf("User: %s", user.Name),
+		"nav":             fmt.Sprintf("User: %s", user.Name), // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"flash_success":   middleware.GetFlashSuccess(c),
+		"flash_error":     middleware.GetFlashError(c),
+		"user":            user,
+		"locations":       locations,
+		"is_read":         true,
 	})
 }
 
@@ -450,8 +421,10 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -465,12 +438,13 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			(user.Username != username),
 		)
 		log.Warn("END request method GET for update user: [-]failure")
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "Forbidden",
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
 		})
 	}
 
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		log.Info("START request method POST for update user")
 
 		var location uint
@@ -480,8 +454,10 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 				log.Warnf("for POST to create user without location64 strconv.ParseUint() to error `%v`", err)
 				log.Warn("END request method POST for create user: [-]failure")
 				// HTTP response status: 400 Bad Request
-				return c.JSON(http.StatusBadRequest, echo.Map{
-					"message": err.Error(),
+				return c.JSON(http.StatusBadRequest, helpers.Response{
+					Code:   http.StatusBadRequest,
+					Status: "Bad Request",
+					Data:   err.Error(),
 				})
 			}
 			// Location or District?
@@ -494,8 +470,16 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			Email:    c.FormValue("email"),
 			Name:     c.FormValue("name"),
 			Location: location,
-			Photo:    c.FormValue("photo"),
 		}
+
+		// file, errJSON := selectHelpers.UploadPhoto(c, updateUser.Username, true)
+		// if errJSON != nil {
+		// 	return errJSON
+		// }
+
+		// if file != nil {
+		// 	updateUser.Photo = file.Filename
+		// }
 
 		// newUser, err = ctrl.userService.Update(ic, user, updateUser); err != nil: equal
 		if user, err = ctrl.userService.Update(ic, user, updateUser); err != nil {
@@ -508,14 +492,14 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 			locations, _ := locationModules.NewDB().FindAll(ic)
 			// HTTP response status: 406 Method Not Acceptable
 			return c.Render(http.StatusNotAcceptable, "users/user-view.html", echo.Map{
-				"name":             fmt.Sprintf("User: %s", user.Name),
-				"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
-				"session_username": username,
-				"session_role":     role,
-				"flash_error":      middleware.GetFlashError(c),
-				"csrf":             c.Get("csrf"),
-				"user":             user,
-				"locations":        locations,
+				"name":            fmt.Sprintf("User: %s", user.Name),
+				"nav":             fmt.Sprintf("User: %s", user.Name), // (?)
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"csrf":            c.Get("csrf"),
+				"user":            user,
+				"locations":       locations,
 			})
 		}
 
@@ -539,21 +523,23 @@ func (ctrl *Controller) UpdateUser(c echo.Context) error {
 		log.Warnf("for GET to update user without models.location{}.FindAll() errors: `%v`", err)
 		log.Warn("END request method GET for update user: [-]failure")
 		// HTTP response status: 405 Method Not Allowed
-		return c.JSON(http.StatusNotAcceptable, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotAcceptable, helpers.Response{
+			Code:   http.StatusNotAcceptable,
+			Status: "Not Acceptable",
+			Data:   err.Error(),
 		})
 	}
 
 	log.Info("END request method GET for update user: [+]success")
 	return c.Render(http.StatusOK, "users/user-view.html", echo.Map{
-		"name":             fmt.Sprintf("User: %s", user.Name),
-		"nav":              fmt.Sprintf("User: %s", user.Name), // (?)
-		"session_username": username,
-		"session_role":     role,
-		"flash_error":      middleware.GetFlashError(c),
-		"csrf":             c.Get("csrf"),
-		"user":             user,
-		"locations":        locations,
+		"name":            fmt.Sprintf("User: %s", user.Name),
+		"nav":             fmt.Sprintf("User: %s", user.Name), // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"flash_error":     middleware.GetFlashError(c),
+		"csrf":            c.Get("csrf"),
+		"user":            user,
+		"locations":       locations,
 	})
 }
 
@@ -594,8 +580,10 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -614,12 +602,14 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		)
 		log.Warn("END request method GET for update user by password: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 
-	if c.Request().Method == "POST" {
+	if c.Request().Method == http.MethodPost {
 		// newPasswordForm: type of a password user
 		_newPasswordForm := types.NewPasswordForm{
 			OldPassword:        c.FormValue("old_password"),
@@ -632,12 +622,12 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			middleware.SetFlashError(c, "check hash password is wrong!")
 			log.Warn("END request method POST for update user by password: [-]failure")
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
-				"name":             fmt.Sprintf("User: %s", user.Name),
-				"session_username": username,
-				"session_role":     role,
-				"flash_error":      middleware.GetFlashError(c),
-				"user":             user,
-				"is_html_only":     true,
+				"name":            fmt.Sprintf("User: %s", user.Name),
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"user":            user,
+				"is_html_only":    true,
 			})
 		}
 
@@ -660,12 +650,12 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			// 	"message": "Passwords Don't Match",
 			// })
 			return c.Render(http.StatusForbidden, "user-view-password.html", echo.Map{
-				"name":             fmt.Sprintf("User: %s", user.Name),
-				"session_username": username,
-				"session_role":     role,
-				"flash_error":      middleware.GetFlashError(c),
-				"user":             user,
-				"is_html_only":     true,
+				"name":            fmt.Sprintf("User: %s", user.Name),
+				"claims_username": username,
+				"claims_role":     role,
+				"flash_error":     middleware.GetFlashError(c),
+				"user":            user,
+				"is_html_only":    true,
 			})
 		}
 
@@ -674,7 +664,11 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		if err != nil {
 			log.Warnf("for POST to update user by password without middleware.PasswordHash() errors: `%v`", err)
 			log.Warn("END request method POST for update user by password: [-]failure")
-			return err
+			return c.JSON(http.StatusNotAcceptable, helpers.Response{
+				Code:   http.StatusNotAcceptable,
+				Status: "Not Acceptable",
+				Data:   err.Error(),
+			})
 		}
 
 		// err := ctrl.userService.UpdateByIDandPassword(...): be able
@@ -682,8 +676,10 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 			log.Warnf("for POST to update user by password without models.User{}.UpdateByIDandPassword() errors: `%v`", err)
 			log.Warn("END request method POST for update user by password: [-]failure")
 			// HTTP response status: 405 Method Not Allowed
-			return c.JSON(http.StatusNotAcceptable, echo.Map{
-				"message": err.Error(),
+			return c.JSON(http.StatusNotAcceptable, helpers.Response{
+				Code:   http.StatusNotAcceptable,
+				Status: "Not Acceptable",
+				Data:   err.Error(),
 			})
 		}
 
@@ -712,12 +708,12 @@ func (ctrl *Controller) UpdateUserByPassword(c echo.Context) error {
 		name (string): "user-view-password.html" -> yes
 	*/
 	return c.Render(http.StatusOK, "user-view-password.html", echo.Map{
-		"session_username": username,
-		"session_role":     role,
-		"csrf":             c.Get("csrf"),
-		"name":             fmt.Sprintf("User: %s", user.Name),
-		"user":             user,
-		"is_html_only":     true,
+		"claims_username": username,
+		"claims_role":     role,
+		"csrf":            c.Get("csrf"),
+		"name":            fmt.Sprintf("User: %s", user.Name),
+		"user":            user,
+		"is_html_only":    true,
 	})
 }
 
@@ -750,8 +746,9 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 	if uid == 1 {
 		log.Warn("END request method GET for delete user [admin]: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "Forbidden",
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
 		})
 	}
 
@@ -764,8 +761,10 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		log.Warnf("for GET to delete user without models.User{}.FirstByID() errors: `%v`", err)
 		log.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 404 Not Found
-		return c.JSON(http.StatusNotFound, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusNotFound, helpers.Response{
+			Code:   http.StatusNotFound,
+			Status: "Not Found",
+			Data:   err.Error(),
 		})
 	}
 
@@ -788,8 +787,10 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 			)
 			log.Warn("END request method GET for delete user: [-]failure")
 			// HTTP response status: 403 Forbidden
-			return c.JSON(http.StatusForbidden, echo.Map{
-				"message": err.Error(),
+			return c.JSON(http.StatusForbidden, helpers.Response{
+				Code:   http.StatusForbidden,
+				Status: "Forbidden",
+				Data:   err.Error(),
 			})
 		}
 	}
@@ -798,21 +799,17 @@ func (ctrl *Controller) DeleteUser(c echo.Context) error {
 		log.Warnf("for GET to delete user without models.User{}.Delete() errors: `%v`", err)
 		log.Warn("END request method GET for delete user: [-]failure")
 		// HTTP response status: 403 Forbidden
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": err.Error(),
+		return c.JSON(http.StatusForbidden, helpers.Response{
+			Code:   http.StatusForbidden,
+			Status: "Forbidden",
+			Data:   err.Error(),
 		})
 	}
 
 	middleware.SetFlashSuccess(c, fmt.Sprintf("success delete user: %s!", user.Username))
 	if role == "user" {
 		log.Info("END [user] request method GET for delete user: [+]success")
-		if err := middleware.ClearSession(c); err != nil {
-			log.Warn("to middleware.ClearSession session not found")
-			// err: session not found
-			return c.JSON(http.StatusBadRequest, echo.Map{
-				"message": err.Error(),
-			})
-		}
+		middleware.ClearCookie(c)
 		// delete user
 		return c.Redirect(http.StatusSeeOther, "/")
 	}

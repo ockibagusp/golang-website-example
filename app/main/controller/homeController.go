@@ -34,15 +34,15 @@ func (ctrl *Controller) Home(c echo.Context) error {
 
 	log.Info("START request method GET for home")
 
-	id, _ := c.Get("id").(uint)
+	uid, _ := c.Get("uid").(uint)
 	username, _ := c.Get("username").(string)
 	role, _ := c.Get("role").(string)
 
 	var message string
-	if id != 0 {
-		user, err := ctrl.userService.FindByID(business.InternalContext{}, id)
+	if uid != 0 {
+		user, err := ctrl.userService.FindByID(business.InternalContext{}, uid)
 		if err != nil {
-			log.Warnf(`session values "username" error: %v`, err)
+			log.Warnf(`claims values "username" error: %v`, err)
 		}
 
 		message = fmt.Sprintf("%v!", user.Name)
@@ -50,11 +50,11 @@ func (ctrl *Controller) Home(c echo.Context) error {
 
 	log.Info("END request method GET for home: [+]success")
 	return c.Render(http.StatusOK, "home.html", echo.Map{
-		"name":             "Home",
-		"nav":              "home", // (?)
-		"session_username": username,
-		"session_role":     role,
-		"flash_success":    middleware.GetFlashSuccess(c),
-		"message":          message,
+		"name":            "Home",
+		"nav":             "home", // (?)
+		"claims_username": username,
+		"claims_role":     role,
+		"flash_success":   middleware.GetFlashSuccess(c),
+		"message":         message,
 	})
 }

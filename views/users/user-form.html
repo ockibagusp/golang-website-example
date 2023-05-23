@@ -10,7 +10,7 @@
       <label for="role">Role</label>
       <select id="role" name="role" class="form-control" {{if.is_read}}disabled{{end}}>
         <option value="user" {{if eq .user.Role "user"}}selected{{end}}>User</option>
-        {{if eq .session_role "admin"}}
+        {{if eq .claims_role "admin"}}
         <option value="admin" {{if eq .user.Role "admin"}}selected{{end}}>Admin</option>
         {{end}}
       </select>
@@ -18,28 +18,28 @@
     <div class="form-group col-md-12">
       <label for="username">Username</label>
       <input id="username" type="text" class="form-control" name="username" minlength="4" maxlength="15"
-        value="{{if not .is_new}}{{.user.Username}}{{end}}" placeholder="Username" required
+        value="{{if not .is_new}}{{.user.Username}}{{end}}" placeholder="Username"
         {{if.is_new}}autofocus{{end}} {{if.is_read}}disabled{{end}} />
     </div>
     <div class="form-group col-md-12">
       <label for="name">Name</label>
       <input id="name" type="text" class="form-control" name="name" value="{{if not .is_new}}{{.user.Name}}{{end}}"
-        placeholder="Name" required {{if.is_read}}disabled{{end}} />
+        placeholder="Name" {{if.is_read}}disabled{{end}} />
     </div>
     <div class="form-group col-md-6">
       <label for="email">Email</label>
       <input id="email" type="email" class="form-control" name="email" value="{{if not .is_new}}{{.user.Email}}{{end}}"
-        placeholder="Email" required {{if.is_read}}disabled{{end}} />
+        placeholder="Email" {{if.is_read}}disabled{{end}} />
     </div>
     <div class="form-group col-md-6">
       <label for="password">Password</label>
       {{if .is_new}}
       <input id="password" type="password" class="form-control" name="password" value="" placeholder="Password"
-        required />
+       />
       <div class="form-group">
         <label for="confirm_password">Confirm Password</label>
         <input id="confirm_password" type="password" class="form-control" name="confirm_password" value=""
-          placeholder="Confirm Password" required />
+          placeholder="Confirm Password" />
         {{else}}
         <a class="btn btn-outline-secondary btn-block {{if.is_read}}disabled{{end}}"
           {{if not .is_read}}href="/users/view/{{.user.ID}}/password"{{end}} role="button">Link</a>
@@ -63,7 +63,8 @@
     </div>
     <div class="form-group col-md-6">
       <label for="photo">Photo</label>
-      <input id="file" type="file" name="photo" {{if.is_read}}disabled{{end}} />
+      <!-- input image accept -->
+      <input id="photo" class="form-control" type="file" name="photo" accept="image/jpeg,image/png" {{if.is_read}}disabled{{end}} />
     </div>
   </div>
   <a href="/users" class="btn btn-sm btn-primary">&lt;--</a>
