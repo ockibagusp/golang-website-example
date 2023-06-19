@@ -1,6 +1,6 @@
 package user
 
-import "github.com/ockibagusp/golang-website-example/business"
+import "golang-website-example/business"
 
 type Repository interface {
 	FindAll(ic business.InternalContext, role ...string) (selectedUsers *[]User, err error)

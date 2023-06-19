@@ -1,10 +1,11 @@
 package middleware
 
 import (
+	"golang-website-example/config"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/config"
 )
 
 var sessionsCookieStore = config.GetAPPConfig().SessionsCookieStore

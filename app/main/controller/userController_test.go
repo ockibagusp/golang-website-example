@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"testing"
 
+	"golang-website-example/app/main/types"
+	"golang-website-example/business/auth"
+
 	"github.com/gavv/httpexpect/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/types"
-	"github.com/ockibagusp/golang-website-example/business/auth"
 	"github.com/stretchr/testify/assert"
 )
 

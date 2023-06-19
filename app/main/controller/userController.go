@@ -5,18 +5,19 @@ import (
 	"net/http"
 	"strconv"
 
+	"golang-website-example/app/main/helpers"
+	"golang-website-example/app/main/middleware"
+	selectTemplate "golang-website-example/app/main/template"
+	"golang-website-example/app/main/types"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/helpers"
-	"github.com/ockibagusp/golang-website-example/app/main/middleware"
-	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
-	"github.com/ockibagusp/golang-website-example/app/main/types"
 
-	"github.com/ockibagusp/golang-website-example/business"
-	selectUser "github.com/ockibagusp/golang-website-example/business/user"
-	log "github.com/ockibagusp/golang-website-example/logger"
-	locationModules "github.com/ockibagusp/golang-website-example/modules/location"
+	"golang-website-example/business"
+	selectUser "golang-website-example/business/user"
+	log "golang-website-example/logger"
+	locationModules "golang-website-example/modules/location"
 )
 
 var uclogger = log.NewPackage("user_controller")

@@ -3,13 +3,14 @@ package controller
 import (
 	"net/http"
 
+	"golang-website-example/app/main/helpers"
+	"golang-website-example/app/main/middleware"
+	selectTemplate "golang-website-example/app/main/template"
+	"golang-website-example/app/main/types"
+	"golang-website-example/business"
+	log "golang-website-example/logger"
+
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/helpers"
-	"github.com/ockibagusp/golang-website-example/app/main/middleware"
-	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
-	"github.com/ockibagusp/golang-website-example/app/main/types"
-	"github.com/ockibagusp/golang-website-example/business"
-	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
 var aulogger = log.NewPackage("auth_controller")

@@ -3,9 +3,10 @@ package auth
 import (
 	"time"
 
+	"golang-website-example/business"
+	"golang-website-example/business/user"
+
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/ockibagusp/golang-website-example/business"
-	"github.com/ockibagusp/golang-website-example/business/user"
 	"golang.org/x/crypto/bcrypt"
 )
 

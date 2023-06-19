@@ -3,9 +3,10 @@ package controller
 import (
 	"net/http"
 
+	selectTemplate "golang-website-example/app/main/template"
+	log "golang-website-example/logger"
+
 	"github.com/labstack/echo/v4"
-	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
-	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
 var alogger = log.NewLogger()

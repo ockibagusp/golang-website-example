@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"github.com/ockibagusp/golang-website-example/business/auth"
-	"github.com/ockibagusp/golang-website-example/business/user"
-	"github.com/ockibagusp/golang-website-example/config"
+	"golang-website-example/business/auth"
+	"golang-website-example/business/user"
+	"golang-website-example/config"
 )
 
 type Controller struct {

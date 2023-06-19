@@ -1,8 +1,9 @@
 package router
 
 import (
+	"golang-website-example/app/main/controller"
+
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/controller"
 )
 
 func SetAdminRoutes(router *echo.Echo, controller *controller.Controller, jwtAuthMiddleware echo.MiddlewareFunc) (admin *echo.Group) {

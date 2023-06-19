@@ -8,12 +8,13 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/ockibagusp/golang-website-example/app/main/controller"
-	"github.com/ockibagusp/golang-website-example/app/main/router"
-	"github.com/ockibagusp/golang-website-example/business/auth"
-	"github.com/ockibagusp/golang-website-example/business/user"
-	"github.com/ockibagusp/golang-website-example/config"
-	userModule "github.com/ockibagusp/golang-website-example/modules/user"
+	"golang-website-example/app/main/controller"
+	"golang-website-example/app/main/router"
+	"golang-website-example/business/auth"
+	"golang-website-example/business/user"
+	"golang-website-example/config"
+	userModule "golang-website-example/modules/user"
+
 	"gorm.io/gorm"
 )
 

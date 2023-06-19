@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/ockibagusp/golang-website-example/app/main/middleware"
+	. "golang-website-example/app/main/middleware"
 )
 
 func TestSessionFlashSuccessSuccess(t *testing.T) {

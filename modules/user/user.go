@@ -3,8 +3,8 @@ package user
 import (
 	"errors"
 
-	"github.com/ockibagusp/golang-website-example/business"
-	"github.com/ockibagusp/golang-website-example/business/user"
+	"golang-website-example/business"
+	"golang-website-example/business/user"
 
 	"gorm.io/gorm"
 )

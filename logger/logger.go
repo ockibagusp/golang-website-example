@@ -7,9 +7,10 @@ import (
 	"runtime"
 	"strings"
 
+	"golang-website-example/config"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/config"
 	"github.com/sirupsen/logrus"
 )
 

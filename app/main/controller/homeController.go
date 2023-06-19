@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"golang-website-example/app/main/middleware"
+	selectTemplate "golang-website-example/app/main/template"
+	"golang-website-example/business"
+	log "golang-website-example/logger"
+
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/middleware"
-	selectTemplate "github.com/ockibagusp/golang-website-example/app/main/template"
-	"github.com/ockibagusp/golang-website-example/business"
-	log "github.com/ockibagusp/golang-website-example/logger"
 )
 
 var hlogger = log.NewLogger()

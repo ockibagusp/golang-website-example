@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ockibagusp/golang-website-example/business/auth"
+	"golang-website-example/business/auth"
+
+	"golang-website-example/app/main/helpers"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/helpers"
 )
 
 func JwtAuthMiddleware(secret string) echo.MiddlewareFunc {

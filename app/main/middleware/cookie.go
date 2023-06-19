@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"golang-website-example/business/auth"
+	selectUser "golang-website-example/business/user"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/business/auth"
-	selectUser "github.com/ockibagusp/golang-website-example/business/user"
 )
 
 // SetCookieNoAuth: set cookie from User: anonymous

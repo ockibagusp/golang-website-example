@@ -3,7 +3,7 @@ package user
 import (
 	"encoding/json"
 
-	"github.com/ockibagusp/golang-website-example/business"
+	"golang-website-example/business"
 )
 
 type (

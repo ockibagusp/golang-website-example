@@ -3,9 +3,10 @@ package location
 import (
 	"errors"
 
-	"github.com/ockibagusp/golang-website-example/business"
-	selectedLocation "github.com/ockibagusp/golang-website-example/business/location"
-	"github.com/ockibagusp/golang-website-example/config"
+	"golang-website-example/business"
+	selectedLocation "golang-website-example/business/location"
+	"golang-website-example/config"
+
 	"gorm.io/gorm"
 )
 

@@ -7,9 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"golang-website-example/app/main/template"
+	"golang-website-example/app/main/types"
+
 	"github.com/labstack/echo/v4"
-	"github.com/ockibagusp/golang-website-example/app/main/template"
-	"github.com/ockibagusp/golang-website-example/app/main/types"
 	"github.com/stretchr/testify/assert"
 )
 

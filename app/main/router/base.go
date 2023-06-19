@@ -4,10 +4,10 @@ import (
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
-	"github.com/ockibagusp/golang-website-example/app/main/controller"
-	"github.com/ockibagusp/golang-website-example/app/main/middleware"
-	"github.com/ockibagusp/golang-website-example/app/main/template"
-	"github.com/ockibagusp/golang-website-example/config"
+	"golang-website-example/app/main/controller"
+	"golang-website-example/app/main/middleware"
+	"golang-website-example/app/main/template"
+	"golang-website-example/config"
 )
 
 func RegisterPath(

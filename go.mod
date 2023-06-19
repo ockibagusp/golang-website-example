@@ -1,4 +1,4 @@
-module github.com/ockibagusp/golang-website-example
+module golang-website-example
 
 go 1.18
 
